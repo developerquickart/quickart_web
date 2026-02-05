@@ -1,0 +1,209 @@
+<?php echo $__env->make('header', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?>
+
+<section class="shop-list section-padding">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="section-header">
+                <h5 class="heading-design-h5">Repeat Orders</h5>
+            </div>
+            <?php if(isset($productList['data']) && count($productList['data']) > 0): ?>
+            <div class="product_list_box">
+                <?php $__currentLoopData = $productList['data']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $product): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <?php if(!$product['stock'] == 0): ?>
+                <div class="all_product_list">
+                    <div class="product" data-productDetail='<?php echo json_encode($product, 15, 512) ?>'data-product-id="<?php echo e(trim($product['product_id'])); ?>">
+                        <div class="product_header">
+                            <div class="product_top_left">
+                                <?php if($product['discountper'] > 0): ?>
+                                <div class="discount_text">
+                                    <?php echo e(number_format($product['discountper'], 0)); ?>%<span>Off</span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <a href="<?php echo e(ENV('APP_URL')); ?>product-details/<?php echo e(Str::slug($product['product_name'])); ?>/<?php echo e($product['product_id']); ?>">
+                            <div class="product-img">
+                                <img class="img-fluid" src="<?php echo e($product['varient_image']); ?>" alt="">
+                            </div>
+                            <div class="product_featured_cat_icon_list">
+                                <div class="product_featured_cat_icon">
+                                    <?php $__currentLoopData = $product['feature_tags']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tags): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <img class="img-fluid" src="<?php echo e(trim($tags['image'])); ?>" alt="Product">
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </div>
+                            </div>
+                            <div class="product-body">
+                                <div class="product_name"><?php echo e($product['product_name']); ?></div>
+                            </div>
+                        </a>
+                        <div class="product_weight" style="display: flex; align-items: center; gap: 8px;">
+                            <span>
+                                <?php echo e(trim($product['varients'][0]['quantity'] ?? '')); ?> <?php echo e(trim($product['varients'][0]['unit'] ?? '')); ?>
+
+                            </span>
+                            <?php if(isset($product['varients']) && count($product['varients']) > 1): ?>
+                            <div class="change-qty" data-productDetail='<?php echo json_encode($product, 15, 512) ?>'data-product-id="<?php echo e(trim($product['product_id'])); ?>">
+                                <span style="color: #2e317e; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+                                    <?php echo e(count($product['varients'])); ?> options
+                                    <img class="varient-down-arrow" src="<?php echo e(asset('assets/images/chevron.svg')); ?>" alt="down-arrow" style="width: 12px; height: 12px;">
+                                </span>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="order_repeat_count">Ordered <span><?php echo e($product['ordercount']); ?></span>
+                            times</div>
+                        <div class="product-footer">
+                            <div class="product_detail">
+                                <?php if($product['varients'][0]['price'] == $product['varients'][0]['mrp']): ?>
+                                <p class="offer-price">AED <?php echo e(number_format($product['varients'][0]['price'], 2)); ?></p>
+                                <?php else: ?>
+                                <p class="offer-price">AED <?php echo e(number_format($product['varients'][0]['price'], 2)); ?><br><span
+                                        class="regular-price">AED
+                                        <?php echo e(number_format($product['varients'][0]['mrp'], 2)); ?></span></p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="cart_btn" data-product-id="<?php echo e(trim($product['product_id'])); ?>" data-productdetail='<?php echo json_encode($product, 15, 512) ?>'>
+                                <div class="qtyBox"
+                                    data-varient-id="<?php echo e(trim($product['varient_id'])); ?>">
+                                    <button class="qty-btn qty-btn-minus change-qty" type="button"
+                                        data-productDetail='<?php echo json_encode($product, 15, 512) ?>'
+                                        data-change="-1">-</button>
+                                    <input type="text" name="qty"
+                                        value="<?php echo e(trim($product['total_cart_qty'])); ?>" id="totalCartQTY"
+                                        class="input-qty input-rounded" min="0">
+                                    <input type="hidden" name="stock" id="stock"
+                                        value="<?php echo e(trim($product['stock'])); ?>">
+                                    <button class="qty-btn qty-btn-plus change-qty" type="button"
+                                        data-productDetail='<?php echo json_encode($product, 15, 512) ?>'
+                                        data-change="1">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php else: ?>
+                <div class="all_product_list">
+                    <div class="item">
+                        <div class="product">
+                            <div class="product_header">
+                                <div class="product_top_left">
+                                    <?php if($product['discountper'] > 0): ?>
+                                    <div class="discount_text">
+                                        <?php echo e(number_format($product['discountper'], 0)); ?>%<span>Off</span>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="product_top_right">
+
+                                    <div class="product_wishlist">
+                                        <?php if($product['notify_me'] == 'false'): ?>
+                                        <a href="javascript:void(0);" class="notify-me" data-notified="0"
+                                            data-varient-id="<?php echo e($product['varient_id']); ?>"
+                                            data-product-id="<?php echo e($product['product_id']); ?>">
+                                            <img class="notify-icon"
+                                                src="<?php echo e(asset('assets/images/notification.png')); ?>" alt="wishlist"
+                                                style="max-width: 25px;">
+                                        </a>
+                                        <?php else: ?>
+                                        <a href="<?php echo e(ENV('APP_URL')); ?>notify" data-notified="1">
+                                            <img id="notifyMe-<?php echo e($product['varient_id']); ?>"
+                                                src="<?php echo e(asset('assets/images/notification-fill.png')); ?>"
+                                                alt="wishlist" style="max-width: 25px;">
+                                        </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="<?php echo e(ENV('APP_URL')); ?>product-details/<?php echo e(Str::slug($product['product_name'])); ?>/<?php echo e($product['product_id']); ?>">
+                                <div class="product-img">
+                                    <img class="img-fluid" src="<?php echo e($product['varient_image']); ?>" alt="product">
+                                </div>
+                            </a>
+                            <div class="product_featured_cat_icon_list">
+                                <div class="product_featured_cat_icon">
+                                    <?php $__currentLoopData = $product['feature_tags']; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $tags): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                    <img class="img-fluid" src="<?php echo e(trim($tags['image'])); ?>" alt="Product">
+                                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                                </div>
+                            </div>
+                            <div class="product-body notify_box">
+                                <div class="product-body">
+                                    <div class="product_name"><?php echo e($product['product_name']); ?></div>
+                                    <div class="product_weight"><span><?php echo e($product['qty']); ?>
+
+                                            <?php echo e($product['unit']); ?></span></div>
+                                    <div class="order_repeat_count">Ordered <span><?php echo e($product['ordercount']); ?></span>
+                                        times</div>
+                                </div>
+                                <div class="product_unavailable">
+                                    <div class="product_unavailable_title">Product Unavailable</div>
+                                    <?php if($product['notify_me'] == "true"): ?>
+                                    <p>You will be notified.</p>
+                                    <?php else: ?>
+                                    <p>Click on the bell to get notified.</p>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <?php endif; ?>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+            <?php else: ?>
+            <div class="shop-list section-padding">
+                <div class="container">
+                    <div class="row align-items-center justify-content-center">
+                        <div class="col-lg-6">
+                            <div class="data_not_available">
+                                <div class="imageBox">
+                                    <img src="<?php echo e(asset('assets/images/No_product_available.png')); ?>" alt="empty cart"
+                                        class="img-fluid">
+                                </div>
+                                <div class="textBox text-center">
+                                    <a href="<?php echo e(url('/')); ?>" class="my-4 d-block">
+                                        <div class="cancel_btn">Let's Shop</div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</section>
+<!-- ONCLICK CART BOX START -->
+<div class="cart_flating_btn" onclick="toggleOrderBox(event)">
+    <small class="cart-value">0</small> <!-- This will be updated dynamically -->
+    <img src="<?php echo e(asset('assets/images/grocery-store.svg')); ?>" alt="">
+</div>
+<div class="order_placeBox" id="orderBox" style="display: none;">
+    <div class="row align-items-center">
+        <div class="col-12">
+            <div class="freeDeliverytext">Congratulations! You've got <span>FREE DELIVERY</span></div>
+            <div class="countText">0 items | AED 0</div> <!-- This will be updated -->
+            <div class="saveText">You have saved <span>AED 0</span> on your order</div> <!-- This will be updated -->
+        </div>
+    </div>
+</div>
+<!-- ONCLICK CART BOX END -->
+
+<script>
+function toggleOrderBox(event) {
+    event.stopPropagation();
+    const orderBox = document.getElementById('orderBox');
+    orderBox.style.display = orderBox.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(event) {
+    const orderBox = document.getElementById('orderBox');
+    const cartButton = document.querySelector('.cart_flating_btn');
+
+    if (!orderBox.contains(event.target) && !cartButton.contains(event.target)) {
+        orderBox.style.display = 'none';
+    }
+});
+</script>
+
+<?php echo $__env->make('footer', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH /home/demoquickart2/public_html/quickart_web/resources/views/repeat-orders.blade.php ENDPATH**/ ?>
