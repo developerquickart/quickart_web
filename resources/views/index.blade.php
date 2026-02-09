@@ -99,7 +99,10 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
     
     $response = $client->post($nodeappUrl . 'oneapi', [
         'json' => [
-            'user_id' => '',
+            'store_id' => 7,
+            'user_id' => !empty(session()->get('user_id')) ? session()->get('user_id') : 2,
+            'is_subscription' => 1,
+            'device_id' => ""
         ]
     ]);
     
