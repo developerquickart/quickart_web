@@ -544,10 +544,15 @@ class AuthController extends Controller
         $isInRange = filter_var($nearestStore->in_range, FILTER_VALIDATE_BOOLEAN);
 
         if (!$isInRange) {
+            $alreadyWaitlisted = DB::table('zap_wishlist')
+                ->where('user_id', (int) $pendingUser['id'])
+                ->exists();
+
             return response()->json([
                 'success' => true,
                 'in_range' => false,
                 'message' => 'You are out of range, please join wishlist',
+                'already_waitlisted' => $alreadyWaitlisted,
                 'distance_meters' => (float) $nearestStore->distance_meters,
                 'store_name' => $nearestStore->name,
             ]);
@@ -566,6 +571,35 @@ class AuthController extends Controller
             'message' => 'Location verified. Login successful.',
             'distance_meters' => (float) $nearestStore->distance_meters,
             'store_name' => $nearestStore->name,
+        ]);
+    }
+
+    public function joinWaitlist(Request $request)
+    {
+        $pendingUser = $request->session()->get('pending_login_user');
+        if (empty($pendingUser) || empty($pendingUser['id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session expired. Please verify OTP again.',
+            ], 422);
+        }
+
+        $userId = (int) $pendingUser['id'];
+
+        $existing = DB::table('zap_wishlist')
+            ->where('user_id', $userId)
+            ->first();
+
+        if (!$existing) {
+            DB::table('zap_wishlist')->insert([
+                'user_id' => $userId,
+                'created_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'You have been added to the waitlist.',
         ]);
     }
 

@@ -276,7 +276,10 @@
                                                 </button>
                                             </div>
                                             <div class="out_of_range_box alert alert-warning mt-3 d-none">
-                                                You are out of range, please join wishlist
+                                                <div class="out_of_range_message">You are currently outside our delivery area. Join the waitlist and we will notify you as soon as we start serving your location.</div>
+                                                <div class="text-center mt-2 join_waitlist_cta">
+                                                    <button type="button" class="submit_btn join_waitlist_btn">Join waitlist</button>
+                                                </div>
                                             </div>
                                             <div class="text-center mt-2">
                                                 <button type="button" class="submit_btn back_to_otp_btn">Back</button>
@@ -692,6 +695,8 @@
             selectedLoginLng = null;
             $('.location_picker_map_box').addClass('d-none');
             $('.out_of_range_box').addClass('d-none');
+            $('.join_waitlist_cta').removeClass('d-none');
+            $('.out_of_range_message').text('You are currently outside our delivery area. Join the waitlist and we will notify you as soon as we start serving your location.');
             $('.confirm_map_location_btn').prop('disabled', true);
             $('#login-location-search').val('');
             if (loginLocationMarker) {
@@ -775,11 +780,20 @@
                     if (response.success && response.in_range === true) {
                         handleSuccessfulLoginAfterLocation(response.message);
                     } else if (response.success && response.in_range === false) {
+                        if (response.already_waitlisted === true) {
+                            $('.out_of_range_message').text('You are already on our waitlist. Thank you for your interest - we will let you know as soon as delivery starts in your area.');
+                            $('.join_waitlist_cta').addClass('d-none');
+                        } else {
+                            $('.out_of_range_message').text('You are currently outside our delivery area. Join the waitlist and we will notify you as soon as we start serving your location.');
+                            $('.join_waitlist_cta').removeClass('d-none');
+                        }
                         $('.out_of_range_box').removeClass('d-none');
                         Swal.fire({
                             icon: 'warning',
                             title: 'Out of Range',
-                            text: 'You are out of range, please join wishlist'
+                            text: response.already_waitlisted === true
+                                ? 'You are already on our waitlist. We will notify you when we start delivery in your area.'
+                                : 'You are currently outside our delivery area. Join the waitlist to get notified when we start serving your location.'
                         });
                     } else {
                         Swal.fire({
@@ -1171,6 +1185,35 @@
                     return;
                 }
                 submitLoginLocationCheck(selectedLoginLat, selectedLoginLng);
+            });
+
+            $('.join_waitlist_btn').on('click', function () {
+                var _token = jQuery('meta[name="csrf-token"]').attr('content');
+                $.ajax({
+                    url: "{{ route('joinWaitlist') }}",
+                    type: 'POST',
+                    data: { _token: _token },
+                    success: function (response) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Waitlist Joined',
+                            text: response.message || 'You have been added to the waitlist.'
+                        }).then(() => {
+                            window.location.href = "{{ route('index') }}";
+                        });
+                    },
+                    error: function (xhr) {
+                        let msg = 'Unable to join waitlist. Please try again.';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            msg = xhr.responseJSON.message;
+                        }
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error Occured',
+                            text: msg
+                        });
+                    }
+                });
             });
             
         });
