@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\RequestException;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class AuthController extends Controller
@@ -86,13 +87,19 @@ class AuthController extends Controller
                 $verifyotp = json_decode($response->getBody()->getContents(), true);
 
                 if ($verifyotp['message'] == "Phone Verified! login successfully") {
-                    // return redirect()->route('index');
-                    $request->session()->put('user_id', $verifyotp['data']['id']);
-                    $request->session()->put('user_phone', $verifyotp['data']['email']);
-                    $request->session()->put('user_email', $verifyotp['data']['user_phone']);
-                    $request->session()->put('user_name', $verifyotp['data']['name']);
-                     return response()->json([
-                        'success' => true,'message'=>"Phone Verified! login successfully"]);
+                    $request->session()->put('pending_login_user', [
+                        'id' => $verifyotp['data']['id'] ?? null,
+                        'email' => $verifyotp['data']['email'] ?? null,
+                        'user_phone' => $verifyotp['data']['user_phone'] ?? null,
+                        'name' => $verifyotp['data']['name'] ?? null,
+                    ]);
+
+                    return response()->json([
+                        'success' => true,
+                        'otp_verified' => true,
+                        'requires_location_check' => true,
+                        'message' => "OTP verified. Please confirm your location to continue.",
+                    ]);
                 } else {
                     return response()->json([
                         'success' => false,'message'=>"Enter a valid OTP."]);
@@ -487,6 +494,79 @@ class AuthController extends Controller
          //   dd('Exception:', $e->getMessage(), $e->getTraceAsString());
         //   return response()->json(['res'=>false,'message'=>$e->getTraceAsString()]);
         }
+    }
+
+    public function checkLoginLocationRange(Request $request)
+    {
+        $validated = $request->validate([
+            'lat' => 'required|numeric|between:-90,90',
+            'lng' => 'required|numeric|between:-180,180',
+        ]);
+
+        $pendingUser = $request->session()->get('pending_login_user');
+        if (empty($pendingUser) || empty($pendingUser['id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Session expired. Please verify OTP again.',
+            ], 422);
+        }
+
+        $lat = (float) $validated['lat'];
+        $lng = (float) $validated['lng'];
+
+        $nearestStore = DB::selectOne(
+            "SELECT
+                id,
+                name,
+                max_delivery_distance,
+                ST_DWithin(
+                    location,
+                    ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+                    max_delivery_distance
+                ) AS in_range,
+                ST_Distance(
+                    location,
+                    ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+                ) AS distance_meters
+             FROM stores
+             ORDER BY distance_meters ASC
+             LIMIT 1",
+            [$lng, $lat, $lng, $lat]
+        );
+
+        if (!$nearestStore) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Store location is not configured.',
+            ], 500);
+        }
+
+        $isInRange = filter_var($nearestStore->in_range, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$isInRange) {
+            return response()->json([
+                'success' => true,
+                'in_range' => false,
+                'message' => 'You are out of range, please join wishlist',
+                'distance_meters' => (float) $nearestStore->distance_meters,
+                'store_name' => $nearestStore->name,
+            ]);
+        }
+
+        // Finalize login only after location gate passes.
+        $request->session()->put('user_id', $pendingUser['id']);
+        $request->session()->put('user_phone', $pendingUser['email']);
+        $request->session()->put('user_email', $pendingUser['user_phone']);
+        $request->session()->put('user_name', $pendingUser['name']);
+        $request->session()->forget('pending_login_user');
+
+        return response()->json([
+            'success' => true,
+            'in_range' => true,
+            'message' => 'Location verified. Login successful.',
+            'distance_meters' => (float) $nearestStore->distance_meters,
+            'store_name' => $nearestStore->name,
+        ]);
     }
 
 }

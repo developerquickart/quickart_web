@@ -259,6 +259,7 @@ Route::get('/loginotp/{id?}', [AuthController::class, 'loginotp'])->name('logino
 Route::post('/loginsubmit', [AuthController::class, 'loginsubmit'])->name('loginsubmit');
 Route::post('/registeruser', [AuthController::class, 'registeruser'])->name('registeruser');
 Route::post('/loginotpsubmit', [AuthController::class, 'loginotpsubmit'])->name('loginotpsubmit');
+Route::post('/check-login-location-range', [AuthController::class, 'checkLoginLocationRange'])->name('checkLoginLocationRange');
 Route::post('/resend-otp', [AuthController::class, 'resend_otp']);
 Route::post('/logout', [AuthController::class,'userLogout'])->name('userLogout');
 Route::post('/userDeactivateSubmit', [AuthController::class,'userDeactivateSubmit'])->name('userDeactivateSubmit');

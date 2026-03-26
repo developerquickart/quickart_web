@@ -254,6 +254,34 @@
                                                 </fieldset>
                                             </form>
                                         </div>
+                                        <div class="login_form_box login_step3 d-none">
+                                            <div class="login_logobox">
+                                                <img src="{{asset('assets/images/QuicKart_logo.png')}}" alt="Logo"
+                                                    class="img-fluid">
+                                            </div>
+                                            <div class="heading-design-h5 my-4">Confirm your location</div>
+                                            <p class="text-center">Please confirm your delivery location to continue login.</p>
+                                            <div class="text-center mb-3">
+                                                <button type="button" class="submit_btn use_current_location_btn">Fetch Current Location</button>
+                                            </div>
+                                            <div class="text-center mb-3">
+                                                <button type="button" class="submit_btn pick_map_location_btn">Choose Location on Map</button>
+                                            </div>
+                                            <div class="location_picker_map_box d-none">
+                                                <input type="text" class="form-control mb-2" id="login-location-search"
+                                                    placeholder="Search location">
+                                                <div id="login-location-map" style="height: 260px; width: 100%; border-radius: 8px;"></div>
+                                                <button type="button" class="submit_btn mt-2 confirm_map_location_btn" disabled>
+                                                    Confirm Selected Location
+                                                </button>
+                                            </div>
+                                            <div class="out_of_range_box alert alert-warning mt-3 d-none">
+                                                You are out of range, please join wishlist
+                                            </div>
+                                            <div class="text-center mt-2">
+                                                <button type="button" class="submit_btn back_to_otp_btn">Back</button>
+                                            </div>
+                                        </div>
                                         <div class="clearfix"></div>
                                     </div>
                                 <!-- </form> -->
@@ -653,6 +681,195 @@
         });
 
         let isTimerRunning = false;
+        let loginLocationMap = null;
+        let loginLocationMarker = null;
+        let loginLocationAutocomplete = null;
+        let selectedLoginLat = null;
+        let selectedLoginLng = null;
+
+        function resetLoginLocationStep() {
+            selectedLoginLat = null;
+            selectedLoginLng = null;
+            $('.location_picker_map_box').addClass('d-none');
+            $('.out_of_range_box').addClass('d-none');
+            $('.confirm_map_location_btn').prop('disabled', true);
+            $('#login-location-search').val('');
+            if (loginLocationMarker) {
+                loginLocationMarker.setMap(null);
+                loginLocationMarker = null;
+            }
+        }
+
+        function showLocationGateStep() {
+            $('.login_step1').addClass('d-none');
+            $('.login_step2').addClass('d-none');
+            $('.login_step3').removeClass('d-none');
+            resetLoginLocationStep();
+        }
+
+        function handleSuccessfulLoginAfterLocation(serverMessage) {
+            if (pendingProductId) {
+                if(action == 'addToCart'){
+                    localStorage.setItem("selectedTab", 1);
+                    addToCart(pendingProductId,1,true);
+                    pendingProductId = null;
+                    openCart();
+                    return;
+                }
+                if(action == 'addToSubCart'){
+                    pendingProductId = null;
+                    $('#login').modal('hide');
+                    $('#subscribe').modal('hide');
+                    window.location.reload();
+                    return;
+                }
+                if(action == 'wishlist'){
+                    addToWishList(pendingProductId,1,true);
+                    pendingProductId = null;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Product added!',
+                        text: 'Product added in wishlist successfully !',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    window.location.href="{{url('wishlist')}}";
+                    return;
+                }
+                if(action == 'notifyme'){
+                    notifyMe(pendingProductId,pendingProductId,0,'');
+                    pendingProductId = null;
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Product added!',
+                        text: 'Product added in notifylist successfully !',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    window.location.href="{{url('notify')}}";
+                    return;
+                }
+            } else {
+                if(action == 'trailpack'){
+                    window.location.href="{{url('trial-pack')}}";
+                } else {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Login Successful!',
+                        text: serverMessage || 'Location verified. Login successful.',
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                    window.location.href="{{route('index')}}";
+                }
+            }
+        }
+
+        function submitLoginLocationCheck(lat, lng) {
+            var _token = jQuery('meta[name="csrf-token"]').attr('content');
+            $.ajax({
+                url: "{{ route('checkLoginLocationRange') }}",
+                type: 'POST',
+                data: { lat: lat, lng: lng, _token: _token },
+                success: function (response) {
+                    if (response.success && response.in_range === true) {
+                        handleSuccessfulLoginAfterLocation(response.message);
+                    } else if (response.success && response.in_range === false) {
+                        $('.out_of_range_box').removeClass('d-none');
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Out of Range',
+                            text: 'You are out of range, please join wishlist'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error Occured',
+                            text: response.message || 'Unable to validate location.'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Unable to validate location. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error Occured',
+                        text: msg
+                    });
+                }
+            });
+        }
+
+        function ensureLoginMapLoaded(callback) {
+            if (window.google && window.google.maps) {
+                callback();
+                return;
+            }
+
+            window.initLoginLocationMap = function () {
+                callback();
+            };
+
+            if (document.getElementById('login-location-map-script')) {
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.id = 'login-location-map-script';
+            script.async = true;
+            script.defer = true;
+            script.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyDjGU6WbSwLK9d7_CAVYQ1Br0DpFhx3Rt0&callback=initLoginLocationMap&libraries=places&v=weekly";
+            document.head.appendChild(script);
+        }
+
+        function initLoginMapPicker(defaultLat, defaultLng) {
+            const mapCenter = {
+                lat: defaultLat || 25.2048,
+                lng: defaultLng || 55.2708
+            };
+
+            loginLocationMap = new google.maps.Map(document.getElementById("login-location-map"), {
+                center: mapCenter,
+                zoom: 14,
+                mapTypeId: "roadmap",
+            });
+
+            const input = document.getElementById("login-location-search");
+            loginLocationAutocomplete = new google.maps.places.Autocomplete(input);
+            loginLocationAutocomplete.addListener('place_changed', function () {
+                const place = loginLocationAutocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) {
+                    return;
+                }
+                const lat = place.geometry.location.lat();
+                const lng = place.geometry.location.lng();
+                setMapLocationMarker(lat, lng);
+            });
+
+            loginLocationMap.addListener("click", function(event) {
+                setMapLocationMarker(event.latLng.lat(), event.latLng.lng());
+            });
+        }
+
+        function setMapLocationMarker(lat, lng) {
+            selectedLoginLat = lat;
+            selectedLoginLng = lng;
+            if (!loginLocationMap) {
+                return;
+            }
+            if (loginLocationMarker) {
+                loginLocationMarker.setMap(null);
+            }
+            loginLocationMarker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: loginLocationMap
+            });
+            loginLocationMap.setCenter({ lat: lat, lng: lng });
+            $('.confirm_map_location_btn').prop('disabled', false);
+        }
 
         function resendOtp(element) {
             if (isTimerRunning) {
@@ -725,6 +942,12 @@
             $('.back_login_btn').on('click',function(){
                 $('.login_step2').addClass('d-none');
                 $('.login_step1').removeClass('d-none');
+            });
+
+            $('.back_to_otp_btn').on('click', function(){
+                $('.login_step3').addClass('d-none');
+                $('.login_step2').removeClass('d-none');
+                resetLoginLocationStep();
             });
             
             $('.back_register_btn').on('click',function(){
@@ -821,66 +1044,7 @@
                             });
                             $('.otp-value').val('');
                         }else{
-                            if (pendingProductId) {
-                                if(action == 'addToCart'){
-                                    localStorage.setItem("selectedTab", 1);
-                                    console.log('pendingProductId header',pendingProductId);
-                                    addToCart(pendingProductId,1,true); //productID,change(+/-),isfromlogin(true/false)
-                                    pendingProductId = null;
-                                    openCart();    
-                                }
-                                if(action == 'addToSubCart'){
-                                    console.log('pendingProductId header',pendingProductId);
-                                    pendingProductId = null;
-                                    $('#login').modal('hide'); 
-                                    $('#subscribe').modal('hide');  
-                                    window.location.reload();
-                                    // $('#subscribe').modal('show'); 
-                                }
-                                if(action == 'wishlist'){
-                                    console.log('pendingProductId header',pendingProductId);
-                                    addToWishList(pendingProductId,1,true); //productID,change(+/-),isfromlogin(true/false)
-                                    pendingProductId = null;
-                                        Swal.fire({
-                                        icon: 'success',
-                                        title: 'Product added!',
-                                        text: 'Product added in wishlist successfully !',
-                                        timer: 3000,
-                                        showConfirmButton: false
-                                    });
-                                    window.location.href="{{url('wishlist')}}";  
-                                }
-                                if(action == 'notifyme'){
-                                    console.log('pendingProductId header',pendingProductId);
-                                    notifyMe(pendingProductId,pendingProductId,0,''); //productID,change(+/-),isfromlogin(true/false)
-                                    pendingProductId = null;
-                                        Swal.fire({
-                                        icon: 'success',
-                                        title: 'Product added!',
-                                        text: 'Product added in notifylist successfully !',
-                                        timer: 3000,
-                                        showConfirmButton: false
-                                    });
-                                    window.location.href="{{url('notify')}}";  
-                                }
-                            }else{
-                                if(action == 'trailpack'){
-                                    // console.log('pendingProductId header',pendingProductId);
-                                    // buyNow(pendingProductId,afterLoginAction); //productID,change(+/-),isfromlogin(true/false)
-                                    // pendingProductId = null;
-                                    window.location.href="{{url('trial-pack')}}";  
-                                }else{
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'OTP Sent Successfully!',
-                                        text: response.message,
-                                        timer: 3000,
-                                        showConfirmButton: false
-                                    });
-                                    window.location.href="{{route('index')}}";
-                                }    
-                            }
-                           
+                            showLocationGateStep();
                         }
                       },
                       error: function (xhr, status, error) {
@@ -958,6 +1122,56 @@
                 });
                 
             });
+
+            $('.use_current_location_btn').on('click', function () {
+                if (!navigator.geolocation) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error Occured',
+                        text: 'Your browser does not support geolocation. Please use map selection.'
+                    });
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(function (position) {
+                    submitLoginLocationCheck(position.coords.latitude, position.coords.longitude);
+                }, function () {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Location Permission Required',
+                        text: 'Unable to fetch current location. Please select location on map.'
+                    });
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            });
+
+            $('.pick_map_location_btn').on('click', function () {
+                $('.location_picker_map_box').removeClass('d-none');
+                ensureLoginMapLoaded(function () {
+                    if (!loginLocationMap) {
+                        initLoginMapPicker();
+                    }
+                    setTimeout(function() {
+                        google.maps.event.trigger(loginLocationMap, 'resize');
+                        loginLocationMap.setCenter(loginLocationMap.getCenter());
+                    }, 100);
+                });
+            });
+
+            $('.confirm_map_location_btn').on('click', function () {
+                if (selectedLoginLat === null || selectedLoginLng === null) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select Location',
+                        text: 'Please select and confirm a location on map.'
+                    });
+                    return;
+                }
+                submitLoginLocationCheck(selectedLoginLat, selectedLoginLng);
+            });
             
         });
 
@@ -996,9 +1210,11 @@
                 // Reset to login_step1
                 document.querySelector('.login_step1').classList.remove('d-none');
                 document.querySelector('.login_step2').classList.add('d-none');
+                document.querySelector('.login_step3').classList.add('d-none');
                 // Optionally clear form fields or error messages
                 document.querySelector('.login_form_step1').reset();
                 document.querySelector('.login_form_step2').reset();
+                resetLoginLocationStep();
                 // Optional: Reset timer or messages
                 document.getElementById('otpText').style.display = 'block';
                 document.getElementById('resendLink').style.display = 'none';
