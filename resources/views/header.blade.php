@@ -1287,6 +1287,8 @@
             if (keyword.length >= 3) {
                 loader.style.display = 'block';
                 const url = "https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder";
+                const userId = "{{ session()->get('user_id') ?? '' }}";
+                const deviceId = localStorage.getItem('device_id') || 'test123';
         
                 // Show loading or clear modal before data fetch
                 suggestionsBox.innerHTML = '<div style="text-align:center;">Loading...</div>';
@@ -1298,7 +1300,22 @@
                     contentType: "application/json",
                     dataType: "json",
                     data: JSON.stringify({
-                        keyword: keyword
+                        store_id: 7,
+                        keyword: keyword,
+                        user_id: userId ? String(userId) : "",
+                        device_id: deviceId,
+                        sub_cat_id: "null",
+                        cat_id: "null",
+                        sortprice: "null",
+                        sortname: "null",
+                        page: 1,
+                        perpage: 20,
+                        min_price: "null",
+                        max_price: "null",
+                        min_discount: "null",
+                        max_discount: "null",
+                        stock: "null",
+                        byname: "null"
                     }),
                     success: function(data) {
                         suggestionsBox.innerHTML = ''; 
