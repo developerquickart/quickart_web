@@ -514,25 +514,35 @@ class AuthController extends Controller
         $lat = (float) $validated['lat'];
         $lng = (float) $validated['lng'];
 
-        $nearestStore = DB::selectOne(
-            "SELECT
-                id,
-                name,
-                max_delivery_distance,
-                ST_DWithin(
-                    location,
-                    ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                    max_delivery_distance
-                ) AS in_range,
-                ST_Distance(
-                    location,
-                    ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
-                ) AS distance_meters
-             FROM stores
-             ORDER BY distance_meters ASC
-             LIMIT 1",
-            [$lng, $lat, $lng, $lat]
-        );
+        try {
+            $nearestStore = DB::selectOne(
+                "SELECT
+                    id,
+                    name,
+                    max_delivery_distance,
+                    ST_DWithin(
+                        location,
+                        ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+                        COALESCE(max_delivery_distance, 10000)
+                    ) AS in_range,
+                    ST_Distance(
+                        location,
+                        ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+                    ) AS distance_meters
+                 FROM stores
+                 ORDER BY distance_meters ASC
+                 LIMIT 1",
+                [$lng, $lat, $lng, $lat]
+            );
+        } catch (\Throwable $e) {
+            \Log::error('checkLoginLocationRange query failed', [
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to validate location right now. Please try again shortly.',
+            ], 422);
+        }
 
         if (!$nearestStore) {
             return response()->json([
@@ -541,7 +551,7 @@ class AuthController extends Controller
             ], 500);
         }
 
-        $isInRange = filter_var($nearestStore->in_range, FILTER_VALIDATE_BOOLEAN);
+        $isInRange = in_array((string) $nearestStore->in_range, ['1', 't', 'true', 'TRUE'], true);
 
         if (!$isInRange) {
             $alreadyWaitlisted = DB::table('zap_wishlist')
@@ -586,15 +596,26 @@ class AuthController extends Controller
 
         $userId = (int) $pendingUser['id'];
 
-        $existing = DB::table('zap_wishlist')
-            ->where('user_id', $userId)
-            ->first();
+        try {
+            $existing = DB::table('zap_wishlist')
+                ->where('user_id', $userId)
+                ->first();
 
-        if (!$existing) {
-            DB::table('zap_wishlist')->insert([
+            if (!$existing) {
+                DB::table('zap_wishlist')->insert([
+                    'user_id' => $userId,
+                    'created_at' => now(),
+                ]);
+            }
+        } catch (\Throwable $e) {
+            \Log::error('joinWaitlist failed', [
+                'message' => $e->getMessage(),
                 'user_id' => $userId,
-                'created_at' => now(),
             ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to join waitlist right now. Please try again shortly.',
+            ], 422);
         }
 
         return response()->json([
