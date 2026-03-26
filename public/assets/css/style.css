@@ -10109,3 +10109,8 @@ img.varient-down-arrow {
         font-size: 11px;
     }
 }
+
+/* Google Places Autocomplete: keep dropdown visible above Bootstrap modals */
+.pac-container {
+    z-index: 20000 !important;
+}
