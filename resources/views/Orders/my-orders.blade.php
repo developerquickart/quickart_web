@@ -7,12 +7,6 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="cart_tabbing_mainBox">
-                            <div class="cart_tabbing_tabs">
-                                <a class="tablinks cart-tab-item active" id="dailyOrders"
-                                    onclick="openCity(event, '1')">Daily Orders</a>
-                                <a class="tablinks cart-tab-item" id="subscriptionOrders"
-                                    onclick="openCity(event, '2')">Subscription Orders</a>
-                            </div>
                             <div class="cart_tabbing_content" id="content">
                                 <div id="1" class="tabcontent">
                                     <div class="content_Mainbox">
@@ -103,97 +97,6 @@
                                         @endif
                                     </div>
                                 </div>
-                                <div id="2" class="tabcontent" style="display: none;">
-                                    <div class="content_Mainbox">
-                                        @if(isset($subscriptionOrderList['status']) == 1)
-                                        @if(!empty($subscriptionOrderList['data']))
-                                        <div class="sub_order_listBox my-order-mainList">
-                                            @foreach($subscriptionOrderList['data'] as $orderList)
-                                            <div class="sub_order_list my-order-list">
-                                                <div class="sub_order_details">
-                                                    <!--<a class="orderBox_box"-->
-                                                    <!--    onclick="navigateToNextPage('{{ url(ENV('APP_URL') . 'subscription-order-product?group_id=' . $orderList['group_id']) }}')">-->
-                                                    <a class="orderBox_box" href="{{ url(ENV('APP_URL') . 'subscription-order-product?group_id=' . $orderList['group_id']) }}" >
-                                                        <div class="sub_order_name" id="sgroup_id">Order ID:
-                                                            <span>#{{$orderList['group_id']}}</span>
-                                                        </div>
-                                                        <div class="sub_order_id">Order Date:
-                                                            <span>{{ date("d-m-Y", strtotime($orderList['order_date']))}}</span>
-                                                        </div>
-                                                    </a>
-                                                   
-                                                    <hr>
-                                                    <!-- <div style="border-bottom: 0.3px solid #dadbf0; margin-top: 5px; margin-bottom: 5px"></div> -->
-                                                    <div class="col-lg-12">
-                                                        <ul>
-                                                            <li>{{$orderList['productname']}}</span></li>
-                                                        </ul>
-                                                        <div class="sub_order_btns">
-                                                        @if(isset($orderList['order_status']) && $orderList['order_status'] == 'Completed')                                                        
-                                                        <div class="buyAgain_btn" onclick="buyAgain('{{ $orderList['group_id'] }}')">
-                                                            <img src="{{asset('assets/images/buyagain.png')}}"
-                                                                alt="buyAgain" class="img-fluid">
-                                                            Buy Again</div>
-                                                        @endif
-                                                        @if(isset($orderList['si_order']) && $orderList['si_order'] == 'yes' && $orderList['order_status'] != 'Completed' && $orderList['order_status'] != 'Cancelled')
-                                                        <div class="change_card" data-bs-toggle="modal"
-                                                            data-bs-target="#cardModal"
-                                                            onclick="fetchCardList('{{ $orderList['si_sub_ref_no'] }}', '{{ $orderList['cart_id'] }}')">
-                                                            <img src="{{asset('assets/images/card.png')}}" alt="card"
-                                                                class="img-fluid">Change Card
-                                                        </div>
-                                                        @endif
-                                                        @if(isset($orderList['order_status']) &&
-                                                        $orderList['order_status'] == 'Completed')
-
-                                                        @php
-                                                            $jsonData1 = json_encode($orderList);
-                                                         //   print_r($jsonData1);
-                                                            $encodedData1 = urlencode($jsonData1);
-                                                        @endphp
-                                                        <a href="{{ ENV('APP_URL') }}rating-reviews?screenName=subreview&data={{ $encodedData1 }}">
-                                                            <div class="rate_order_btn">Rate Order</div>
-                                                        </a>
-                                                        @endif
-                                                    </div>
-                                                    </div>
-                                                </div>
-                                                <div class="sub_order_priceBox"
-                                                    onclick="navigateToNextPage('{{ url(ENV('APP_URL') . 'subscription-order-product?group_id=' . $orderList['group_id']) }}')">
-                                                    <div class="priceBox">AED
-                                                        <span>{{number_format($orderList['total_mrp'], 2)}}</span>
-                                                    </div>
-                                                </div>
-                                                <div class="view_box"
-                                                    onclick="navigateToNextPage('{{ url(ENV('APP_URL') . 'subscription-order-product?group_id=' . $orderList['group_id']) }}')">
-                                                    View Details</div>
-                                            </div>
-                                            @endforeach
-                                        </div>
-                                        @else
-                                        <div class="shop-list section-padding">
-                                            <div class="container">
-                                                <div class="row align-items-center justify-content-center">
-                                                    <div class="col-lg-6">
-                                                        <div class="data_not_available">
-                                                            <div class="imageBox">
-                                                                <img src="{{asset('assets/images/No_product_available.png')}}" alt="empty cart"
-                                                                    class="img-fluid">
-                                                            </div>
-                                                            <div class="textBox text-center">
-                                                                <a href="{{url('/')}}" class="my-4 d-block">
-                                                                    <div class="cancel_btn">Let's Shop</div>
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        @endif
-                                        @endif
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -261,62 +164,6 @@
 <!-- cart section end -->
 
 @include('footer')
-
-<!-- TABBING SCRIPT START -->
-<script>
-function openCity(evt, tabId) {
-    
-
-    var tabcontent = document.querySelectorAll(".tabcontent");
-    tabcontent.forEach(tab => tab.style.display = "none");
-
-    var tablinks = document.querySelectorAll(".tablinks");
-    tablinks.forEach(tab => tab.classList.remove("active"));
-    var activeTab = document.getElementById(tabId);
-    if (activeTab) {
-        activeTab.style.display = "block";
-    }
-
-    if (evt) {
-        evt.currentTarget.classList.add("active");
-    } else {
-        var savedTabLink = document.querySelector(`[onclick="openCity(event, '${tabId}')"]`);
-        if (savedTabLink) {
-            savedTabLink.classList.add("active");
-        }
-    }
-
-    // Store selected tab in localStorage
-    localStorage.setItem("selectedOrderTab", tabId);
-}
-
-document.addEventListener("DOMContentLoaded", function() {
-    var savedTab = localStorage.getItem("selectedOrderTab") || "1";
-    openCity(null, savedTab);
-
-    document.getElementById("dailyOrders").addEventListener("click", function(event) {
-        localStorage.setItem("selectedOrderTab", 1);
-        let url = new URL(window.location);
-        url.searchParams.set('tab', 1);
-        window.location.href = url.toString();
-        openCity(event, "1");
-    });
-
-    document.getElementById("subscriptionOrders").addEventListener("click", function(event) {
-        openSubscriptionTap(event);
-    });
-});
-
-function openSubscriptionTap(event) {
-    localStorage.setItem("selectedOrderTab", 2);
-    let url = new URL(window.location);
-    url.searchParams.set('tab', 2);
-    window.location.href = url.toString();
-    openCity(event, "2");
-}
-</script>
-
-<!-- TABBING SCRIPT END -->
 
 <!-- Show card list api call...G1 -->
 <script>
