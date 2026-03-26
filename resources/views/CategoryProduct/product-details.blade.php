@@ -166,47 +166,6 @@
                     </div>
                    
                     <div class="buttonBox" style="display:flex;">
-                        @if ($getProductDetail['detail']['is_offer_product'] == false)
-                          @if ($getProductDetail['detail']['isSubscription'] == "false")
-                            @if ($getProductDetail['detail']['availability'] == "all" ||
-                                  $getProductDetail['detail']['availability'] == "subscription" )
-                              <div class="sub_btnBox">
-                                <a class="subscribe_btn add_sub_cart_btn add_sub_cart_btn_varient"
-                                   data-varient-id="{{ $getProductDetail['detail']['varient_id'] }}"
-                                   data-product='@json($getProductDetail["detail"])'>
-                                  SUBSCRIBE
-                                  {{ $getProductDetail['detail']['percentage'] == 0 ? '' :
-                                     ($getProductDetail['detail']['percentage'] == null ? '' : '& SAVE ' . $getProductDetail['detail']['percentage'] . '%') }}
-                                </a>
-                              </div>
-                            @endif
-                          @elseif ($getProductDetail['detail']['isSubscription'] == "true")
-                            @if (
-                                count($getProductDetail['detail']['varients']) >= 2 || 
-                                (count($getProductDetail['detail']['varients']) == 1 && count($getProductDetail['detail']['features']) >= 1)
-                            )
-                                <div class="sub_btnBox">
-                                    <a class="subscribe_btn add_sub_cart_btn add_sub_cart_btn_varient"
-                                       data-varient-id="{{ $getProductDetail['detail']['varient_id'] }}"
-                                       data-product='@json($getProductDetail["detail"])'>
-                                      SUBSCRIBE
-                                      @if (!empty($getProductDetail['detail']['percentage']) && $getProductDetail['detail']['percentage'] != 0)
-                                        & SAVE {{ $getProductDetail['detail']['percentage'] }}%
-                                      @endif
-                                    </a>
-                                </div>
-                            @endif
-                          
-                          @else
-                            <div class="sub_btnBox">
-                              <div class="subscribe_btn"
-                                   onclick="navigateToNextPage('{{ env('APP_URL') }}cart?tab=2', '2')">
-                                GO TO SUBSCRIPTION
-                              </div>
-                            </div>
-                          @endif
-                        @endif
-                    
                         @if ($getProductDetail['detail']['availability'] == "all" ||
                             $getProductDetail['detail']['availability'] == "quick")
                           <div class="cart_btnBox">
