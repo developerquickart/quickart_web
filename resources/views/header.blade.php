@@ -1195,7 +1195,12 @@
                 $.ajax({
                     url: "{{ route('joinWaitlist') }}",
                     type: 'POST',
-                    data: { _token: _token, user_id: waitlistUserId },
+                    data: {
+                        _token: _token,
+                        user_id: waitlistUserId,
+                        number: $('.login_form_step2 .number').val(),
+                        country_code: $('.login_form_step2 .country_code').val()
+                    },
                     success: function (response) {
                         Swal.fire({
                             icon: 'success',

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\RequestException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Symfony\Component\HttpFoundation\Session\Session;
 
 class AuthController extends Controller
@@ -546,6 +547,7 @@ class AuthController extends Controller
 
             if (!$isInRange) {
                 $waitlistUserId = (int) $pendingUser['id'];
+                $request->session()->put('waitlist_user_id', $waitlistUserId);
                 $alreadyWaitlisted = false;
                 try {
                     $alreadyWaitlisted = DB::table('zap_wishlist')
@@ -597,8 +599,46 @@ class AuthController extends Controller
     public function joinWaitlist(Request $request)
     {
         $pendingUser = $request->session()->get('pending_login_user');
+        $sessionWaitlistUserId = (int) $request->session()->get('waitlist_user_id', 0);
         $requestedUserId = (int) $request->input('user_id', 0);
-        $userId = !empty($pendingUser['id']) ? (int) $pendingUser['id'] : $requestedUserId;
+        $userId = !empty($pendingUser['id']) ? (int) $pendingUser['id'] : ($sessionWaitlistUserId ?: $requestedUserId);
+
+        // Fallback: resolve user ID by mobile + country from users table.
+        if (empty($userId)) {
+            $number = trim((string) $request->input('number', ''));
+            $countryCode = trim((string) $request->input('country_code', ''));
+            if ($number !== '' && Schema::hasTable('users')) {
+                $phoneColumns = ['user_phone', 'phone', 'number', 'mobile'];
+                $countryColumns = ['country_code', 'dial_code'];
+
+                $phoneColumn = null;
+                foreach ($phoneColumns as $column) {
+                    if (Schema::hasColumn('users', $column)) {
+                        $phoneColumn = $column;
+                        break;
+                    }
+                }
+
+                $countryColumn = null;
+                foreach ($countryColumns as $column) {
+                    if (Schema::hasColumn('users', $column)) {
+                        $countryColumn = $column;
+                        break;
+                    }
+                }
+
+                if ($phoneColumn) {
+                    $query = DB::table('users')->where($phoneColumn, $number);
+                    if ($countryColumn && $countryCode !== '') {
+                        $query->where($countryColumn, $countryCode);
+                    }
+                    $resolvedId = $query->orderByDesc('id')->value('id');
+                    if (!empty($resolvedId)) {
+                        $userId = (int) $resolvedId;
+                    }
+                }
+            }
+        }
 
         if (empty($userId)) {
             return response()->json([
