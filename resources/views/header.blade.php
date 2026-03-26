@@ -1192,12 +1192,14 @@
 
             $('.join_waitlist_btn').on('click', function () {
                 var _token = jQuery('meta[name="csrf-token"]').attr('content');
+                const sentUserId = waitlistUserId;
+                console.log('join-waitlist sent user_id:', sentUserId);
                 $.ajax({
                     url: "{{ route('joinWaitlist') }}",
                     type: 'POST',
                     data: {
                         _token: _token,
-                        user_id: waitlistUserId,
+                        user_id: sentUserId,
                         number: $('.login_form_step2 .number').val(),
                         country_code: $('.login_form_step2 .country_code').val()
                     },
