@@ -31,7 +31,7 @@ class HomeController extends Controller
         $data_arr['keywords'] = "";
         $data_arr['description'] = "Enjoy the finest organic & farm-fresh milk, Fresh fruits & vegetables with the QuicKart app. Our farm-fresh milk & fruits are sourced directly from local farms.";
         $data_arr['canonical'] = "";
-        $data_arr['user_id'] = !empty(session()->get('user_id'))?session()->get('user_id'):2;  
+        $data_arr['user_id'] = !empty(session()->get('user_id')) ? session()->get('user_id') : '';
         if(!empty(session()->get('user_id'))){
             $this->updateproductdetails($data_arr['user_id']); 
         }
@@ -39,7 +39,7 @@ class HomeController extends Controller
 
         $nodeappUrl = env('NODE_APP_URL');
         $store_ID = env('STORE_ID');
-        $user_ID = !empty(session()->get('user_id'))?session()->get('user_id'):2;
+        $user_ID = !empty(session()->get('user_id')) ? session()->get('user_id') : '';
         $this->loggedInUser = !empty($request->session()->get('user_id')) ?
             $request->session()->get('user_id') : null;
 
@@ -174,7 +174,7 @@ class HomeController extends Controller
         $data_arr['keywords'] = "";
         $data_arr['description'] = "QuicKart offers fresh cow milk in Dubai UAE home delivery straight from local farms.Our farm-fresh milk is delivered promptly to maintain its freshness & nutritional value.";
         $data_arr['canonical'] = "";
-        $data_arr['user_id'] = !empty(session()->get('user_id'))?session()->get('user_id'):2; 
+        $data_arr['user_id'] = !empty(session()->get('user_id')) ? session()->get('user_id') : '';
         if(!empty(session()->get('user_id'))){
             $this->updateproductdetails($data_arr['user_id']); 
         }
@@ -188,7 +188,7 @@ class HomeController extends Controller
         $data_arr['keywords'] = "";
         $data_arr['description'] = "With QuicKart, you can buy Farm Fresh Dairy Products &amp; a selection of the finest organic fruits &amp; vegetables. Our privacy policy protects your personal information.";
         $data_arr['canonical'] = "";
-        $data_arr['user_id'] = !empty(session()->get('user_id'))?session()->get('user_id'):2; 
+        $data_arr['user_id'] = !empty(session()->get('user_id')) ? session()->get('user_id') : '';
         if(!empty(session()->get('user_id'))){
             $this->updateproductdetails($data_arr['user_id']); 
         }
@@ -268,7 +268,7 @@ public function seoCallForIndex(Request $request)
         'keywords' => "",
         'description' => "Enjoy the finest organic & farm-fresh milk, Fresh fruits & vegetables with the QuicKart app. Our farm-fresh milk & fruits are sourced directly from local farms.",
         'canonical' => "",
-        'user_id' => session()->get('user_id') ?? 2
+        'user_id' => session()->get('user_id') ?? ''
     ];
 
     $nodeappUrl = env('NODE_APP_URL');
