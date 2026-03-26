@@ -498,23 +498,23 @@ class AuthController extends Controller
 
     public function checkLoginLocationRange(Request $request)
     {
-        $validated = $request->validate([
-            'lat' => 'required|numeric|between:-90,90',
-            'lng' => 'required|numeric|between:-180,180',
-        ]);
-
-        $pendingUser = $request->session()->get('pending_login_user');
-        if (empty($pendingUser) || empty($pendingUser['id'])) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Session expired. Please verify OTP again.',
-            ], 422);
-        }
-
-        $lat = (float) $validated['lat'];
-        $lng = (float) $validated['lng'];
-
         try {
+            $validated = $request->validate([
+                'lat' => 'required|numeric|between:-90,90',
+                'lng' => 'required|numeric|between:-180,180',
+            ]);
+
+            $pendingUser = $request->session()->get('pending_login_user');
+            if (empty($pendingUser) || empty($pendingUser['id'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Session expired. Please verify OTP again.',
+                ], 422);
+            }
+
+            $lat = (float) $validated['lat'];
+            $lng = (float) $validated['lng'];
+
             $nearestStore = DB::selectOne(
                 "SELECT
                     id,
@@ -534,8 +534,55 @@ class AuthController extends Controller
                  LIMIT 1",
                 [$lng, $lat, $lng, $lat]
             );
+
+            if (!$nearestStore) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Store location is not configured.',
+                ], 422);
+            }
+
+            $isInRange = in_array((string) $nearestStore->in_range, ['1', 't', 'true', 'TRUE'], true);
+
+            if (!$isInRange) {
+                $alreadyWaitlisted = false;
+                try {
+                    $alreadyWaitlisted = DB::table('zap_wishlist')
+                        ->where('user_id', (int) $pendingUser['id'])
+                        ->exists();
+                } catch (\Throwable $e) {
+                    \Log::warning('zap_wishlist check failed during out-of-range flow', [
+                        'message' => $e->getMessage(),
+                        'user_id' => (int) $pendingUser['id'],
+                    ]);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'in_range' => false,
+                    'message' => 'You are out of range, please join wishlist',
+                    'already_waitlisted' => $alreadyWaitlisted,
+                    'distance_meters' => (float) $nearestStore->distance_meters,
+                    'store_name' => $nearestStore->name,
+                ]);
+            }
+
+            // Finalize login only after location gate passes.
+            $request->session()->put('user_id', $pendingUser['id']);
+            $request->session()->put('user_phone', $pendingUser['email']);
+            $request->session()->put('user_email', $pendingUser['user_phone']);
+            $request->session()->put('user_name', $pendingUser['name']);
+            $request->session()->forget('pending_login_user');
+
+            return response()->json([
+                'success' => true,
+                'in_range' => true,
+                'message' => 'Location verified. Login successful.',
+                'distance_meters' => (float) $nearestStore->distance_meters,
+                'store_name' => $nearestStore->name,
+            ]);
         } catch (\Throwable $e) {
-            \Log::error('checkLoginLocationRange query failed', [
+            \Log::error('checkLoginLocationRange failed', [
                 'message' => $e->getMessage(),
             ]);
             return response()->json([
@@ -543,45 +590,6 @@ class AuthController extends Controller
                 'message' => 'Unable to validate location right now. Please try again shortly.',
             ], 422);
         }
-
-        if (!$nearestStore) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Store location is not configured.',
-            ], 500);
-        }
-
-        $isInRange = in_array((string) $nearestStore->in_range, ['1', 't', 'true', 'TRUE'], true);
-
-        if (!$isInRange) {
-            $alreadyWaitlisted = DB::table('zap_wishlist')
-                ->where('user_id', (int) $pendingUser['id'])
-                ->exists();
-
-            return response()->json([
-                'success' => true,
-                'in_range' => false,
-                'message' => 'You are out of range, please join wishlist',
-                'already_waitlisted' => $alreadyWaitlisted,
-                'distance_meters' => (float) $nearestStore->distance_meters,
-                'store_name' => $nearestStore->name,
-            ]);
-        }
-
-        // Finalize login only after location gate passes.
-        $request->session()->put('user_id', $pendingUser['id']);
-        $request->session()->put('user_phone', $pendingUser['email']);
-        $request->session()->put('user_email', $pendingUser['user_phone']);
-        $request->session()->put('user_name', $pendingUser['name']);
-        $request->session()->forget('pending_login_user');
-
-        return response()->json([
-            'success' => true,
-            'in_range' => true,
-            'message' => 'Location verified. Login successful.',
-            'distance_meters' => (float) $nearestStore->distance_meters,
-            'store_name' => $nearestStore->name,
-        ]);
     }
 
     public function joinWaitlist(Request $request)
