@@ -174,7 +174,7 @@ class SearchController extends Controller
                              // search by store api call.
                             try {
                                 $client = new Client();
-                                $response = $client->post('https://fipunwrfngwnoaersvlb.supabase.co/functions/v1/product-search', [
+                                $response = $client->post('https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder', [
                                     'json' => [
                                         "user_id" => $user_ID,
                                         "store_id" => $store_ID,
@@ -229,7 +229,7 @@ class SearchController extends Controller
                // search by store api call.
                 try {
                     $client = new Client();
-                    $response = $client->post('https://fipunwrfngwnoaersvlb.supabase.co/functions/v1/product-search', [
+                    $response = $client->post('https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder', [
                         'json' => [
                             "user_id" => $user_ID,
                             "store_id" => $store_ID,
@@ -280,7 +280,7 @@ class SearchController extends Controller
             // search by store api call.
             try {
                 $client = new Client();
-                $response = $client->post('https://fipunwrfngwnoaersvlb.supabase.co/functions/v1/product-search', [
+                $response = $client->post('https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder', [
                     'json' => [
                         "user_id" => $user_ID,
                         "store_id" => $store_ID,
