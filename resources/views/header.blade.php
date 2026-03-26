@@ -1286,8 +1286,7 @@
 
             if (keyword.length >= 3) {
                 loader.style.display = 'block';
-                const _token = jQuery('meta[name="csrf-token"]').attr('content');
-                const url = "{{ENV('APP_URL')}}search-autosuggest-products";
+                const url = "https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder";
         
                 // Show loading or clear modal before data fetch
                 suggestionsBox.innerHTML = '<div style="text-align:center;">Loading...</div>';
@@ -1296,16 +1295,21 @@
                 jQuery.ajax({
                     url: url,
                     method: "POST",
-                    data: {
-                        keyword: keyword,
-                        _token: _token,
-                    },
+                    contentType: "application/json",
+                    dataType: "json",
+                    data: JSON.stringify({
+                        keyword: keyword
+                    }),
                     success: function(data) {
                         suggestionsBox.innerHTML = ''; 
                         loader.style.display = 'none';
                        
                         if (data.status === "1" && Array.isArray(data.data) && data.data.length > 0) {
-                            data.data.forEach(productName => {
+                            data.data.forEach(product => {
+                                const productName = typeof product === 'string' ? product : (product.product_name || '');
+                                if (!productName) {
+                                    return;
+                                }
                                 const div = document.createElement('div');
                                 div.textContent = productName;
                                 div.classList.add('suggestion-item');
