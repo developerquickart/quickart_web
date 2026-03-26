@@ -545,15 +545,16 @@ class AuthController extends Controller
             $isInRange = in_array((string) $nearestStore->in_range, ['1', 't', 'true', 'TRUE'], true);
 
             if (!$isInRange) {
+                $waitlistUserId = (int) $pendingUser['id'];
                 $alreadyWaitlisted = false;
                 try {
                     $alreadyWaitlisted = DB::table('zap_wishlist')
-                        ->where('user_id', (int) $pendingUser['id'])
+                        ->where('user_id', $waitlistUserId)
                         ->exists();
                 } catch (\Throwable $e) {
                     \Log::warning('zap_wishlist check failed during out-of-range flow', [
                         'message' => $e->getMessage(),
-                        'user_id' => (int) $pendingUser['id'],
+                        'user_id' => $waitlistUserId,
                     ]);
                 }
 
@@ -562,6 +563,7 @@ class AuthController extends Controller
                     'in_range' => false,
                     'message' => 'You are out of range, please join wishlist',
                     'already_waitlisted' => $alreadyWaitlisted,
+                    'waitlist_user_id' => $waitlistUserId,
                     'distance_meters' => (float) $nearestStore->distance_meters,
                     'store_name' => $nearestStore->name,
                 ]);
@@ -595,14 +597,15 @@ class AuthController extends Controller
     public function joinWaitlist(Request $request)
     {
         $pendingUser = $request->session()->get('pending_login_user');
-        if (empty($pendingUser) || empty($pendingUser['id'])) {
+        $requestedUserId = (int) $request->input('user_id', 0);
+        $userId = !empty($pendingUser['id']) ? (int) $pendingUser['id'] : $requestedUserId;
+
+        if (empty($userId)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Session expired. Please verify OTP again.',
             ], 422);
         }
-
-        $userId = (int) $pendingUser['id'];
 
         try {
             $existing = DB::table('zap_wishlist')

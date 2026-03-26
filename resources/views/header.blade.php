@@ -689,10 +689,12 @@
         let loginLocationAutocomplete = null;
         let selectedLoginLat = null;
         let selectedLoginLng = null;
+        let waitlistUserId = null;
 
         function resetLoginLocationStep() {
             selectedLoginLat = null;
             selectedLoginLng = null;
+            waitlistUserId = null;
             $('.location_picker_map_box').addClass('d-none');
             $('.out_of_range_box').addClass('d-none');
             $('.join_waitlist_cta').removeClass('d-none');
@@ -780,6 +782,7 @@
                     if (response.success && response.in_range === true) {
                         handleSuccessfulLoginAfterLocation(response.message);
                     } else if (response.success && response.in_range === false) {
+                        waitlistUserId = response.waitlist_user_id || null;
                         if (response.already_waitlisted === true) {
                             $('.out_of_range_message').text('You are already on our waitlist. Thank you for your interest - we will let you know as soon as delivery starts in your area.');
                             $('.join_waitlist_cta').addClass('d-none');
@@ -1192,7 +1195,7 @@
                 $.ajax({
                     url: "{{ route('joinWaitlist') }}",
                     type: 'POST',
-                    data: { _token: _token },
+                    data: { _token: _token, user_id: waitlistUserId },
                     success: function (response) {
                         Swal.fire({
                             icon: 'success',
