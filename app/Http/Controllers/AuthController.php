@@ -549,11 +549,11 @@ class AuthController extends Controller
                 $request->session()->put('waitlist_user_id', $waitlistUserId);
                 $alreadyWaitlisted = false;
                 try {
-                    $alreadyWaitlisted = DB::table('zap_wishlist')
+                    $alreadyWaitlisted = DB::table('zap_waitlist')
                         ->where('user_id', $waitlistUserId)
                         ->exists();
                 } catch (\Throwable $e) {
-                    \Log::warning('zap_wishlist check failed during out-of-range flow', [
+                    \Log::warning('zap_waitlist check failed during out-of-range flow', [
                         'message' => $e->getMessage(),
                         'user_id' => $waitlistUserId,
                     ]);
@@ -632,12 +632,12 @@ class AuthController extends Controller
         }
 
         try {
-            $existing = DB::table('zap_wishlist')
+            $existing = DB::table('zap_waitlist')
                 ->where('user_id', $userId)
                 ->first();
 
             if (!$existing) {
-                DB::table('zap_wishlist')->insert([
+                DB::table('zap_waitlist')->insert([
                     'user_id' => $userId,
                     'created_at' => now(),
                 ]);
