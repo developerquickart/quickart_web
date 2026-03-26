@@ -1278,100 +1278,93 @@
     <!-- Search api call for autosuggest...G1 -->
     <script>
 
-        document.getElementById('searchInput').addEventListener('input', function () {
-            const keyword = this.value;
+        function fetchSearchSuggestions(keyword) {
             const suggestionsBox = document.getElementById('modalSuggestionsBox');
             const modal = document.getElementById('suggestionsModal');
-                    const loader = document.getElementById('searchLoader');
+            const overlay = document.getElementById('search-overlay');
+            const loader = document.getElementById('searchLoader');
 
-            if (keyword.length >= 3) {
-                loader.style.display = 'block';
-                const url = "https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder";
-                const userId = "{{ session()->get('user_id') ?? '' }}";
-                const deviceId = localStorage.getItem('device_id') || 'test123';
-        
-                // Show loading or clear modal before data fetch
-                suggestionsBox.innerHTML = '<div style="text-align:center;">Loading...</div>';
-                modal.style.display = 'block';
-                
-                jQuery.ajax({
-                    url: url,
-                    method: "POST",
-                    contentType: "application/json",
-                    dataType: "json",
-                    data: JSON.stringify({
-                        store_id: 7,
-                        keyword: keyword,
-                        user_id: userId ? String(userId) : "",
-                        device_id: deviceId,
-                        sub_cat_id: "null",
-                        cat_id: "null",
-                        sortprice: "null",
-                        sortname: "null",
-                        page: 1,
-                        perpage: 20,
-                        min_price: "null",
-                        max_price: "null",
-                        min_discount: "null",
-                        max_discount: "null",
-                        stock: "null",
-                        byname: "null"
-                    }),
-                    success: function(data) {
-                        suggestionsBox.innerHTML = ''; 
-                        loader.style.display = 'none';
-                       
-                        if (data.status === "1" && Array.isArray(data.data) && data.data.length > 0) {
-                            data.data.forEach(product => {
-                                const productName = typeof product === 'string' ? product : (product.product_name || '');
-                                if (!productName) {
-                                    return;
-                                }
-                                const div = document.createElement('div');
-                                div.textContent = productName;
-                                div.classList.add('suggestion-item');
-                                div.style.cursor = "pointer";
-                                div.style.padding = "8px 0";
-                                div.onclick = () => {
-                                    const searchInput = document.getElementById('searchInput');
-                                    const overlay = document.getElementById('search-overlay');
-                                    const popup = document.getElementById('suggestionsModal');
-                                    searchInput.value = '';
-                                    modal.style.display = 'none';
-                                    popup.style.display = 'none';
-                                    overlay.style.display = 'none';
-                                     gtag('event', 'view_search_resultsW', {
-                                      search_term: productName,  
-                                      method: 'search_input_box',      
-                                      page_location: window.location.href,
-                                      debug_mode: true                  // true if testing in DebugView
-                                    });
-                                    // const slug = productName.toLowerCase().replace(/ /g, '-');
-                                    const slug = encodeURIComponent(productName.toLowerCase());
-                                    window.location.href = `{{ENV('APP_URL')}}search?name=${slug}`;
-                                };
-                                suggestionsBox.appendChild(div);
-                               
-                            });
-                            modal.style.display = 'block'; 
-                        } else {
-                            suggestionsBox.innerHTML = '<div style="padding:10px;">No products found</div>';
-                            // setTimeout(() => {
-                            //     modal.style.display = 'none'; 
-                            // }, 1500);
-                        }
-                    },
-                    error: function(xhr) {
-                        suggestionsBox.innerHTML = '<div style="padding:10px;">Something went wrong</div>';
-                        // setTimeout(() => {
-                        //     modal.style.display = 'none';
-                        // }, 2000);
-                    }
-                });
-            } else {
-                modal.style.display = 'none'; // hide modal if input too short
+            if (keyword.length < 1) {
+                modal.style.display = 'none';
+                overlay.style.display = 'none';
+                return;
             }
-        });
+
+            loader.style.display = 'block';
+            overlay.style.display = 'block';
+            const url = "https://lwjwrnpfftdevebgvcmz.supabase.co/functions/v1/smart-responder";
+            const userId = "{{ session()->get('user_id') ?? '' }}";
+            const deviceId = localStorage.getItem('device_id') || 'test123';
+
+            suggestionsBox.innerHTML = '<div style="text-align:center;">Loading...</div>';
+            modal.style.display = 'block';
+
+            jQuery.ajax({
+                url: url,
+                method: "POST",
+                contentType: "application/json",
+                dataType: "json",
+                data: JSON.stringify({
+                    store_id: 7,
+                    keyword: keyword,
+                    user_id: userId ? String(userId) : "",
+                    device_id: deviceId,
+                    sub_cat_id: "null",
+                    cat_id: "null",
+                    sortprice: "null",
+                    sortname: "null",
+                    page: 1,
+                    perpage: 20,
+                    min_price: "null",
+                    max_price: "null",
+                    min_discount: "null",
+                    max_discount: "null",
+                    stock: "null",
+                    byname: "null"
+                }),
+                success: function(data) {
+                    suggestionsBox.innerHTML = '';
+                    loader.style.display = 'none';
+
+                    if (data.status === "1" && Array.isArray(data.data) && data.data.length > 0) {
+                        data.data.forEach(product => {
+                            const productName = typeof product === 'string' ? product : (product.product_name || '');
+                            if (!productName) return;
+
+                            const div = document.createElement('div');
+                            div.textContent = productName;
+                            div.classList.add('suggestion-item');
+                            div.style.cursor = "pointer";
+                            div.style.padding = "8px 0";
+                            div.onclick = () => {
+                                const searchInput = document.getElementById('searchInput');
+                                const popup = document.getElementById('suggestionsModal');
+                                searchInput.value = '';
+                                modal.style.display = 'none';
+                                popup.style.display = 'none';
+                                overlay.style.display = 'none';
+                                gtag('event', 'view_search_resultsW', {
+                                    search_term: productName,
+                                    method: 'search_input_box',
+                                    page_location: window.location.href,
+                                    debug_mode: true
+                                });
+                                const slug = encodeURIComponent(productName.toLowerCase());
+                                window.location.href = `{{ENV('APP_URL')}}search?name=${slug}`;
+                            };
+                            suggestionsBox.appendChild(div);
+                        });
+                        modal.style.display = 'block';
+                    } else {
+                        suggestionsBox.innerHTML = '<div style="padding:10px;">No products found</div>';
+                    }
+                },
+                error: function() {
+                    loader.style.display = 'none';
+                    suggestionsBox.innerHTML = '<div style="padding:10px;">Something went wrong</div>';
+                }
+            });
+        }
     
         function navigateToNextPage(url) {
             const nextPageUrl = url;
@@ -1390,9 +1383,7 @@
                   page_location: window.location.href,
                   debug_mode: true                  // true if testing in DebugView
                 });
-            //   const slug = keyword.toLowerCase().replace(/ /g, '-');
-               const slug = encodeURIComponent(keyword.toLowerCase()); //.replace(/ /g, '-'));
-               window.location.href = `{{ENV('APP_URL')}}search?name=${slug}`;
+               fetchSearchSuggestions(keyword);
             }
           });
     </script>
@@ -1448,10 +1439,7 @@
                   page_location: window.location.href,
                   debug_mode: true                  // true if testing in DebugView
                 });
-        const slug = encodeURIComponent(keyword.toLowerCase()); //.replace(/ /g, '-'));
-        console.log(slug);
-        const baseUrl = "{{ ENV('APP_URL') }}"; 
-        window.location.href = `${baseUrl}search?name=${slug}`;
+        fetchSearchSuggestions(keyword);
       }
     }
   });
