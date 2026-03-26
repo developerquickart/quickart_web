@@ -34,8 +34,6 @@ if (isset($showCartProductList['data'])) {
                             <div class="cart_tabbing_tabs">
                                 <a class="tablinks cart-tab-item active" id="dailyCartTab"
                                     onclick="openCity(event, '1')">Daily Cart</a>
-                                <a class="tablinks cart-tab-item" id="subscriptionCartTab"
-                                    onclick="openCity(event, '2')">Subscription Cart</a>
                             </div>
                             <div class="cart_tabbing_content" id="content">
                                 <div id="1" class="tabcontent">
@@ -1862,8 +1860,10 @@ function openCity(evt, tabId) {
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    // var savedTab = localStorage.getItem("selectedTab") || "1";
-    var savedTab = "{{\Request::get('tab')}}";
+    var savedTab = "{{ \Request::get('tab') }}" || "1";
+    if (savedTab !== "1") {
+        savedTab = "1";
+    }
     openCity(null, savedTab);
 
     document.getElementById("dailyCartTab").addEventListener("click", function(event) {
@@ -1874,9 +1874,6 @@ document.addEventListener("DOMContentLoaded", function() {
         openCity(event, "1");
     });
 
-    document.getElementById("subscriptionCartTab").addEventListener("click", function(event) {
-        openSubscriptionTap(event);
-    });
 });
 
 function openSubscriptionTap(event) {
