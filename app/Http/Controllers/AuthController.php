@@ -646,10 +646,13 @@ class AuthController extends Controller
             \Log::error('joinWaitlist failed', [
                 'message' => $e->getMessage(),
                 'user_id' => $userId,
+                'number' => $number,
             ]);
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to join waitlist right now. Please try again shortly.',
+                'message' => app()->environment('local')
+                    ? ('Unable to join waitlist: ' . $e->getMessage())
+                    : 'Unable to join waitlist right now. Please try again shortly.',
             ], 422);
         }
 
