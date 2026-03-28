@@ -166,6 +166,85 @@
     /></noscript>
     <!-- End Meta Pixel Code -->
        <?php //if (!empty($pixelEventScript)) echo $pixelEventScript; ?>
+    {{-- Login location step: inline critical CSS so it always wins over cache / Bootstrap reboot --}}
+    <style id="login-location-critical-css">
+        #login .login-location-step { max-width: 420px; margin: 0 auto; padding: 0 4px 8px; }
+        #login .login-location-hero { text-align: center; margin-bottom: 1.25rem; }
+        #login .login-location-hero-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 48px; height: 48px; margin: 0 auto 0.75rem; border-radius: 14px;
+            background: linear-gradient(145deg, rgba(255, 222, 52, 0.35), rgba(255, 222, 52, 0.08));
+            color: var(--indigo-color, #1a237e); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+        }
+        #login .login-location-title { font-weight: 700; color: var(--indigo-color, #1a237e); line-height: 1.3; }
+        #login .login-location-sub {
+            font-size: 14px; line-height: 1.5; color: #5c5c6b; max-width: 340px; margin-left: auto; margin-right: auto;
+        }
+        #login .login-location-actions {
+            display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 0.5rem;
+        }
+        @media (min-width: 480px) {
+            #login .login-location-actions { grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
+        #login button.login-location-option {
+            display: flex !important; align-items: flex-start; gap: 12px; width: 100%; text-align: left;
+            padding: 14px 16px !important; border-radius: 14px !important;
+            border: 2px solid #e8e8ed !important; background: #fafafb !important;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+            cursor: pointer; font-family: inherit !important; -webkit-appearance: none !important; appearance: none !important;
+            color: inherit !important;
+        }
+        #login button.login-location-option--primary {
+            border-color: rgba(255, 222, 52, 0.85) !important;
+            background: linear-gradient(180deg, #fffef8 0%, #fff 100%) !important;
+        }
+        #login button.login-location-option:hover {
+            transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+        }
+        #login button.login-location-option:focus { outline: none !important; box-shadow: 0 0 0 3px rgba(255, 222, 52, 0.45) !important; }
+        #login .login-location-option-icon {
+            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; border-radius: 12px;
+            background: rgba(255, 222, 52, 0.25); color: var(--indigo-color, #1a237e);
+        }
+        #login .login-location-option--outline .login-location-option-icon { background: #eef0f4 !important; }
+        #login .login-location-option-title { font-weight: 700; font-size: 15px; color: var(--indigo-color, #1a237e); display: block; }
+        #login .login-location-option-desc { font-size: 12px; color: #6b6b78; display: block; line-height: 1.35; }
+        #login .login-location-map-panel {
+            margin-top: 1.25rem; padding: 16px; border-radius: 16px;
+            background: linear-gradient(180deg, #f8f9fc 0%, #fff 40%);
+            border: 1px solid #e8eaf0 !important; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        #login .login-location-search-label { display: block; font-size: 13px; font-weight: 600; color: var(--indigo-color, #1a237e); margin-bottom: 8px; }
+        #login .login-location-search-wrap { position: relative; margin-bottom: 12px; }
+        #login .login-location-search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #8b8b98; pointer-events: none; z-index: 1; }
+        #login .login-location-search-input.form-control {
+            padding: 12px 14px 12px 44px !important; border-radius: 12px !important;
+            border: 1px solid #d8dbe6 !important; font-size: 14px; background: #fff !important;
+        }
+        #login .login-location-map-canvas { height: 260px; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #e0e3eb; margin-bottom: 14px; }
+        #login .login-location-confirm-btn { width: 100%; padding: 12px 20px !important; font-size: 15px; border-radius: 12px !important; font-weight: 700; }
+        #login .login-waitlist-card { margin-top: 1.25rem; border: none !important; background: transparent !important; padding: 0 !important; }
+        #login .login-waitlist-card-inner {
+            padding: 20px 18px 22px; text-align: center; border-radius: 16px;
+            background: linear-gradient(160deg, #fff8e8 0%, #fff4dc 35%, #fff 100%);
+            border: 1px solid #f0d9a8 !important; box-shadow: 0 8px 28px rgba(200, 150, 60, 0.12);
+        }
+        #login .login-waitlist-visual {
+            display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px;
+            margin: 0 auto 12px; border-radius: 50%; background: #fff; color: #c48a1a;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+        #login .login-waitlist-message { font-size: 14px; line-height: 1.55; color: #4a4035; margin-bottom: 16px; max-width: 320px; margin-left: auto; margin-right: auto; }
+        #login .login-waitlist-btn { min-width: 200px; padding: 12px 28px !important; border-radius: 12px !important; font-weight: 700; }
+        #login button.login-location-back {
+            background: none !important; border: none !important; padding: 8px 12px !important;
+            font-size: 14px; font-weight: 600; color: #6b6b78 !important; text-decoration: underline;
+            cursor: pointer; -webkit-appearance: none !important; appearance: none !important;
+        }
+        #login button.login-location-back:hover { color: var(--indigo-color, #1a237e) !important; }
+        .pac-container { z-index: 20000 !important; }
+    </style>
 </head>
 
 <body>
