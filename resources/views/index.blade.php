@@ -132,7 +132,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                   src="{{ $secondBanner['banner_image'] }}" 
                                   alt="First slide"
                                   style="cursor:pointer;"
-                                  onclick="openBannerProductList('{{ url('banner-product-list', ['name' => Str::slug($secondBanner['banner_name'])]) }}', 'byname'=>'{{ trim($banner['banner_name']) }}', 'product', '{{ trim($secondBanner['banner_name']) }}')"
+                                  onclick="openBannerProductList('{{ url('banner-product-list', ['name' => Str::slug($secondBanner['banner_name'])]) }}', 'byname'=>'{{ trim($secondBanner['banner_name']) }}', 'product', '{{ trim($secondBanner['banner_name']) }}')"
                                 />
                         </div>
                     </div>
