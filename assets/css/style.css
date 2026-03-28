@@ -10174,3 +10174,290 @@ img.varient-down-arrow {
     /*    width: 50%;*/
     /*}*/
 }
+
+/* Login modal — location step & waitlist (first-time friendly) */
+.login-location-step {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 0 4px 8px;
+}
+
+.login-location-hero {
+    text-align: center;
+    margin-bottom: 1.25rem;
+}
+
+.login-location-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 0.75rem;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(255, 222, 52, 0.35), rgba(255, 222, 52, 0.08));
+    color: var(--indigo-color);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.login-location-title {
+    font-weight: 700;
+    color: var(--indigo-color);
+    line-height: 1.3;
+}
+
+.login-location-sub {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #5c5c6b;
+    max-width: 340px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.login-location-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 0.5rem;
+}
+
+@media (min-width: 480px) {
+    .login-location-actions {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+
+.login-location-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 2px solid transparent;
+    background: #fff;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.login-location-option:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.login-location-option:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 222, 52, 0.45);
+}
+
+.login-location-option--primary {
+    border-color: rgba(255, 222, 52, 0.85);
+    background: linear-gradient(180deg, #fffef8 0%, #fff 100%);
+}
+
+.login-location-option--outline {
+    border-color: #e8e8ed;
+    background: #fafafb;
+}
+
+.login-location-option--outline:hover {
+    border-color: #d0d0d8;
+    background: #fff;
+}
+
+.login-location-option-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 222, 52, 0.25);
+    color: var(--indigo-color);
+}
+
+.login-location-option--outline .login-location-option-icon {
+    background: #eef0f4;
+    color: var(--indigo-color);
+}
+
+.login-location-option-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.login-location-option-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--indigo-color);
+    line-height: 1.25;
+}
+
+.login-location-option-desc {
+    font-size: 12px;
+    color: #6b6b78;
+    line-height: 1.35;
+}
+
+.login-location-map-panel {
+    margin-top: 1.25rem;
+    padding: 16px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, #f8f9fc 0%, #fff 40%);
+    border: 1px solid #e8eaf0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.login-location-search-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--indigo-color);
+    margin-bottom: 8px;
+}
+
+.login-location-search-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.login-location-search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8b8b98;
+    pointer-events: none;
+    display: flex;
+    z-index: 1;
+}
+
+.login-location-search-input.form-control {
+    width: 100%;
+    padding: 12px 14px 12px 44px;
+    border-radius: 12px;
+    border: 1px solid #d8dbe6;
+    font-size: 14px;
+    line-height: 1.4;
+    background: #fff;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-location-search-input.form-control:focus {
+    border-color: var(--light-green-color, #8bc34a);
+    box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.2);
+    outline: none;
+}
+
+.login-location-map-canvas {
+    height: 260px;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e0e3eb;
+    margin-bottom: 14px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.login-location-confirm-btn {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 15px;
+    border-radius: 12px;
+    font-weight: 700;
+}
+
+.login-location-confirm-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.login-waitlist-card {
+    margin-top: 1.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    background: transparent;
+}
+
+.login-waitlist-card-inner {
+    padding: 20px 18px 22px;
+    text-align: center;
+    border-radius: 16px;
+    background: linear-gradient(160deg, #fff8e8 0%, #fff4dc 35%, #fff 100%);
+    border: 1px solid #f0d9a8;
+    box-shadow: 0 8px 28px rgba(200, 150, 60, 0.12);
+}
+
+.login-waitlist-visual {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: 50%;
+    background: #fff;
+    color: #c48a1a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.login-waitlist-message {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #4a4035;
+    margin-bottom: 16px;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.login-waitlist-cta {
+    margin-top: 0;
+}
+
+.login-waitlist-btn {
+    min-width: 200px;
+    padding: 12px 28px;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 12px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.login-location-back-wrap {
+    margin-top: 1.25rem;
+}
+
+.login-location-back {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #6b6b78;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.login-location-back:hover {
+    color: var(--indigo-color);
+}
+
+/* Google Places suggestions above Bootstrap modal */
+.pac-container {
+    z-index: 20000 !important;
+}

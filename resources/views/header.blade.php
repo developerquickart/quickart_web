@@ -259,30 +259,62 @@
                                                 <img src="{{asset('assets/images/QuicKart_logo.png')}}" alt="Logo"
                                                     class="img-fluid">
                                             </div>
-                                            <div class="heading-design-h5 my-4">Confirm your location</div>
-                                            <p class="text-center">Please confirm your delivery location to continue login.</p>
-                                            <div class="text-center mb-3">
-                                                <button type="button" class="submit_btn use_current_location_btn">Fetch Current Location</button>
-                                            </div>
-                                            <div class="text-center mb-3">
-                                                <button type="button" class="submit_btn pick_map_location_btn">Choose Location on Map</button>
-                                            </div>
-                                            <div class="location_picker_map_box d-none">
-                                                <input type="text" class="form-control mb-2" id="login-location-search"
-                                                    placeholder="Search location">
-                                                <div id="login-location-map" style="height: 260px; width: 100%; border-radius: 8px;"></div>
-                                                <button type="button" class="submit_btn mt-2 confirm_map_location_btn" disabled>
-                                                    Confirm Selected Location
-                                                </button>
-                                            </div>
-                                            <div class="out_of_range_box alert alert-warning mt-3 d-none">
-                                                <div class="out_of_range_message">You are currently outside our delivery area. Join the waitlist and we will notify you as soon as we start serving your location.</div>
-                                                <div class="text-center mt-2 join_waitlist_cta">
-                                                    <button type="button" class="submit_btn join_waitlist_btn">Join waitlist</button>
+                                            <div class="login-location-step">
+                                                <div class="login-location-hero">
+                                                    <div class="login-location-hero-badge" aria-hidden="true">
+                                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/></svg>
+                                                    </div>
+                                                    <h2 class="heading-design-h5 login-location-title mb-2">Where should we deliver?</h2>
+                                                    <p class="login-location-sub text-center mb-0">Set your area once so we can show the right products, prices, and delivery options for you.</p>
                                                 </div>
-                                            </div>
-                                            <div class="text-center mt-2">
-                                                <button type="button" class="submit_btn back_to_otp_btn">Back</button>
+                                                <div class="login-location-actions">
+                                                    <button type="button" class="login-location-option login-location-option--primary use_current_location_btn">
+                                                        <span class="login-location-option-icon" aria-hidden="true">
+                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" fill="currentColor"/></svg>
+                                                        </span>
+                                                        <span class="login-location-option-body">
+                                                            <span class="login-location-option-title">Use current location</span>
+                                                            <span class="login-location-option-desc">Fastest — we’ll detect where you are</span>
+                                                        </span>
+                                                    </button>
+                                                    <button type="button" class="login-location-option login-location-option--outline pick_map_location_btn">
+                                                        <span class="login-location-option-icon" aria-hidden="true">
+                                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z" fill="currentColor"/></svg>
+                                                        </span>
+                                                        <span class="login-location-option-body">
+                                                            <span class="login-location-option-title">Choose on map</span>
+                                                            <span class="login-location-option-desc">Search or tap to drop a pin</span>
+                                                        </span>
+                                                    </button>
+                                                </div>
+                                                <div class="location_picker_map_box login-location-map-panel d-none">
+                                                    <label class="login-location-search-label" for="login-location-search">Search your address or landmark</label>
+                                                    <div class="login-location-search-wrap">
+                                                        <span class="login-location-search-icon" aria-hidden="true">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="currentColor"/></svg>
+                                                        </span>
+                                                        <input type="text" class="form-control login-location-search-input" id="login-location-search"
+                                                            placeholder="e.g. Dubai Marina, building name, street" autocomplete="off">
+                                                    </div>
+                                                    <div id="login-location-map" class="login-location-map-canvas"></div>
+                                                    <button type="button" class="submit_btn login-location-confirm-btn confirm_map_location_btn" disabled>
+                                                        Confirm this location
+                                                    </button>
+                                                </div>
+                                                <div class="out_of_range_box login-waitlist-card d-none">
+                                                    <div class="login-waitlist-card-inner">
+                                                        <div class="login-waitlist-visual" aria-hidden="true">
+                                                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" fill="currentColor"/></svg>
+                                                        </div>
+                                                        <div class="out_of_range_message login-waitlist-message"></div>
+                                                        <div class="join_waitlist_cta login-waitlist-cta">
+                                                            <button type="button" class="submit_btn join_waitlist_btn login-waitlist-btn">Join the waitlist</button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-center login-location-back-wrap">
+                                                    <button type="button" class="login-location-back back_to_otp_btn">← Back to verification</button>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="clearfix"></div>
