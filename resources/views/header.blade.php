@@ -244,6 +244,88 @@
         }
         #login button.login-location-back:hover { color: var(--indigo-color, #1a237e) !important; }
         .pac-container { z-index: 20000 !important; }
+        /* Fixed delivery ETA (logged-in users) */
+        .qk-delivery-eta {
+            position: fixed;
+            left: 14px;
+            bottom: 22px;
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px 10px 12px;
+            max-width: min(280px, calc(100vw - 28px));
+            border-radius: 16px;
+            background: linear-gradient(135deg, #1a237e 0%, #283593 45%, #1a237e 100%);
+            color: #fff;
+            box-shadow: 0 10px 32px rgba(26, 35, 126, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+            font-family: inherit;
+            pointer-events: none;
+            animation: qkEtaFloat 4s ease-in-out infinite;
+        }
+        .qk-delivery-eta__glow {
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            background: linear-gradient(120deg, rgba(255, 222, 52, 0.5), transparent 40%, rgba(139, 195, 74, 0.35));
+            opacity: 0.45;
+            z-index: -1;
+            filter: blur(8px);
+            animation: qkEtaPulse 2.8s ease-in-out infinite;
+        }
+        .qk-delivery-eta__icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(145deg, #ffde34, #ffc107);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1a237e;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .qk-delivery-eta__icon svg { display: block; }
+        .qk-delivery-eta__label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            opacity: 0.88;
+            line-height: 1.2;
+        }
+        .qk-delivery-eta__time {
+            display: block;
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: #ffde34;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+        }
+        .qk-delivery-eta__hint {
+            display: block;
+            font-size: 11px;
+            opacity: 0.75;
+            margin-top: 2px;
+        }
+        @keyframes qkEtaPulse {
+            0%, 100% { opacity: 0.35; transform: scale(1); }
+            50% { opacity: 0.65; transform: scale(1.02); }
+        }
+        @keyframes qkEtaFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        @media (max-width: 576px) {
+            .qk-delivery-eta {
+                left: 10px;
+                bottom: 16px;
+                padding: 9px 12px;
+            }
+            .qk-delivery-eta__time { font-size: 18px; }
+        }
     </style>
 </head>
 
@@ -729,6 +811,21 @@
 
     </header>
     <main>
+        @if(!empty(session('user_id')))
+        <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time">
+            <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
+            <div class="qk-delivery-eta__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="qk-delivery-eta__body">
+                <span class="qk-delivery-eta__label">Delivery to you</span>
+                <span class="qk-delivery-eta__time">18 mins</span>
+                <span class="qk-delivery-eta__hint">Fresh &amp; fast — order now</span>
+            </div>
+        </div>
+        @endif
         <div id="searchLoader" style="display: none; text-align: center; padding: 20px;">
             <img src="https://www.quickart.ae/assets/images/loader.gif" alt="Loading..." width="100">
         </div>
