@@ -800,10 +800,6 @@
                                 <img src="{{asset('assets/images/top_cart.png')}}" alt="Cart">
                                 <span>My Cart</span>
                             </a>
-                            <a class="qk-delivery-action-btn" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#logout">
-                                <img src="{{asset('assets/images/top_login.png')}}" alt="Logout">
-                                <span>Logout</span>
-                            </a>
                         </div>
                         @endif
                     </div>
