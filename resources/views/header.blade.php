@@ -244,56 +244,31 @@
         }
         #login button.login-location-back:hover { color: var(--indigo-color, #1a237e) !important; }
         .pac-container { z-index: 20000 !important; }
-        /* Delivery section as part of full header */
-        .qk-loggedin-header .logoBox {
-            width: 24%;
-            min-width: 190px;
-        }
-        .qk-loggedin-header .header_icons_box {
-            width: 76%;
-            gap: 12px;
-        }
-        .qk-loggedin-header .search-wrapper {
-            flex: 1;
-            margin-right: 12px;
-        }
-        .qk-loggedin-header #menu_mainbox {
-            width: auto;
-        }
-        .qk-home-topbar-wrap {
-            display: block;
-            width: clamp(260px, 32vw, 360px);
-            flex-shrink: 0;
-            margin-right: 2px;
+        /* Separate delivery top strip for logged-in users */
+        .qk-delivery-topstrip {
+            margin: 0 -12px 8px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #161616 0%, #252525 60%, #1a1a1a 100%);
+            box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
         }
         .qk-delivery-eta {
-            position: relative;
-            z-index: 5;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #191919 0%, #2b2b2b 60%, #1f1f1f 100%);
+            padding: 0;
+            border-radius: 0;
+            background: transparent;
             color: #fff;
-            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
             font-family: inherit;
         }
         .qk-delivery-eta__glow {
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            background: linear-gradient(120deg, rgba(255, 222, 52, 0.5), transparent 40%, rgba(139, 195, 74, 0.35));
-            opacity: 0.3;
-            z-index: -1;
-            filter: blur(4px);
-            animation: qkEtaPulse 2.8s ease-in-out infinite;
+            display: none;
         }
         .qk-delivery-eta__left {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 10px;
             flex: 1;
             min-width: 0;
@@ -313,7 +288,7 @@
         .qk-delivery-eta__icon svg { display: block; }
         .qk-delivery-eta__label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.3px;
             text-transform: uppercase;
@@ -322,7 +297,7 @@
         }
         .qk-delivery-eta__time {
             display: block;
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 800;
             line-height: 1;
             letter-spacing: -0.02em;
@@ -333,7 +308,7 @@
             display: flex;
             align-items: center;
             gap: 7px;
-            margin-top: 3px;
+            margin-top: 2px;
             font-size: 12px;
             line-height: 1.35;
             color: #f3f3f3;
@@ -355,7 +330,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 155px;
+            max-width: 260px;
             opacity: 0.9;
         }
         .qk-delivery-eta__profile {
@@ -372,32 +347,13 @@
             text-decoration: none;
         }
         .qk-delivery-eta__profile svg { display: block; }
-        @keyframes qkEtaPulse {
-            0%, 100% { opacity: 0.35; transform: scale(1); }
-            50% { opacity: 0.65; transform: scale(1.02); }
-        }
         @media (max-width: 991px) {
-            .qk-loggedin-header .logoBox {
-                width: 100%;
-                min-width: auto;
+            .qk-delivery-topstrip {
+                margin: 0 -12px 6px;
+                padding: 7px 10px;
             }
-            .qk-loggedin-header .header_icons_box {
-                width: 100%;
-                display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 8px;
-            }
-            .qk-home-topbar-wrap {
-                grid-column: 1 / -1;
-                width: 100%;
-                margin-right: 0;
-                margin-bottom: 0;
-            }
-            .qk-loggedin-header .search-wrapper {
-                margin-right: 0;
-            }
-            .qk-delivery-eta__time { font-size: 28px; }
-            .qk-delivery-eta__location { max-width: 170px; }
+            .qk-delivery-eta__time { font-size: 24px; }
+            .qk-delivery-eta__location { max-width: 145px; }
         }
     </style>
 </head>
@@ -650,7 +606,37 @@
     <header>
         <div class="osahan-menu">
             <div class="container-fluid">
-                <div class="headerBox {{ !empty(session('user_id')) ? 'qk-loggedin-header' : '' }}">
+                @if(!empty(session('user_id')))
+                <div class="qk-delivery-topstrip">
+                    <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
+                        <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
+                        <div class="qk-delivery-eta__left">
+                            <div class="qk-delivery-eta__icon" aria-hidden="true">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            <div class="qk-delivery-eta__body">
+                                <span class="qk-delivery-eta__label">Delivery in</span>
+                                <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
+                                <div class="qk-delivery-eta__meta">
+                                    <span class="qk-delivery-eta__distance-text" data-delivery-eta-distance>...</span>
+                                    <span class="qk-delivery-eta__dot">•</span>
+                                    <span class="qk-delivery-eta__location">Your selected location</span>
+                                </div>
+                            </div>
+                        </div>
+                        <a href="{{ !empty($data_arr['user_id']) ? url('profile?tag=1') : url('login') }}"
+                           class="qk-delivery-eta__profile"
+                           aria-label="Profile">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-3.866 0-7 2.91-7 6.5 0 .828.672 1.5 1.5 1.5h11c.828 0 1.5-.672 1.5-1.5 0-3.59-3.134-6.5-7-6.5z" fill="currentColor"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                @endif
+                <div class="headerBox">
                     <div class="logoBox">
                         <a class="navbar-brand" href="{{ENV('APP_URL')}}"> 
                             <img src="{{asset('assets/images/QuicKart_logo.png')}}" 
@@ -665,37 +651,6 @@
                         </button>
                     </div>
                     <div class="header_icons_box">
-                        @if(!empty(session('user_id')))
-                        <div class="qk-home-topbar-wrap">
-                            <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
-                                <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
-                                <div class="qk-delivery-eta__left">
-                                    <div class="qk-delivery-eta__icon" aria-hidden="true">
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" fill="currentColor"/>
-                                        </svg>
-                                    </div>
-                                    <div class="qk-delivery-eta__body">
-                                        <span class="qk-delivery-eta__label">Delivery in</span>
-                                        <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
-                                        <div class="qk-delivery-eta__meta">
-                                            <span class="qk-delivery-eta__distance-text" data-delivery-eta-distance>...</span>
-                                            <span class="qk-delivery-eta__dot">•</span>
-                                            <span class="qk-delivery-eta__location">Your selected location</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <a href="{{ !empty($data_arr['user_id']) ? url('profile?tag=1') : url('login') }}"
-                                   class="qk-delivery-eta__profile"
-                                   aria-label="Profile">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-3.866 0-7 2.91-7 6.5 0 .828.672 1.5 1.5 1.5h11c.828 0 1.5-.672 1.5-1.5 0-3.59-3.134-6.5-7-6.5z" fill="currentColor"/>
-                                    </svg>
-                                </a>
-                            </div>
-                        </div>
-                        @endif
-                        
                         <div class="search-wrapper">
                             <div class="search-wrapBox">
                                 <input type="text" id="searchInput" placeholder="Search products..." class="search-input form-control" autocomplete="off">
