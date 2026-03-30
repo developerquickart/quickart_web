@@ -637,14 +637,16 @@
                                         </a>
                                     </li>
                                     @else
-                                    <li class="list-inline-item">
-                                        <a href="{{ENV('APP_URL')}}repeat-orders" class="top_icon">
-                                            <div class="top_other_icon_img">
-                                                <img src="{{asset('assets/images/repeat.svg')}}" alt="Repeat">
-                                            </div>
-                                            <div class="top_other_icon_heading">Repeat</div>
-                                        </a>
-                                    </li>
+                                    @if(!request()->is('/'))
+                                        <li class="list-inline-item">
+                                            <a href="{{ENV('APP_URL')}}repeat-orders" class="top_icon">
+                                                <div class="top_other_icon_img">
+                                                    <img src="{{asset('assets/images/repeat.svg')}}" alt="Repeat">
+                                                </div>
+                                                <div class="top_other_icon_heading">Repeat</div>
+                                            </a>
+                                        </li>
+                                    @endif
                                     <li class="list-inline-item cart-btn">
                                         <a href="{{url('cart?tab=1')}}" onclick="openCart()">
                                             <div class="top_other_icon_img">
@@ -705,14 +707,16 @@
                                                 <div class="top_other_icon_heading">My Order</div>
                                             </a>
                                         </li>
-                                        <li class="list-inline-item">
-                                            <a href="{{ENV('APP_URL')}}repeat-orders" class="top_icon">
-                                                <div class="top_other_icon_img">
-                                                    <img src="{{asset('assets/images/repeat.svg')}}" alt="Repeat">
-                                                </div>
-                                                <div class="top_other_icon_heading">Repeat</div>
-                                            </a>
-                                        </li>
+                                        @if(!request()->is('/'))
+                                            <li class="list-inline-item">
+                                                <a href="{{ENV('APP_URL')}}repeat-orders" class="top_icon">
+                                                    <div class="top_other_icon_img">
+                                                        <img src="{{asset('assets/images/repeat.svg')}}" alt="Repeat">
+                                                    </div>
+                                                    <div class="top_other_icon_heading">Repeat</div>
+                                                </a>
+                                            </li>
+                                        @endif
                                         <li class="list-inline-item">
                                             <a href="{{ENV('APP_URL')}}address-list" class="top_icon">
                                                 <div class="top_other_icon_img">

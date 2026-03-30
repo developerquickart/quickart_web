@@ -31,9 +31,9 @@ if (isset($showCartProductList['data'])) {
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="cart_tabbing_mainBox">
-                            <div class="cart_tabbing_tabs">
+                            <div class="cart_tabbing_tabs" style="border-bottom:none !important; margin:0 !important; padding:0 !important;">
                                 <a class="tablinks cart-tab-item active" id="dailyCartTab"
-                                    onclick="openCity(event, '1')">Daily Cart</a>
+                                    onclick="openCity(event, '1')" style="width:0 !important; padding:0 !important; border:0 !important; background-color:transparent !important; opacity:0 !important; pointer-events:none !important;">Daily Cart</a>
                             </div>
                             <div class="cart_tabbing_content" id="content">
                                 <div id="1" class="tabcontent">
