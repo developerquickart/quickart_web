@@ -253,7 +253,7 @@
         }
         .qk-delivery-topstrip {
             margin: 0 0 10px;
-            padding: 10px 12px 12px;
+            padding: 10px 12px 18px;
             background: #2E317E;
             box-shadow: 0 10px 26px rgba(46, 49, 126, 0.35);
         }
@@ -398,7 +398,7 @@
         @media (max-width: 991px) {
             .qk-delivery-topstrip {
                 margin: 0 -12px 6px;
-                padding: 7px 10px;
+                padding: 7px 10px 12px;
             }
             .qk-delivery-search { margin-top: 8px; }
             .qk-delivery-eta__time { font-size: 24px; }
