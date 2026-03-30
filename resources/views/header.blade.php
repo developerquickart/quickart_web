@@ -333,6 +333,7 @@
         }
         .qk-delivery-search {
             margin-top: 10px;
+            padding: 0 8px;
         }
         .qk-delivery-search .search-wrapBox {
             background: #fff;
@@ -400,7 +401,10 @@
                 margin: 0 -12px 6px;
                 padding: 7px 10px 12px;
             }
-            .qk-delivery-search { margin-top: 8px; }
+            .qk-delivery-search {
+                margin-top: 8px;
+                padding: 0 6px;
+            }
             .qk-delivery-eta__time { font-size: 24px; }
         }
     </style>

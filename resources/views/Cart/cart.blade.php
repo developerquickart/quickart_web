@@ -2091,6 +2091,7 @@ document.querySelectorAll('input[name="toggle-two"]').forEach(radio => {
 <!-- delete to subcart api call...G1 -->
 <script>
 function removeToSubCartCall(varientId, rStatus, cQty, ctimeSlot, cSubTotlaDelivery, cSubDeliveryDate, cRepeatOrder, cIsAutoRenew, name, price, featureId) {
+    const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
     const selectedDays = [];
     let selectedDayString = "",
         selectedWeekValue = "",
@@ -2114,6 +2115,8 @@ function removeToSubCartCall(varientId, rStatus, cQty, ctimeSlot, cSubTotlaDeliv
         if (selectedTime) {
             selectedTimeSlot = selectedTime.value;
         }
+        // If UI doesn't provide a time selection (hidden), enforce fixed slot.
+        if (!selectedTimeSlot) selectedTimeSlot = FIXED_TIME_SLOT;
     }else if (rStatus == 'plus') {
             qty = parseInt(cQty || 0) + 1;
         selectedWeekValue = cSubTotlaDelivery;
@@ -2485,6 +2488,7 @@ function handleOnCLickAction(event) {
 }
 
 function AddToSubCartCall(element) {
+    const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
 
     let modal = document.getElementById("subscribe");
 
@@ -2529,6 +2533,8 @@ function AddToSubCartCall(element) {
     if (selectedTime) {
         selectedTimeSlot = selectedTime.value;
     }
+    // UI is intentionally hidden on /cart; enforce fixed slot.
+    if (!selectedTimeSlot) selectedTimeSlot = FIXED_TIME_SLOT;
     const checkbox = document.getElementById("isAutorenew");
     if (checkbox.checked) {
         console.log("Checkbox is checked");
@@ -2604,13 +2610,7 @@ function AddToSubCartCall(element) {
             icon: "warning",
             draggable: true
         });
-    } else if (selectedTimeSlot === "") {
-        Swal.fire({
-            title: "{{ENV('SELECTTIMESLOTMSG')}}",
-            icon: "warning",
-            draggable: true
-        });
-    }
+    } 
 }
 </script>
 
@@ -4899,7 +4899,7 @@ function deleteAddress(addressId) {
                     </div>
                     <div class="fdate" id="checkDDate"> </div>
 
-                    <div class="subscription_duration" id="timeModel">
+                    <div class="subscription_duration" id="timeModel" style="display:none;">
                         <div class="order-subheading d-flex">
                             <img src="{{asset('assets/images/Clock.png')}}" alt="" class="img-fluid"
                                 style="max-width:25px">
