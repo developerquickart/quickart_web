@@ -11,6 +11,9 @@ class DeliveryEtaController extends Controller
 {
     private const FALLBACK_MINUTES = 18;
 
+    /** Extra minutes shown on top of Google route time (packaging / prep). */
+    private const PACKAGING_BUFFER_MINUTES = 5;
+
     private const CACHE_TTL_SECONDS = 600;
 
     public function show(Request $request)
@@ -41,7 +44,7 @@ class DeliveryEtaController extends Controller
             ]);
         }
 
-        $cacheKey = 'delivery_eta_rm_v2_' . session('user_id') . '_' . md5(
+        $cacheKey = 'delivery_eta_rm_v3_' . session('user_id') . '_' . md5(
             implode('|', [
                 round((float) $storeLat, 5),
                 round((float) $storeLng, 5),
@@ -50,11 +53,23 @@ class DeliveryEtaController extends Controller
             ])
         );
 
+        $exposeMatrix = config('app.debug') || (bool) config('services.google.log_route_matrix_response');
+
         $payload = Cache::get($cacheKey);
+        $routeMatrixParsed = null;
+        $routeMatrixRawBody = null;
+        $routeMatrixHttpStatus = null;
+
         if (! is_array($payload)) {
-            $payload = $this->fetchRouteMatrixMinutes((float) $storeLat, (float) $storeLng, (float) $userLat, (float) $userLng, $key);
-            if (is_array($payload)) {
-                Cache::put($cacheKey, $payload, self::CACHE_TTL_SECONDS);
+            $fetched = $this->fetchRouteMatrixMinutes((float) $storeLat, (float) $storeLng, (float) $userLat, (float) $userLng, $key);
+            if (is_array($fetched)) {
+                Cache::put($cacheKey, ['minutes' => $fetched['minutes']], self::CACHE_TTL_SECONDS);
+                $payload = ['minutes' => $fetched['minutes']];
+                $routeMatrixParsed = $fetched['route_matrix_parsed'] ?? null;
+                $routeMatrixRawBody = $fetched['route_matrix_raw_body'] ?? null;
+                $routeMatrixHttpStatus = $fetched['route_matrix_http_status'] ?? null;
+            } else {
+                $payload = null;
             }
         }
 
@@ -66,17 +81,28 @@ class DeliveryEtaController extends Controller
             ]);
         }
 
-        return response()->json([
+        $body = [
             'minutes' => $payload['minutes'],
             'label' => $payload['minutes'] . ' mins',
             'source' => 'google_route_matrix',
-        ]);
+        ];
+
+        if ($exposeMatrix) {
+            $body['route_matrix_response'] = $routeMatrixParsed;
+            $body['route_matrix_response_raw'] = $routeMatrixRawBody;
+            $body['route_matrix_http_status'] = $routeMatrixHttpStatus;
+            if ($routeMatrixParsed === null && $routeMatrixRawBody === null) {
+                $body['route_matrix_debug_note'] = 'Served from cache; trigger a fresh Routes API call (wait for cache expiry or change coords) to see full payload here.';
+            }
+        }
+
+        return response()->json($body);
     }
 
     /**
      * Google Routes API — Compute Route Matrix (REST).
      *
-     * @return array{minutes: int}|null
+     * @return array{minutes: int, route_matrix_parsed?: array|null, route_matrix_raw_body?: string|null, route_matrix_http_status?: int}|null
      */
     private function fetchRouteMatrixMinutes(float $originLat, float $originLng, float $destLat, float $destLng, string $apiKey): ?array
     {
@@ -120,10 +146,13 @@ class DeliveryEtaController extends Controller
                 ])
                 ->post($url, $body);
 
+            $httpStatus = $response->status();
+            $rawBody = $response->body();
+
             if (! $response->ok()) {
                 Log::warning('Route Matrix HTTP error', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
+                    'status' => $httpStatus,
+                    'body' => $rawBody,
                 ]);
 
                 return null;
@@ -172,9 +201,14 @@ class DeliveryEtaController extends Controller
                 return null;
             }
 
-            $minutes = max(1, (int) ceil($seconds / 60));
+            $minutes = max(1, (int) ceil($seconds / 60)) + self::PACKAGING_BUFFER_MINUTES;
 
-            return ['minutes' => $minutes];
+            return [
+                'minutes' => $minutes,
+                'route_matrix_parsed' => $rows,
+                'route_matrix_raw_body' => $rawBody,
+                'route_matrix_http_status' => $httpStatus,
+            ];
         } catch (\Throwable $e) {
             Log::error('Route Matrix exception', ['message' => $e->getMessage()]);
 

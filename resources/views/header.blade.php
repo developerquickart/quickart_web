@@ -837,6 +837,16 @@
                     return r.json();
                 })
                 .then(function (data) {
+                    if (data && (data.route_matrix_response != null || data.route_matrix_response_raw != null)) {
+                        console.log('[delivery-eta] Google Route Matrix HTTP status:', data.route_matrix_http_status);
+                        console.log('[delivery-eta] Google Route Matrix (parsed JSON):', data.route_matrix_response);
+                        if (data.route_matrix_response_raw) {
+                            console.log('[delivery-eta] Google Route Matrix (raw response body string):', data.route_matrix_response_raw);
+                        }
+                        if (data.route_matrix_debug_note) {
+                            console.info('[delivery-eta]', data.route_matrix_debug_note);
+                        }
+                    }
                     if (data && data.label) {
                         timeEl.textContent = data.label;
                     } else if (data && data.minutes != null) {
