@@ -1033,8 +1033,11 @@ $(document).ready(function() {
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
 
 <script>
-  // Your Firebase config
-  const firebaseConfig = {
+(function () {
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    return;
+  }
+  var firebaseConfig = {
     apiKey: "AIzaSyB-KcVMEb8TMyO6HKbthQ6m6tMXEadGyQ4",
     authDomain: "quickart-customer.firebaseapp.com",
     projectId: "quickart-customer",
@@ -1042,44 +1045,53 @@ $(document).ready(function() {
     appId: "1:616864050624:web:2edcc5d6a43bb4c9b92c25",
   };
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const messaging = firebase.messaging();
-
-  // Request notification permission from the browser
-  Notification.requestPermission().then(function(permission) {
-    if (permission === 'granted') {
-      console.log('Notification permission granted.');
-
-      messaging.getToken({ vapidKey: 'BKIaZ9bCtfZMsqlEMH1zynM6Xu7RG10tAHL9Xa7t7lasQB5FXPYNIZv-Kp3GVrFTGCybrsmocLYL5tv9wNuX4To' })
-        .then(function(currentToken) {
-          if (currentToken) {
-            console.log('FCM Token:', currentToken);
-            // Send this token to your Laravel backend if needed
-            // Example: use fetch() or AJAX to post it to a route
-          } else {
-            console.log('No registration token available. Request permission to generate one.');
-          }
-        })
-        .catch(function(err) {
-          console.log('An error occurred while retrieving token. ', err);
-        });
-    } else {
-      console.log('Notification permission not granted.');
+  try {
+    firebase.initializeApp(firebaseConfig);
+  } catch (e) {
+    if (!e || e.code !== 'app/duplicate-app') {
+      console.warn('Firebase init skipped:', e);
+      return;
     }
+  }
+
+  var messaging;
+  try {
+    messaging = firebase.messaging();
+  } catch (e) {
+    console.warn('Firebase messaging unavailable:', e);
+    return;
+  }
+
+  Notification.requestPermission().then(function (permission) {
+    if (permission !== 'granted') {
+      return;
+    }
+    var swUrl = '{{ url('/firebase-messaging-sw.js') }}';
+    navigator.serviceWorker.register(swUrl).then(function (registration) {
+      return messaging.getToken({
+        vapidKey: 'BKIaZ9bCtfZMsqlEMH1zynM6Xu7RG10tAHL9Xa7t7lasQB5FXPYNIZv-Kp3GVrFTGCybrsmocLYL5tv9wNuX4To',
+        serviceWorkerRegistration: registration,
+      });
+    }).then(function (currentToken) {
+      if (currentToken) {
+        console.log('FCM Token:', currentToken);
+      }
+    }).catch(function (err) {
+      console.warn('FCM token / service worker:', err && err.message ? err.message : err);
+    });
   });
 
-  // Handle incoming messages
-  messaging.onMessage(function(payload) {
+  messaging.onMessage(function (payload) {
     console.log('Message received: ', payload);
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
+    if (!payload.notification) return;
+    var notificationTitle = payload.notification.title;
+    var notificationOptions = {
       body: payload.notification.body,
       icon: payload.notification.icon
     };
-
     new Notification(notificationTitle, notificationOptions);
   });
+})();
 </script>
 
 

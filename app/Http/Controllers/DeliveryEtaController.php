@@ -64,6 +64,14 @@ class DeliveryEtaController extends Controller
             $fetched = $this->fetchRouteMatrixMinutes((float) $storeLat, (float) $storeLng, (float) $userLat, (float) $userLng, $key);
             if (is_array($fetched)) {
                 Cache::put($cacheKey, ['minutes' => $fetched['minutes']], self::CACHE_TTL_SECONDS);
+                $tracked = $request->session()->get('delivery_eta_rm_cache_keys', []);
+                if (! is_array($tracked)) {
+                    $tracked = [];
+                }
+                if (! in_array($cacheKey, $tracked, true)) {
+                    $tracked[] = $cacheKey;
+                    $request->session()->put('delivery_eta_rm_cache_keys', $tracked);
+                }
                 $payload = ['minutes' => $fetched['minutes']];
                 $routeMatrixParsed = $fetched['route_matrix_parsed'] ?? null;
                 $routeMatrixRawBody = $fetched['route_matrix_raw_body'] ?? null;

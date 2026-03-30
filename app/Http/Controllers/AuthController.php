@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\RequestException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -430,17 +431,22 @@ class AuthController extends Controller
     
     public function userLogout(Request $request)
     {
-        session()->forget('user_id'); 
-        session()->forget('user_phone'); 
-        session()->forget('user_email'); 
-        session()->forget('delivery_user_lat');
-        session()->forget('delivery_user_lng');
-        session()->forget('delivery_store_lat');
-        session()->forget('delivery_store_lng');
-        session()->forget('delivery_store_id');
+        $etaKeys = $request->session()->get('delivery_eta_rm_cache_keys', []);
+        if (! is_array($etaKeys)) {
+            $etaKeys = [];
+        }
+        $legacyEtaKey = $request->session()->get('delivery_eta_rm_cache_key');
+        if (! empty($legacyEtaKey)) {
+            $etaKeys[] = $legacyEtaKey;
+        }
+        foreach (array_unique(array_filter($etaKeys)) as $cacheKey) {
+            Cache::forget($cacheKey);
+        }
 
-        return "success";
-    
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return 'success';
     }
 
 
