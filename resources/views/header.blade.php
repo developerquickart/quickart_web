@@ -244,7 +244,28 @@
         }
         #login button.login-location-back:hover { color: var(--indigo-color, #1a237e) !important; }
         .pac-container { z-index: 20000 !important; }
-        /* Home top delivery/search block */
+        /* Delivery section as part of full header */
+        .qk-loggedin-header .logoBox {
+            width: 24%;
+            min-width: 190px;
+        }
+        .qk-loggedin-header .header_icons_box {
+            width: 76%;
+            gap: 12px;
+        }
+        .qk-loggedin-header .search-wrapper {
+            flex: 1;
+            margin-right: 12px;
+        }
+        .qk-loggedin-header #menu_mainbox {
+            width: auto;
+        }
+        .qk-home-topbar-wrap {
+            display: block;
+            width: clamp(260px, 32vw, 360px);
+            flex-shrink: 0;
+            margin-right: 2px;
+        }
         .qk-delivery-eta {
             position: relative;
             z-index: 5;
@@ -253,8 +274,8 @@
             justify-content: space-between;
             gap: 10px;
             width: 100%;
-            padding: 12px 14px;
-            border-radius: 14px;
+            padding: 10px 12px;
+            border-radius: 12px;
             background: linear-gradient(135deg, #191919 0%, #2b2b2b 60%, #1f1f1f 100%);
             color: #fff;
             box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
@@ -301,37 +322,41 @@
         }
         .qk-delivery-eta__time {
             display: block;
-            font-size: 34px;
+            font-size: 30px;
             font-weight: 800;
             line-height: 1;
             letter-spacing: -0.02em;
             color: #fff;
             text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
         }
-        .qk-delivery-eta__distance-chip {
-            display: inline-flex;
+        .qk-delivery-eta__meta {
+            display: flex;
             align-items: center;
-            gap: 5px;
-            margin-top: 6px;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(255, 222, 52, 0.2);
-            border: 1px solid rgba(255, 222, 52, 0.45);
+            gap: 7px;
+            margin-top: 3px;
             font-size: 12px;
-            font-weight: 700;
-            color: #ffef9c;
-            width: fit-content;
+            line-height: 1.35;
+            color: #f3f3f3;
+            opacity: 0.92;
+            min-width: 0;
         }
-        .qk-delivery-eta__hint,
+        .qk-delivery-eta__distance-text {
+            color: #ffef9c;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .qk-delivery-eta__dot {
+            color: rgba(255, 255, 255, 0.55);
+            flex-shrink: 0;
+        }
         .qk-delivery-eta__location {
-            display: block;
-            font-size: 13px;
-            opacity: 0.84;
-            margin-top: 4px;
+            display: inline-block;
+            font-size: 12px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 240px;
+            max-width: 155px;
+            opacity: 0.9;
         }
         .qk-delivery-eta__profile {
             display: inline-flex;
@@ -347,21 +372,32 @@
             text-decoration: none;
         }
         .qk-delivery-eta__profile svg { display: block; }
-        .qk-home-topbar-wrap {
-            display: none;
-            width: 100%;
-            margin-bottom: 10px;
-        }
         @keyframes qkEtaPulse {
             0%, 100% { opacity: 0.35; transform: scale(1); }
             50% { opacity: 0.65; transform: scale(1.02); }
         }
         @media (max-width: 991px) {
-            .qk-home-topbar-wrap {
-                display: block;
+            .qk-loggedin-header .logoBox {
+                width: 100%;
+                min-width: auto;
             }
-            .qk-delivery-eta__time { font-size: 30px; }
-            .qk-delivery-eta__location { max-width: 180px; }
+            .qk-loggedin-header .header_icons_box {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 8px;
+            }
+            .qk-home-topbar-wrap {
+                grid-column: 1 / -1;
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 0;
+            }
+            .qk-loggedin-header .search-wrapper {
+                margin-right: 0;
+            }
+            .qk-delivery-eta__time { font-size: 28px; }
+            .qk-delivery-eta__location { max-width: 170px; }
         }
     </style>
 </head>
@@ -614,7 +650,7 @@
     <header>
         <div class="osahan-menu">
             <div class="container-fluid">
-                <div class="headerBox">
+                <div class="headerBox {{ !empty(session('user_id')) ? 'qk-loggedin-header' : '' }}">
                     <div class="logoBox">
                         <a class="navbar-brand" href="{{ENV('APP_URL')}}"> 
                             <img src="{{asset('assets/images/QuicKart_logo.png')}}" 
@@ -629,7 +665,7 @@
                         </button>
                     </div>
                     <div class="header_icons_box">
-                        @if(request()->routeIs('index') || request()->is('/'))
+                        @if(!empty(session('user_id')))
                         <div class="qk-home-topbar-wrap">
                             <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
                                 <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
@@ -642,8 +678,11 @@
                                     <div class="qk-delivery-eta__body">
                                         <span class="qk-delivery-eta__label">Delivery in</span>
                                         <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
-                                        <span class="qk-delivery-eta__distance-chip" data-delivery-eta-distance>...</span>
-                                        <span class="qk-delivery-eta__location">Your selected location</span>
+                                        <div class="qk-delivery-eta__meta">
+                                            <span class="qk-delivery-eta__distance-text" data-delivery-eta-distance>...</span>
+                                            <span class="qk-delivery-eta__dot">•</span>
+                                            <span class="qk-delivery-eta__location">Your selected location</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <a href="{{ !empty($data_arr['user_id']) ? url('profile?tag=1') : url('login') }}"
@@ -913,10 +952,10 @@
                         if (distanceEl) {
                             if (data && data.distance_label) {
                                 distanceEl.textContent = data.distance_label;
-                                distanceEl.style.display = 'inline-flex';
+                                distanceEl.style.display = 'inline-block';
                             } else if (data && data.distance_meters != null) {
                                 distanceEl.textContent = data.distance_meters + ' mtrs away';
-                                distanceEl.style.display = 'inline-flex';
+                                distanceEl.style.display = 'inline-block';
                             } else {
                                 distanceEl.style.display = 'none';
                             }
