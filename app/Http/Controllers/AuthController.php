@@ -433,6 +433,11 @@ class AuthController extends Controller
         session()->forget('user_id'); 
         session()->forget('user_phone'); 
         session()->forget('user_email'); 
+        session()->forget('delivery_user_lat');
+        session()->forget('delivery_user_lng');
+        session()->forget('delivery_store_lat');
+        session()->forget('delivery_store_lng');
+        session()->forget('delivery_store_id');
 
         return "success";
     
@@ -528,8 +533,11 @@ class AuthController extends Controller
                     ST_Distance(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
-                    ) AS distance_meters
+                    ) AS distance_meters,
+                    ST_Y(location::geometry)::float AS store_lat,
+                    ST_X(location::geometry)::float AS store_lng
                  FROM stores
+                 WHERE location IS NOT NULL
                  ORDER BY distance_meters ASC
                  LIMIT 1",
                 [$lng, $lat, $lng, $lat]
@@ -575,6 +583,13 @@ class AuthController extends Controller
             $request->session()->put('user_phone', $pendingUser['email']);
             $request->session()->put('user_email', $pendingUser['user_phone']);
             $request->session()->put('user_name', $pendingUser['name']);
+            $request->session()->put('delivery_user_lat', $lat);
+            $request->session()->put('delivery_user_lng', $lng);
+            $request->session()->put('delivery_store_id', (int) $nearestStore->id);
+            if (isset($nearestStore->store_lat, $nearestStore->store_lng)) {
+                $request->session()->put('delivery_store_lat', (float) $nearestStore->store_lat);
+                $request->session()->put('delivery_store_lng', (float) $nearestStore->store_lng);
+            }
             $request->session()->forget('pending_login_user');
 
             return response()->json([

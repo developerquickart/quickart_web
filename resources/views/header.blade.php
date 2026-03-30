@@ -812,7 +812,7 @@
     </header>
     <main>
         @if(!empty(session('user_id')))
-        <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time">
+        <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
             <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
             <div class="qk-delivery-eta__icon" aria-hidden="true">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -821,10 +821,35 @@
             </div>
             <div class="qk-delivery-eta__body">
                 <span class="qk-delivery-eta__label">Delivery to you</span>
-                <span class="qk-delivery-eta__time">18 mins</span>
+                <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
                 <span class="qk-delivery-eta__hint">Fresh &amp; fast — order now</span>
             </div>
         </div>
+        <script>
+        (function () {
+            var root = document.querySelector('[data-delivery-eta-root]');
+            if (!root) return;
+            var timeEl = root.querySelector('[data-delivery-eta-time]');
+            if (!timeEl) return;
+            fetch('{{ url('/delivery-eta') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('delivery-eta');
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (data && data.label) {
+                        timeEl.textContent = data.label;
+                    } else if (data && data.minutes != null) {
+                        timeEl.textContent = data.minutes + ' mins';
+                    } else {
+                        timeEl.textContent = '18 mins';
+                    }
+                })
+                .catch(function () {
+                    timeEl.textContent = '18 mins';
+                });
+        })();
+        </script>
         @endif
         <div id="searchLoader" style="display: none; text-align: center; padding: 20px;">
             <img src="https://www.quickart.ae/assets/images/loader.gif" alt="Loading..." width="100">

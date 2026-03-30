@@ -30,4 +30,12 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    | Server-side key for Google Maps Platform (Routes API — Compute Route Matrix).
+    | Restrict by IP on the server; do not expose this key in frontend JS.
+    */
+    'google' => [
+        'maps_server_key' => env('GOOGLE_MAPS_SERVER_KEY'),
+    ],
+
 ];

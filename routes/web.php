@@ -19,6 +19,7 @@ use App\Http\Controllers\ProductListController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DailyOrderController;
+use App\Http\Controllers\DeliveryEtaController;
 use App\Http\Controllers\RepeatOrderController;
 use App\Http\Controllers\RateReviewController;
 use App\Http\Controllers\SitemapController;
@@ -260,6 +261,7 @@ Route::post('/loginsubmit', [AuthController::class, 'loginsubmit'])->name('login
 Route::post('/registeruser', [AuthController::class, 'registeruser'])->name('registeruser');
 Route::post('/loginotpsubmit', [AuthController::class, 'loginotpsubmit'])->name('loginotpsubmit');
 Route::post('/check-login-location-range', [AuthController::class, 'checkLoginLocationRange'])->name('checkLoginLocationRange');
+Route::get('/delivery-eta', [DeliveryEtaController::class, 'show'])->name('deliveryEta');
 Route::post('/join-waitlist', [AuthController::class, 'joinWaitlist'])->name('joinWaitlist');
 Route::post('/resend-otp', [AuthController::class, 'resend_otp']);
 Route::post('/logout', [AuthController::class,'userLogout'])->name('userLogout');
