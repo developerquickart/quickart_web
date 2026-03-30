@@ -3652,19 +3652,11 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
         }];
     } else {
         showCartData.data.forEach(category => {
-            const categoryTimeslotsData = category.timeslotsdata || [];
-            const desiredDateObj =
-                categoryTimeslotsData.find(d => d.date === todayDateStr) ||
-                categoryTimeslotsData[0] ||
-                null;
-
-            const desiredDate = desiredDateObj ? desiredDateObj.date : todayDateStr;
-            const desiredTimeSlots = desiredDateObj ? (desiredDateObj.timeslots || []) : [];
-            const fixedTimeObj = desiredTimeSlots.find(t => t.time_slots === FIXED_TIME_SLOT);
-            const desiredTime = fixedTimeObj
-                ? fixedTimeObj.time_slots
-                : (desiredTimeSlots[0]?.time_slots || FIXED_TIME_SLOT);
-
+            // Always enforce checkout date/time:
+            // - date: today's date only (local machine date)
+            // - time: fixed "06:00 am - 10:00 am" slot
+            const desiredDate = todayDateStr;
+            const desiredTime = FIXED_TIME_SLOT;
             const isFixed =
                 category.selectedTime === desiredTime &&
                 category.selectedDate === desiredDate;

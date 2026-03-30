@@ -1245,12 +1245,21 @@
 
 
                         }else if(response.success == true && response.popup == 'register'){
-                            $('#registration').modal('show');
+                            // Temporarily block registration flow for ZAP users.
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Notice',
+                                text: 'The zap feature is only for already existing users',
+                                timer: 4000,
+                                showConfirmButton: false
+                            });
 
-                            $('.register_form').find('.country_code').val(response.country_code);
-                            $('.register_form').find('.mobile_code').val(response.number);
-                            $('.register_form').find('.flagcode').val(response.flag_code);
-                            $('#login').modal('hide');
+                            // $('#registration').modal('show');
+                            //
+                            // $('.register_form').find('.country_code').val(response.country_code);
+                            // $('.register_form').find('.mobile_code').val(response.number);
+                            // $('.register_form').find('.flagcode').val(response.flag_code);
+                            // $('#login').modal('hide');
                         }else{
                             Swal.fire({
                                 icon: 'error',
