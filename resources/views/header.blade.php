@@ -280,19 +280,6 @@
             flex: 1;
             min-width: 0;
         }
-        .qk-delivery-eta__icon {
-            flex-shrink: 0;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.14);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.26);
-        }
-        .qk-delivery-eta__icon svg { display: block; }
         .qk-delivery-eta__label {
             display: block;
             font-size: 11px;
@@ -311,10 +298,31 @@
             color: #fff;
             text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
         }
+        .qk-delivery-eta__headline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
+            min-width: 0;
+        }
+        .qk-delivery-eta__distance-tag {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 2px 7px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.18);
+            color: #ffd54f;
+            font-size: 11px;
+            font-weight: 700;
+            line-height: 1.1;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
         .qk-delivery-eta__meta {
             display: flex;
             align-items: center;
-            gap: 7px;
             margin-top: 2px;
             font-size: 12px;
             line-height: 1.35;
@@ -323,13 +331,16 @@
             min-width: 0;
         }
         .qk-delivery-eta__distance-text {
-            color: #ffd54f;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-        .qk-delivery-eta__dot,
-        .qk-delivery-eta__location {
             display: none;
+        }
+        .qk-delivery-eta__location {
+            display: block;
+            color: #ffffff;
+            opacity: 0.9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 360px;
         }
         .qk-delivery-search {
             margin-top: 10px;
@@ -750,9 +761,12 @@
                             </div>
                             <div class="qk-delivery-eta__body">
                                 <span class="qk-delivery-eta__label">Delivery in</span>
-                                <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
+                                <div class="qk-delivery-eta__headline">
+                                    <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
+                                    <span class="qk-delivery-eta__distance-tag" data-delivery-eta-distance>...</span>
+                                </div>
                                 <div class="qk-delivery-eta__meta">
-                                    <span class="qk-delivery-eta__distance-text" data-delivery-eta-distance>...</span>
+                                    <span class="qk-delivery-eta__location" data-delivery-eta-location>{{ session('delivery_location_name') ?: 'Current location' }}</span>
                                 </div>
                             </div>
                         </div>
@@ -1049,10 +1063,10 @@
                         if (distanceEl) {
                             if (data && data.distance_label) {
                                 distanceEl.textContent = data.distance_label;
-                                distanceEl.style.display = 'inline-block';
+                                distanceEl.style.display = 'inline-flex';
                             } else if (data && data.distance_meters != null) {
                                 distanceEl.textContent = data.distance_meters + ' mtrs away';
-                                distanceEl.style.display = 'inline-block';
+                                distanceEl.style.display = 'inline-flex';
                             } else {
                                 distanceEl.style.display = 'none';
                             }
@@ -1224,12 +1238,12 @@
             }
         }
 
-        function submitLoginLocationCheck(lat, lng) {
+        function submitLoginLocationCheck(lat, lng, locationName) {
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
             $.ajax({
                 url: "{{ route('checkLoginLocationRange') }}",
                 type: 'POST',
-                data: { lat: lat, lng: lng, _token: _token },
+                data: { lat: lat, lng: lng, location_name: locationName || '', _token: _token },
                 success: function (response) {
                     if (response.success && response.in_range === true) {
                         handleSuccessfulLoginAfterLocation(response.message);
@@ -1612,7 +1626,7 @@
                 }
 
                 navigator.geolocation.getCurrentPosition(function (position) {
-                    submitLoginLocationCheck(position.coords.latitude, position.coords.longitude);
+                    submitLoginLocationCheck(position.coords.latitude, position.coords.longitude, 'Current location');
                 }, function () {
                     Swal.fire({
                         icon: 'warning',
@@ -1648,7 +1662,8 @@
                     });
                     return;
                 }
-                submitLoginLocationCheck(selectedLoginLat, selectedLoginLng);
+                const pickedLocationName = ($('#login-location-search').val() || '').trim() || 'Selected location';
+                submitLoginLocationCheck(selectedLoginLat, selectedLoginLng, pickedLocationName);
             });
 
             $('.join_waitlist_btn').on('click', function () {

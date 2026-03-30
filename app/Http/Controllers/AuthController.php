@@ -525,6 +525,7 @@ class AuthController extends Controller
 
             $lat = (float) $validated['lat'];
             $lng = (float) $validated['lng'];
+            $locationName = trim((string) $request->input('location_name', ''));
 
             $nearestStore = DB::selectOne(
                 "SELECT
@@ -591,6 +592,7 @@ class AuthController extends Controller
             $request->session()->put('user_name', $pendingUser['name']);
             $request->session()->put('delivery_user_lat', $lat);
             $request->session()->put('delivery_user_lng', $lng);
+            $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
             $request->session()->put('delivery_store_id', (int) $nearestStore->id);
             if (isset($nearestStore->store_lat, $nearestStore->store_lng)) {
                 $request->session()->put('delivery_store_lat', (float) $nearestStore->store_lat);
@@ -604,6 +606,7 @@ class AuthController extends Controller
                 'message' => 'Location verified. Login successful.',
                 'distance_meters' => (float) $nearestStore->distance_meters,
                 'store_name' => $nearestStore->name,
+                'location_name' => $locationName !== '' ? $locationName : 'Current location',
             ]);
         } catch (\Throwable $e) {
             \Log::error('checkLoginLocationRange failed', [
