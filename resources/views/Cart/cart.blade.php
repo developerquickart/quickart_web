@@ -423,6 +423,7 @@ if (isset($showCartProductList['data'])) {
                                                                                 {{number_format($showCartProductList['data']['total_price'], 2)}}</strong>
                                                                         </td>
                                                                     </tr>
+                                                                    {{-- Quickart Wallet (daily) — hidden temporarily
                                                                     <tr class="quickart-cash">
                                                                         <td>Quickart Wallet</td>
                                                                         <td>
@@ -450,6 +451,18 @@ if (isset($showCartProductList['data'])) {
                                                                                     style="color: black; display: inline;">
                                                                                     AED Wallet applied
                                                                                 </label>
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    --}}
+                                                                    <tr class="quickart-cash d-none" aria-hidden="true">
+                                                                        <td colspan="2">
+                                                                            <span id="walletAmountD">{{ number_format($showCartProductList['data']['wallet_balance'], 2) }}</span>
+                                                                            <input type="checkbox" onclick="wallettotalCalculationPayment()" name="daily_wallet" id="daily_wallet">
+                                                                            <input type="hidden" id="walletPercentageD" name="wallet-percentage" value="{{$showCartProductList['data']['wallet_deduction_percentage']}}">
+                                                                            <span id="walletTextD" style="display: none;">
+                                                                                <span id="selectedWalletAmountD">0.00</span>
+                                                                                <label id="appliedWalletD" style="display: none;">AED Wallet applied</label>
                                                                             </span>
                                                                         </td>
                                                                     </tr>
@@ -1100,6 +1113,7 @@ if (isset($showCartProductList['data'])) {
                                                                         {{number_format($subCartProductList['data']['vat'], 2)}}
                                                                     </td>
                                                                 </tr>
+                                                                {{-- Quickart Wallet (subscription) — hidden temporarily
                                                                 <tr class="quickart-cash">
                                                                     <td>Quickart Wallet</td>
                                                                     <td>
@@ -1125,6 +1139,18 @@ if (isset($showCartProductList['data'])) {
                                                                                 style="color: black; display: inline;">
                                                                                 AED Wallet applied
                                                                             </label>
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                                --}}
+                                                                <tr class="quickart-cash d-none" aria-hidden="true">
+                                                                    <td colspan="2">
+                                                                        <span id="walletAmountS">{{ number_format($subCartProductList['data']['wallet_balance'], 2) }}</span>
+                                                                        <input type="checkbox" onclick="onWalletSelected(this)" name="subscription_wallet" id="subscription_wallet">
+                                                                        <input type="hidden" id="walletPercentage" name="wallet-percentage" value="{{$subCartProductList['data']['wallet_deduction_percentage']}}">
+                                                                        <span id="walletText" style="display: none;">
+                                                                            <span id="selectedWalletAmount">0.00</span>
+                                                                            <label id="appliedWallet" style="display: none;">AED Wallet applied</label>
                                                                         </span>
                                                                     </td>
                                                                 </tr>
