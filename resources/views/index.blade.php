@@ -145,6 +145,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 @endif
 <!-- SECOND PRODUCT BANNER SECTION END -->
 
+{{-- Temporarily hidden: active subscription orders on homepage
 <!-- YOUR ACTIVE SUBSCRIPTION SECTION START Done-->
 @if(!empty($data_arr['user_id']) && $data_arr['user_id'] != '')
     @if(isset($oneAPIList['activesub_ordlist']) && count($oneAPIList['activesub_ordlist']) > 0)
@@ -187,6 +188,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
     @endif
 @endif
 <!-- BEST SELLERS PRODUCT SECTION END -->
+--}}
 
 <!-- FRESH DAIRY SECTION START Done-->
 @if(isset($oneAPIList['occasionalCategory']) && count($oneAPIList['occasionalCategory']) > 0)
@@ -561,6 +563,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 @endif
 <!-- BEST SELLERS PRODUCT SECTION END -->
 
+{{-- Temporarily hidden: Order Again on homepage
 <!-- ORDER AGAIN SECTION START Done-->
 @if(isset($oneAPIList['orderlist']) && count($oneAPIList['orderlist']) > 0)
 <section class="order-section section-padding">
@@ -602,6 +605,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 </section>
 @endif
 <!-- ORDER AGAIN SECTION END -->
+--}}
 
 
 
