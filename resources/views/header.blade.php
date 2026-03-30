@@ -248,8 +248,8 @@
         .qk-delivery-topstrip {
             margin: 0 -12px 10px;
             padding: 10px 12px 12px;
-            background: #ffffff;
-            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.07);
+            background: #2E317E;
+            box-shadow: 0 10px 26px rgba(46, 49, 126, 0.35);
         }
         .qk-delivery-eta {
             display: flex;
@@ -259,8 +259,8 @@
             width: 100%;
             padding: 10px 12px;
             border-radius: 14px;
-            background: linear-gradient(135deg, #121212 0%, #2a2a2a 60%, #171717 100%);
-            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+            background: linear-gradient(135deg, #2E317E 0%, #3a3ea1 60%, #282b70 100%);
+            box-shadow: 0 12px 26px rgba(30, 33, 94, 0.4);
             color: #fff;
             font-family: inherit;
         }
@@ -317,7 +317,7 @@
             min-width: 0;
         }
         .qk-delivery-eta__distance-text {
-            color: #ffef9c;
+            color: #ffd54f;
             font-weight: 700;
             white-space: nowrap;
         }
