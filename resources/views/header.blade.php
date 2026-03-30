@@ -403,34 +403,51 @@
             .qk-delivery-desktop-actions {
                 display: inline-flex;
             }
+            .qk-delivery-action-btn img {
+                filter: brightness(0) invert(1);
+            }
             .qk-loggedin-menu .main-nav-right {
                 display: none !important;
             }
             .qk-loggedin-menu #menu_mainbox {
-                position: relative;
+                position: static;
                 width: auto !important;
             }
             .qk-loggedin-menu #menu_mainbox .overlay {
-                display: none !important;
+                display: block !important;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.45);
+                z-index: 1190;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s ease;
             }
             .qk-loggedin-menu #menu_mainbox .login_cartbox {
                 display: none;
-                position: absolute;
+                position: fixed;
                 right: 0;
-                top: 44px;
-                width: 320px;
-                max-height: 75vh;
+                top: 0;
+                width: 360px;
+                height: 100vh;
                 overflow-y: auto;
                 background: #fff;
                 border: 1px solid #e5e7ef;
-                border-radius: 12px;
+                border-radius: 0;
                 box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
                 z-index: 1200;
-                padding: 8px 10px 10px;
+                padding: 14px 10px 10px;
                 text-align: left !important;
             }
             .qk-loggedin-menu #menu_mainbox.menu_open .login_cartbox {
                 display: block;
+            }
+            .qk-loggedin-menu #menu_mainbox.menu_open .overlay {
+                opacity: 1;
+                visibility: visible;
             }
             .qk-loggedin-menu #menu_mainbox .toggle_close_logo {
                 display: block;
@@ -485,6 +502,10 @@
                 font-size: 13px;
                 color: #1f2937;
                 line-height: 1.2;
+            }
+            .qk-loggedin-menu #menu_mainbox .main_menu_mobile {
+                overflow-y: auto;
+                max-height: calc(100vh - 80px);
             }
         }
         @media (max-width: 991px) {
