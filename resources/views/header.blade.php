@@ -244,87 +244,124 @@
         }
         #login button.login-location-back:hover { color: var(--indigo-color, #1a237e) !important; }
         .pac-container { z-index: 20000 !important; }
-        /* Fixed delivery ETA (logged-in users) */
+        /* Home top delivery/search block */
         .qk-delivery-eta {
-            position: fixed;
-            left: 14px;
-            bottom: 22px;
-            z-index: 1040;
+            position: relative;
+            z-index: 5;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            justify-content: space-between;
             gap: 10px;
-            padding: 10px 14px 10px 12px;
-            max-width: min(280px, calc(100vw - 28px));
-            border-radius: 16px;
-            background: linear-gradient(135deg, #1a237e 0%, #283593 45%, #1a237e 100%);
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #191919 0%, #2b2b2b 60%, #1f1f1f 100%);
             color: #fff;
-            box-shadow: 0 10px 32px rgba(26, 35, 126, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
             font-family: inherit;
-            pointer-events: none;
-            animation: qkEtaFloat 4s ease-in-out infinite;
         }
         .qk-delivery-eta__glow {
             position: absolute;
-            inset: -2px;
-            border-radius: 18px;
+            inset: 0;
+            border-radius: inherit;
             background: linear-gradient(120deg, rgba(255, 222, 52, 0.5), transparent 40%, rgba(139, 195, 74, 0.35));
-            opacity: 0.45;
+            opacity: 0.3;
             z-index: -1;
-            filter: blur(8px);
+            filter: blur(4px);
             animation: qkEtaPulse 2.8s ease-in-out infinite;
+        }
+        .qk-delivery-eta__left {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
         }
         .qk-delivery-eta__icon {
             flex-shrink: 0;
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: linear-gradient(145deg, #ffde34, #ffc107);
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #1a237e;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.26);
         }
         .qk-delivery-eta__icon svg { display: block; }
         .qk-delivery-eta__label {
             display: block;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.3px;
             text-transform: uppercase;
             opacity: 0.88;
             line-height: 1.2;
         }
         .qk-delivery-eta__time {
             display: block;
-            font-size: 20px;
+            font-size: 34px;
             font-weight: 800;
-            line-height: 1.15;
+            line-height: 1;
             letter-spacing: -0.02em;
-            color: #ffde34;
+            color: #fff;
             text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
         }
-        .qk-delivery-eta__hint {
+        .qk-delivery-eta__distance-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255, 222, 52, 0.2);
+            border: 1px solid rgba(255, 222, 52, 0.45);
+            font-size: 12px;
+            font-weight: 700;
+            color: #ffef9c;
+            width: fit-content;
+        }
+        .qk-delivery-eta__hint,
+        .qk-delivery-eta__location {
             display: block;
-            font-size: 11px;
-            opacity: 0.75;
-            margin-top: 2px;
+            font-size: 13px;
+            opacity: 0.84;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 240px;
+        }
+        .qk-delivery-eta__profile {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        .qk-delivery-eta__profile svg { display: block; }
+        .qk-home-topbar-wrap {
+            display: none;
+            width: 100%;
+            margin-bottom: 10px;
         }
         @keyframes qkEtaPulse {
             0%, 100% { opacity: 0.35; transform: scale(1); }
             50% { opacity: 0.65; transform: scale(1.02); }
         }
-        @keyframes qkEtaFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-        }
-        @media (max-width: 576px) {
-            .qk-delivery-eta {
-                left: 10px;
-                bottom: 16px;
-                padding: 9px 12px;
+        @media (max-width: 991px) {
+            .qk-home-topbar-wrap {
+                display: block;
             }
-            .qk-delivery-eta__time { font-size: 18px; }
+            .qk-delivery-eta__time { font-size: 30px; }
+            .qk-delivery-eta__location { max-width: 180px; }
         }
     </style>
 </head>
@@ -592,6 +629,33 @@
                         </button>
                     </div>
                     <div class="header_icons_box">
+                        @if(request()->routeIs('index') || request()->is('/'))
+                        <div class="qk-home-topbar-wrap">
+                            <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
+                                <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
+                                <div class="qk-delivery-eta__left">
+                                    <div class="qk-delivery-eta__icon" aria-hidden="true">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" fill="currentColor"/>
+                                        </svg>
+                                    </div>
+                                    <div class="qk-delivery-eta__body">
+                                        <span class="qk-delivery-eta__label">Delivery in</span>
+                                        <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
+                                        <span class="qk-delivery-eta__distance-chip" data-delivery-eta-distance>...</span>
+                                        <span class="qk-delivery-eta__location">Your selected location</span>
+                                    </div>
+                                </div>
+                                <a href="{{ !empty($data_arr['user_id']) ? url('profile?tag=1') : url('login') }}"
+                                   class="qk-delivery-eta__profile"
+                                   aria-label="Profile">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-3.866 0-7 2.91-7 6.5 0 .828.672 1.5 1.5 1.5h11c.828 0 1.5-.672 1.5-1.5 0-3.59-3.134-6.5-7-6.5z" fill="currentColor"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                        @endif
                         
                         <div class="search-wrapper">
                             <div class="search-wrapBox">
@@ -816,25 +880,10 @@
     </header>
     <main>
         @if(!empty(session('user_id')))
-        <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
-            <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
-            <div class="qk-delivery-eta__icon" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z" fill="currentColor"/>
-                </svg>
-            </div>
-            <div class="qk-delivery-eta__body">
-                <span class="qk-delivery-eta__label">Delivery to you</span>
-                <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
-                <span class="qk-delivery-eta__hint">Fresh &amp; fast — order now</span>
-            </div>
-        </div>
         <script>
         (function () {
-            var root = document.querySelector('[data-delivery-eta-root]');
-            if (!root) return;
-            var timeEl = root.querySelector('[data-delivery-eta-time]');
-            if (!timeEl) return;
+            var roots = document.querySelectorAll('[data-delivery-eta-root]');
+            if (!roots.length) return;
             fetch('{{ url('/delivery-eta') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function (r) {
                     if (!r.ok) throw new Error('delivery-eta');
@@ -851,16 +900,36 @@
                             console.info('[delivery-eta]', data.route_matrix_debug_note);
                         }
                     }
+                    var displayValue = '12 mins';
                     if (data && data.label) {
-                        timeEl.textContent = data.label;
+                        displayValue = data.label;
                     } else if (data && data.minutes != null) {
-                        timeEl.textContent = data.minutes + ' mins';
-                    } else {
-                        timeEl.textContent = '18 mins';
+                        displayValue = data.minutes + ' mins';
                     }
+                    roots.forEach(function (root) {
+                        var timeEl = root.querySelector('[data-delivery-eta-time]');
+                        var distanceEl = root.querySelector('[data-delivery-eta-distance]');
+                        if (timeEl) timeEl.textContent = displayValue;
+                        if (distanceEl) {
+                            if (data && data.distance_label) {
+                                distanceEl.textContent = data.distance_label;
+                                distanceEl.style.display = 'inline-flex';
+                            } else if (data && data.distance_meters != null) {
+                                distanceEl.textContent = data.distance_meters + ' mtrs away';
+                                distanceEl.style.display = 'inline-flex';
+                            } else {
+                                distanceEl.style.display = 'none';
+                            }
+                        }
+                    });
                 })
                 .catch(function () {
-                    timeEl.textContent = '18 mins';
+                    roots.forEach(function (root) {
+                        var timeEl = root.querySelector('[data-delivery-eta-time]');
+                        var distanceEl = root.querySelector('[data-delivery-eta-distance]');
+                        if (timeEl) timeEl.textContent = '12 mins';
+                        if (distanceEl) distanceEl.style.display = 'none';
+                    });
                 });
         })();
         </script>

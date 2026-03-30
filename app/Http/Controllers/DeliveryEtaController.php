@@ -31,6 +31,8 @@ class DeliveryEtaController extends Controller
             return response()->json([
                 'minutes' => self::FALLBACK_MINUTES,
                 'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'distance_meters' => null,
+                'distance_label' => null,
                 'source' => 'fallback_no_coords',
             ]);
         }
@@ -40,6 +42,8 @@ class DeliveryEtaController extends Controller
             return response()->json([
                 'minutes' => self::FALLBACK_MINUTES,
                 'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'distance_meters' => null,
+                'distance_label' => null,
                 'source' => 'fallback_no_api_key',
             ]);
         }
@@ -63,7 +67,10 @@ class DeliveryEtaController extends Controller
         if (! is_array($payload)) {
             $fetched = $this->fetchRouteMatrixMinutes((float) $storeLat, (float) $storeLng, (float) $userLat, (float) $userLng, $key);
             if (is_array($fetched)) {
-                Cache::put($cacheKey, ['minutes' => $fetched['minutes']], self::CACHE_TTL_SECONDS);
+                Cache::put($cacheKey, [
+                    'minutes' => $fetched['minutes'],
+                    'distance_meters' => $fetched['distance_meters'] ?? null,
+                ], self::CACHE_TTL_SECONDS);
                 $tracked = $request->session()->get('delivery_eta_rm_cache_keys', []);
                 if (! is_array($tracked)) {
                     $tracked = [];
@@ -72,7 +79,10 @@ class DeliveryEtaController extends Controller
                     $tracked[] = $cacheKey;
                     $request->session()->put('delivery_eta_rm_cache_keys', $tracked);
                 }
-                $payload = ['minutes' => $fetched['minutes']];
+                $payload = [
+                    'minutes' => $fetched['minutes'],
+                    'distance_meters' => $fetched['distance_meters'] ?? null,
+                ];
                 $routeMatrixParsed = $fetched['route_matrix_parsed'] ?? null;
                 $routeMatrixRawBody = $fetched['route_matrix_raw_body'] ?? null;
                 $routeMatrixHttpStatus = $fetched['route_matrix_http_status'] ?? null;
@@ -85,13 +95,21 @@ class DeliveryEtaController extends Controller
             return response()->json([
                 'minutes' => self::FALLBACK_MINUTES,
                 'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'distance_meters' => null,
+                'distance_label' => null,
                 'source' => 'fallback_api',
             ]);
         }
 
+        $distanceMeters = isset($payload['distance_meters']) && is_numeric($payload['distance_meters'])
+            ? (int) $payload['distance_meters']
+            : null;
+
         $body = [
             'minutes' => $payload['minutes'],
             'label' => $payload['minutes'] . ' mins',
+            'distance_meters' => $distanceMeters,
+            'distance_label' => $this->formatDistanceLabel($distanceMeters),
             'source' => 'google_route_matrix',
         ];
 
@@ -210,9 +228,13 @@ class DeliveryEtaController extends Controller
             }
 
             $minutes = max(1, (int) ceil($seconds / 60)) + self::PACKAGING_BUFFER_MINUTES;
+            $distanceMeters = isset($element['distanceMeters']) && is_numeric($element['distanceMeters'])
+                ? (int) round($element['distanceMeters'])
+                : null;
 
             return [
                 'minutes' => $minutes,
+                'distance_meters' => $distanceMeters,
                 'route_matrix_parsed' => $rows,
                 'route_matrix_raw_body' => $rawBody,
                 'route_matrix_http_status' => $httpStatus,
@@ -222,5 +244,19 @@ class DeliveryEtaController extends Controller
 
             return null;
         }
+    }
+
+    private function formatDistanceLabel(?int $distanceMeters): ?string
+    {
+        if ($distanceMeters === null || $distanceMeters < 0) {
+            return null;
+        }
+
+        if ($distanceMeters < 1000) {
+            return $distanceMeters . ' mtrs away';
+        }
+
+        $km = round($distanceMeters / 1000, 1);
+        return $km . ' km away';
     }
 }
