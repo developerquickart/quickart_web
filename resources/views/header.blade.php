@@ -246,10 +246,10 @@
         .pac-container { z-index: 20000 !important; }
         /* Separate delivery top strip for logged-in users */
         .qk-delivery-topstrip {
-            margin: 0 -12px 8px;
-            padding: 8px 14px;
-            background: linear-gradient(135deg, #161616 0%, #252525 60%, #1a1a1a 100%);
-            box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+            margin: 0 -12px 10px;
+            padding: 10px 12px 12px;
+            background: #ffffff;
+            box-shadow: 0 10px 26px rgba(0, 0, 0, 0.07);
         }
         .qk-delivery-eta {
             display: flex;
@@ -257,9 +257,10 @@
             justify-content: space-between;
             gap: 12px;
             width: 100%;
-            padding: 0;
-            border-radius: 0;
-            background: transparent;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #121212 0%, #2a2a2a 60%, #171717 100%);
+            box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
             color: #fff;
             font-family: inherit;
         }
@@ -320,18 +321,21 @@
             font-weight: 700;
             white-space: nowrap;
         }
-        .qk-delivery-eta__dot {
-            color: rgba(255, 255, 255, 0.55);
-            flex-shrink: 0;
-        }
+        .qk-delivery-eta__dot,
         .qk-delivery-eta__location {
-            display: inline-block;
-            font-size: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 260px;
-            opacity: 0.9;
+            display: none;
+        }
+        .qk-delivery-search {
+            margin-top: 10px;
+        }
+        .qk-delivery-search .search-wrapBox {
+            background: #fff;
+            border-radius: 28px;
+            padding: 4px;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+        }
+        .qk-delivery-search .search-input {
+            border: none !important;
         }
         .qk-delivery-eta__profile {
             display: inline-flex;
@@ -352,8 +356,8 @@
                 margin: 0 -12px 6px;
                 padding: 7px 10px;
             }
+            .qk-delivery-search { margin-top: 8px; }
             .qk-delivery-eta__time { font-size: 24px; }
-            .qk-delivery-eta__location { max-width: 145px; }
         }
     </style>
 </head>
@@ -621,8 +625,6 @@
                                 <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
                                 <div class="qk-delivery-eta__meta">
                                     <span class="qk-delivery-eta__distance-text" data-delivery-eta-distance>...</span>
-                                    <span class="qk-delivery-eta__dot">•</span>
-                                    <span class="qk-delivery-eta__location">Your selected location</span>
                                 </div>
                             </div>
                         </div>
@@ -634,9 +636,20 @@
                             </svg>
                         </a>
                     </div>
+                    <div class="qk-delivery-search">
+                        <div class="search-wrapper">
+                            <div class="search-wrapBox">
+                                <input type="text" id="searchInput" placeholder="Search products..." class="search-input form-control" autocomplete="off">
+                                <button class="btn search_buttonBox" type="submit" id="searchBtn">
+                                    <img src="https://www.quickart.ae/assets/images/search_icon.png" alt="search" class="img-fluid search_icon">
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 @endif
                 <div class="headerBox">
+                    @if(empty(session('user_id')))
                     <div class="logoBox">
                         <a class="navbar-brand" href="{{ENV('APP_URL')}}"> 
                             <img src="{{asset('assets/images/QuicKart_logo.png')}}" 
@@ -650,14 +663,16 @@
                             <span class="navbar-toggler-icon"></span>
                         </button>
                     </div>
+                    @endif
                     <div class="header_icons_box">
-                        <div class="search-wrapper">
-                            <div class="search-wrapBox">
-                                <input type="text" id="searchInput" placeholder="Search products..." class="search-input form-control" autocomplete="off">
-                                <button class="btn search_buttonBox" type="submit" id="searchBtn"> <img src="https://www.quickart.ae/assets/images/search_icon.png" alt="search" class="img-fluid search_icon"></button>
+                        @if(empty(session('user_id')))
+                            <div class="search-wrapper">
+                                <div class="search-wrapBox">
+                                    <input type="text" id="searchInput" placeholder="Search products..." class="search-input form-control" autocomplete="off">
+                                    <button class="btn search_buttonBox" type="submit" id="searchBtn"> <img src="https://www.quickart.ae/assets/images/search_icon.png" alt="search" class="img-fluid search_icon"></button>
+                                </div>
                             </div>
-                             
-                        </div>
+                        @endif
                         
                         
                         <div id="search-overlay" style="
@@ -715,15 +730,7 @@
                                             </div>
                                         </a>
                                     </li>
-                                    <li class="list-inline-item">
-                                        <a href="{{ENV('APP_URL')}}profile?tag=1" class="top_icon">
-                                            <div class="top_other_icon_img">
-                                                <img src="{{asset('assets/images/profile-icon.png')}}" alt="Signin">
-                                            </div>
-                                                 <div class="top_other_icon_heading">Hi, {{ session()->has('user_name') ? ucfirst(explode(' ', session('user_name'))[0]) : 'Account' }}</div>
-                                             
-                                        </a>
-                                    </li>
+                                    {{-- Profile link hidden for logged-in users (moved to top delivery strip) --}}
                                     <li class="list-inline-item">
                                         <a class="top_icon" data-toggle="modal"
                                             data-bs-toggle="modal" data-bs-target="#logout">
@@ -738,15 +745,7 @@
                                 <div class="main_menu_mobile">
                                     <ul class="main-mobile-nav">
                                         @if(!empty($data_arr['user_id']) && $data_arr['user_id'] != '')
-                                        <li class="list-inline-item">
-                                            <a href="{{ENV('APP_URL')}}profile?tag=1" class="top_icon">
-                                                <div class="top_other_icon_img">
-                                                    <img src="{{asset('assets/images/profile-icon.png')}}" alt="Signin">
-                                                </div>
-                                                
-                                                 <div class="top_other_icon_heading">Hi, {{ session()->has('user_name') ? ucfirst(explode(' ', session('user_name'))[0]) : 'Account' }}</div>
-                                            </a>
-                                        </li>
+                                        {{-- Profile link hidden for logged-in users (moved to top delivery strip) --}}
                                         <li class="list-inline-item cart-btn">
                                             <a onclick="openCart()">
                                                 <div class="top_other_icon_img">
