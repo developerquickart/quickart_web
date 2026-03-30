@@ -630,7 +630,7 @@
                         </div>
                         <a href="javascript:void(0)"
                            onclick="menu()"
-                           class="qk-delivery-eta__profile"
+                           class="qk-delivery-eta__profile qk-menu-toggle"
                            aria-label="Open menu">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-3.866 0-7 2.91-7 6.5 0 .828.672 1.5 1.5 1.5h11c.828 0 1.5-.672 1.5-1.5 0-3.59-3.134-6.5-7-6.5z" fill="currentColor"/>
