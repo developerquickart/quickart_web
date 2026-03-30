@@ -71,38 +71,14 @@ if (isset($showCartProductList['data'])) {
                                                                             <span>Your Other Category</span> will be
                                                                             delivered
                                                                             on
-                                                                            <span>{{ Carbon\Carbon::parse($productCat['selectedDate'])->isToday() ? 'Today' :
-                                                                                                                                                (Carbon\Carbon::parse($productCat['selectedDate'])->isTomorrow() ? 'Tomorrow' :
-                                                                                                                                                    Carbon\Carbon::parse($productCat['selectedDate'])->format('l')) }}</span>
-                                                                            between
-                                                                            <span>{{ str_replace(':00', '', $productCat['selectedTime']) }}</span>
-                                                                        </div>
-                                                                        <div class="other_category_icon" id="modalBtn"
-                                                                            data-productCat='@json($productCat)'
-                                                                            onclick="openMyModal('1','modalBtn', this, {{ $index }})">
-                                                                            <img src="assets/images/edit.png" alt=""
-                                                                                class="img-fluid">
+                                                                            <span>Today</span>
                                                                         </div>
                                                                     </div>
                                                                     @else
                                                                     <div class="schedule_box">
                                                                         <div class="schedule_header"
                                                                             id="scheduleHeader">
-                                                                            <div class="day_box" id="dayBox">
-                                                                                {{ Carbon\Carbon::parse($productCat['timeslotsdata'][0]['date'])->isToday() ? 'Today' :
-                                                                                (Carbon\Carbon::parse($productCat['timeslotsdata'][0]['date'])->isTomorrow() ? 'Tomorrow' :
-                                                                                Carbon\Carbon::parse($productCat['timeslotsdata'][0]['date'])->format('l')) }}
-                                                                            </div>
-                                                                            <div class="time_box" id="timeBox">
-                                                                                {{ str_replace(':00', '', $productCat['timeslotsdata'][0]['timeslots'][0]['time_slots'])}}
-                                                                            </div>
-                                                                            <div id="arrowBox" class="arrow_box"
-                                                                                data-productCat='@json($productCat)'
-                                                                                onclick="openMyModal('1','arrowBox', this, {{ $index }})"
-                                                                                title="Click Here">
-                                                                                <img src="{{asset('assets/images/down_arrow.png')}}"
-                                                                                    alt="arrow">
-                                                                            </div>
+                                                                            <div class="day_box" id="dayBox">Today</div>
                                                                         </div>
                                                                     </div>
                                                                     @endif
@@ -1652,9 +1628,9 @@ if (isset($showCartProductList['data'])) {
                         <!-- Date Selection -->
                         <div class="subheading" id="dateListLabel" style="float:left; margin:18px 40px 0 0">Choose a date</div>
                         <div id="dateList" class="schedule-list"></div>
-                        <hr>
-                        <div class="subheading">Choose a time</div>
-                        <div id="timeList" class="schedule-list"></div>
+                        <hr style="display:none;">
+                        <div class="subheading" style="display:none;">Choose a time</div>
+                        <div id="timeList" class="schedule-list" style="display:none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -3528,19 +3504,12 @@ function openMyModal(tab,btn, element, selectedIndex) {
     selectedProductData = productData;
     
     document.getElementById("selectedDateTimeModal").innerText = "Select date & time for " + productData.cat_name;
-    if (btn == "modalBtn") {
-        document.getElementById("dayBoxn").innerText = productData.selectedDate;
-        // document.getElementById("timeBoxn").innerText = productData.selectedTime;
-        let timeStr = productData.selectedTime; // e.g. "06:00 am - 10:00 am"
-        let formatted = timeStr.replace(/:00/g, ''); // remove all ":00"
-        document.getElementById("timeBoxn").innerText = formatted;
-    } else {
-        document.getElementById("dayBoxn").innerText = productData.timeslotsdata[0].date;
-        // document.getElementById("timeBoxn").innerText = productData.timeslotsdata[0].timeslots[0].time_slots;
-        let timeStr = productData.timeslotsdata[0].timeslots[0].time_slots; 
-        let formatted = timeStr.replace(/:00/g, '');
-        document.getElementById("timeBoxn").innerText = formatted;
-    }
+    // Cart UI should not allow users to change date/time, but keep modal safe.
+    document.getElementById("dayBoxn").innerText = "Today";
+    if (document.getElementById("timeBoxn")) document.getElementById("timeBoxn").style.display = "none";
+    if (document.getElementById("dateListLabel")) document.getElementById("dateListLabel").style.display = "none";
+    if (document.getElementById("dateList")) document.getElementById("dateList").style.display = "none";
+    if (document.getElementById("timeList")) document.getElementById("timeList").style.display = "none";
     // console.log("g1---->", productData.cat_id)
     ;
     if (productData.cat_id != 0) {
@@ -3662,31 +3631,49 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
     
     var tab_list=document.getElementById("tabwise").value;
     let dataarray = [];
+    const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
+    const getLocalISODate = (d) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+    const todayDateStr = getLocalISODate(new Date());
     if (selectedBtn == "save") {
         if (!selectedProductData) {
             alert("Error: No product selected!");
             return;
         }
-        let selectedDate = document.querySelector('input[name="date"]:checked').value;
-        let selectedTime = document.querySelector('input[name="time"]:checked').value;
-
-        if (!selectedDate || !selectedTime) {
-            alert("Please select a date and time.");
-            return;
-        }
+        // Always enforce: Today + 06:00 am - 10:00 am
         dataarray = [{
             cat_id: selectedProductData.cat_id,
-            selected_date: selectedDate,
-            timeslots: selectedTime
+            selected_date: todayDateStr,
+            timeslots: FIXED_TIME_SLOT
         }];
     } else {
         showCartData.data.forEach(category => {
-            if (category.selectedTime === null) {
-                // console.log("Category with missing selectedTime:", category);
+            const categoryTimeslotsData = category.timeslotsdata || [];
+            const desiredDateObj =
+                categoryTimeslotsData.find(d => d.date === todayDateStr) ||
+                categoryTimeslotsData[0] ||
+                null;
+
+            const desiredDate = desiredDateObj ? desiredDateObj.date : todayDateStr;
+            const desiredTimeSlots = desiredDateObj ? (desiredDateObj.timeslots || []) : [];
+            const fixedTimeObj = desiredTimeSlots.find(t => t.time_slots === FIXED_TIME_SLOT);
+            const desiredTime = fixedTimeObj
+                ? fixedTimeObj.time_slots
+                : (desiredTimeSlots[0]?.time_slots || FIXED_TIME_SLOT);
+
+            const isFixed =
+                category.selectedTime === desiredTime &&
+                category.selectedDate === desiredDate;
+
+            if (!isFixed) {
                 dataarray.push({
                     cat_id: category.cat_id,
-                    selected_date: category['timeslotsdata'][0]['date'],
-                    timeslots: category['timeslotsdata'][0]['timeslots'][0]['time_slots'],
+                    selected_date: desiredDate,
+                    timeslots: desiredTime,
                 });
             }
         });
@@ -4054,9 +4041,22 @@ function checkOutDailyCartApiCall(type) {
     }
     // :white_check_mark: Final Validation
         let isselectedTrue = false;
+        const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
+        const getLocalISODate = (d) => {
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        };
+        const todayDateStr = getLocalISODate(new Date());
         for (let i = 0; i < showCartData['data'].length; i++) {
             const product = showCartData['data'][i];
-            if (!product.selectedTime) {
+            const needsUpdate =
+                !product.selectedTime ||
+                product.selectedTime !== FIXED_TIME_SLOT ||
+                product.selectedDate !== todayDateStr;
+
+            if (needsUpdate) {
                 isselectedTrue = true;
                 saveSelectedDateTimeApiCall('add', type);
                 break;

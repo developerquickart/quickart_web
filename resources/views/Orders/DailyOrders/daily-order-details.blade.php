@@ -369,9 +369,6 @@
                                                 <!--<li>Discounted Price:-->
                                                 <!--        <span>AED {{number_format($productList['price'], 2)}}</span>-->
                                                 <!--    </li>-->
-                                                    <li>Delivery Time:
-                                                        <span>{{$productList['prodwisetime_slot']}}</span>
-                                                    </li>
                                                     @if($productList['order_status_delivery'] == "Cancelled" )
                                                     <li>Reason:
                                                         <span>{{$productList['cancel_reason']}}</span>
