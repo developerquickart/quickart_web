@@ -19,7 +19,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                   src="{{ $banner['banner_image'] }}" 
                                   alt="First slide"
                                   style="cursor:pointer;"
-                                  onclick="openBannerProductList('{{ url('banner-product-list', ['name' => Str::slug($banner['banner_name'])]) }}', 'byname'=>'{{ trim($banner['banner_name']) }}', 'store', '{{ trim($banner['banner_name']) }}')"
+                                  onclick="openBannerProductList('{{ url('banner-product-list', ['name' => Str::slug($banner['banner_name'])]) }}', '{{ $banner['banner_id'] ?? '' }}', 'store', {{ json_encode(trim($banner['banner_name'] ?? '')) }})"
                                 />
                             </div>
                         </div>
@@ -132,7 +132,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                   src="{{ $secondBanner['banner_image'] }}" 
                                   alt="First slide"
                                   style="cursor:pointer;"
-                                  onclick="openBannerProductList('{{ url('banner-product-list', ['name' => Str::slug($secondBanner['banner_name'])]) }}', 'byname'=>'{{ trim($secondBanner['banner_name']) }}', 'product', '{{ trim($secondBanner['banner_name']) }}')"
+                                  onclick="openBannerProductList('{{ url('banner-product-list', ['name' => Str::slug($secondBanner['banner_name'])]) }}', '{{ $secondBanner['banner_id'] ?? '' }}', 'product', {{ json_encode(trim($secondBanner['banner_name'] ?? '')) }})"
                                 />
                         </div>
                     </div>
@@ -1148,7 +1148,8 @@ function navigateToNextPage(url) {
 <!-- Banner Click start...G1 -->
 <script>
   function openBannerProductList(baseUrl, bannerId, bannerType, bannerName) {
-      if (bannerName.toLowerCase() === "refer") {
+      const nameStr = (bannerName != null && String(bannerName)) ? String(bannerName) : '';
+      if (nameStr.toLowerCase() === "refer") {
             if(currentUserID == ''){
                 Swal.fire({
                   title: "{{ env('GUESTMSG') }}", 
@@ -1181,7 +1182,7 @@ function navigateToNextPage(url) {
             }
           
       } else {
-            const finalUrl = `${baseUrl}?banner-id=${bannerId}&banner-type=${bannerType}`;
+            const finalUrl = `${baseUrl}?banner-id=${encodeURIComponent(bannerId)}&banner-type=${encodeURIComponent(bannerType)}`;
             console.log("Navigating to:", finalUrl);
             window.location.href = finalUrl; 
       }
