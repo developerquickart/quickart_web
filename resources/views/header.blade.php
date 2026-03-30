@@ -245,8 +245,14 @@
         #login button.login-location-back:hover { color: var(--indigo-color, #1a237e) !important; }
         .pac-container { z-index: 20000 !important; }
         /* Separate delivery top strip for logged-in users */
+        .qk-loggedin-menu .container-fluid {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+        }
         .qk-delivery-topstrip {
-            margin: 0 -12px 10px;
+            margin: 0 0 10px;
             padding: 10px 12px 12px;
             background: #2E317E;
             box-shadow: 0 10px 26px rgba(46, 49, 126, 0.35);
@@ -351,6 +357,44 @@
             text-decoration: none;
         }
         .qk-delivery-eta__profile svg { display: block; }
+        .qk-delivery-desktop-actions {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+        }
+        .qk-delivery-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.26);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .qk-delivery-action-btn img {
+            width: 14px;
+            height: 14px;
+            object-fit: contain;
+        }
+        .qk-delivery-action-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.2);
+        }
+        @media (min-width: 992px) {
+            .qk-delivery-desktop-actions {
+                display: inline-flex;
+            }
+            .qk-loggedin-menu .main-nav-right {
+                display: none !important;
+            }
+        }
         @media (max-width: 991px) {
             .qk-delivery-topstrip {
                 margin: 0 -12px 6px;
@@ -608,7 +652,7 @@
     </div>
 
     <header>
-        <div class="osahan-menu">
+        <div class="osahan-menu {{ !empty(session('user_id')) ? 'qk-loggedin-menu' : '' }}">
             <div class="container-fluid">
                 @if(!empty(session('user_id')))
                 <div class="qk-delivery-topstrip">
@@ -636,6 +680,18 @@
                                 <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-3.866 0-7 2.91-7 6.5 0 .828.672 1.5 1.5 1.5h11c.828 0 1.5-.672 1.5-1.5 0-3.59-3.134-6.5-7-6.5z" fill="currentColor"/>
                             </svg>
                         </a>
+                        @if(!empty($data_arr['user_id']))
+                        <div class="qk-delivery-desktop-actions">
+                            <a href="{{url('cart?tab=1')}}" onclick="openCart()" class="qk-delivery-action-btn">
+                                <img src="{{asset('assets/images/top_cart.png')}}" alt="Cart">
+                                <span>My Cart</span>
+                            </a>
+                            <a class="qk-delivery-action-btn" data-toggle="modal" data-bs-toggle="modal" data-bs-target="#logout">
+                                <img src="{{asset('assets/images/top_login.png')}}" alt="Logout">
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                        @endif
                     </div>
                     <div class="qk-delivery-search">
                         <div class="search-wrapper">
