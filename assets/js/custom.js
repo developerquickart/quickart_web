@@ -580,11 +580,12 @@ function menu() {
     
     function closeMenuOutsideClick(event) {
         var menu = document.getElementById("menu_mainbox");
-        var toggleButton = document.querySelector('.mobile_profile_box'); // Adjust this selector if necessary
+        var toggleButton = document.querySelector('.mobile_profile_box'); // Old toggle (may not exist for logged-in users)
         var targetElement = event.target;
     
         // Check if the click is outside the menu and not on the toggle button
-        if (!menu.contains(targetElement) && !toggleButton.contains(targetElement)) {
+        var clickedOnToggle = toggleButton ? toggleButton.contains(targetElement) : false;
+        if (!menu.contains(targetElement) && !clickedOnToggle) {
             menu.classList.remove("menu_open");
             document.removeEventListener('click', closeMenuOutsideClick);
         }
