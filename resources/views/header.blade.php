@@ -432,17 +432,8 @@
             text-decoration: none;
         }
         .qk-on-the-way-tag__icon {
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-        }
-        .qk-on-the-way-tag__dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4caf50;
-            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6);
-            animation: qkOnTheWayPulse 1.8s ease-out infinite;
+            width: 16px;
+            height: 16px;
             flex-shrink: 0;
         }
         .qk-on-the-way-tag__text {
@@ -1114,14 +1105,11 @@
        class="qk-on-the-way-tag"
        aria-label="Zapping to your doorstep!">
         <span class="qk-on-the-way-tag__icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 7.5C3 6.67 3.67 6 4.5 6H14c.83 0 1.5.67 1.5 1.5v7.75H5.75C4.23 15.25 3 14.02 3 12.5V7.5Z" fill="white" fill-opacity="0.95"/>
-                <path d="M15.5 8h2.09c.47 0 .9.21 1.19.58l1.82 2.35c.26.34.4.75.4 1.18v3.39c0 .83-.67 1.5-1.5 1.5h-1.02a2.25 2.25 0 0 0-4.45 0H10.5a2.25 2.25 0 0 0-4.45 0H5a1.5 1.5 0 0 1-1.5-1.5" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="8.75" cy="17.5" r="1.75" fill="white"/>
-                <circle cx="16.75" cy="17.5" r="1.75" fill="white"/>
+            <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.8 1.2a.6.6 0 0 0-1.06-.4L3.7 6.3a.6.6 0 0 0 .45 1H7L5.2 14.8a.6.6 0 0 0 1.06.4l4.04-5.5a.6.6 0 0 0-.48-.96H9L8.8 1.2Z"
+                      fill="#4caf50"/>
             </svg>
         </span>
-        <span class="qk-on-the-way-tag__dot" aria-hidden="true"></span>
         <span class="qk-on-the-way-tag__text">Zapping to your doorstep!</span>
     </a>
     @endif
