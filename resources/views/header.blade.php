@@ -410,7 +410,57 @@
             color: #fff;
             background: rgba(255, 255, 255, 0.2);
         }
+        .qk-on-the-way-tag {
+            position: fixed;
+            right: 14px;
+            bottom: 84px;
+            z-index: 1250;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #2e317e 0%, #3a3ea1 100%);
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 12px 28px rgba(30, 33, 94, 0.35);
+            animation: qkOnTheWayFloat 1.8s ease-in-out infinite;
+        }
+        .qk-on-the-way-tag:hover {
+            color: #fff;
+            text-decoration: none;
+        }
+        .qk-on-the-way-tag__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6);
+            animation: qkOnTheWayPulse 1.8s ease-out infinite;
+            flex-shrink: 0;
+        }
+        .qk-on-the-way-tag__text {
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+        }
+        @keyframes qkOnTheWayFloat {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(0); }
+        }
+        @keyframes qkOnTheWayPulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.55); }
+            70% { box-shadow: 0 0 0 9px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
         @media (min-width: 992px) {
+            .qk-on-the-way-tag {
+                right: 22px;
+                bottom: 24px;
+            }
             .qk-delivery-desktop-actions {
                 display: inline-flex;
             }
@@ -1053,6 +1103,14 @@
        
 
     </header>
+    @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
+    <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
+       class="qk-on-the-way-tag"
+       aria-label="Track order on the way">
+        <span class="qk-on-the-way-tag__dot" aria-hidden="true"></span>
+        <span class="qk-on-the-way-tag__text">On the way</span>
+    </a>
+    @endif
     <main>
         @if(!empty(session('user_id')))
         <script>

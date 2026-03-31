@@ -1105,9 +1105,9 @@ document.addEventListener('click', function(event) {
 
 function openOrderPage() {
     // Save selected tab to localStorage
-    localStorage.setItem("selectedOrderTab", "2");
+    localStorage.setItem("selectedOrderTab", "1");
     navigateToNextPage(href = '{{ env('
-        APP_URL ') }}my-orders?tab=2');
+        APP_URL ') }}my-orders?tab=1');
 
 }
 
