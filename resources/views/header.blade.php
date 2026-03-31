@@ -417,18 +417,24 @@
             z-index: 1250;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
+            gap: 6px;
+            padding: 9px 12px;
             border-radius: 999px;
             background: linear-gradient(135deg, #2e317e 0%, #3a3ea1 100%);
             color: #fff;
             text-decoration: none;
             box-shadow: 0 12px 28px rgba(30, 33, 94, 0.35);
             animation: qkOnTheWayFloat 1.8s ease-in-out infinite;
+            max-width: 260px;
         }
         .qk-on-the-way-tag:hover {
             color: #fff;
             text-decoration: none;
+        }
+        .qk-on-the-way-tag__icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
         }
         .qk-on-the-way-tag__dot {
             width: 8px;
@@ -440,10 +446,10 @@
             flex-shrink: 0;
         }
         .qk-on-the-way-tag__text {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 700;
-            line-height: 1;
-            letter-spacing: 0.2px;
+            line-height: 1.1;
+            letter-spacing: 0.15px;
             white-space: nowrap;
         }
         @keyframes qkOnTheWayFloat {
@@ -1106,9 +1112,17 @@
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
        class="qk-on-the-way-tag"
-       aria-label="Track order Arriving soon">
+       aria-label="Zapping to your doorstep!">
+        <span class="qk-on-the-way-tag__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 7.5C3 6.67 3.67 6 4.5 6H14c.83 0 1.5.67 1.5 1.5v7.75H5.75C4.23 15.25 3 14.02 3 12.5V7.5Z" fill="white" fill-opacity="0.95"/>
+                <path d="M15.5 8h2.09c.47 0 .9.21 1.19.58l1.82 2.35c.26.34.4.75.4 1.18v3.39c0 .83-.67 1.5-1.5 1.5h-1.02a2.25 2.25 0 0 0-4.45 0H10.5a2.25 2.25 0 0 0-4.45 0H5a1.5 1.5 0 0 1-1.5-1.5" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="8.75" cy="17.5" r="1.75" fill="white"/>
+                <circle cx="16.75" cy="17.5" r="1.75" fill="white"/>
+            </svg>
+        </span>
         <span class="qk-on-the-way-tag__dot" aria-hidden="true"></span>
-        <span class="qk-on-the-way-tag__text">Arriving soon</span>
+        <span class="qk-on-the-way-tag__text">Zapping to your doorstep!</span>
     </a>
     @endif
     <main>
