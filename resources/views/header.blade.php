@@ -1106,9 +1106,9 @@
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
        class="qk-on-the-way-tag"
-       aria-label="Track order on the way">
+       aria-label="Track order Arriving soon">
         <span class="qk-on-the-way-tag__dot" aria-hidden="true"></span>
-        <span class="qk-on-the-way-tag__text">On the way</span>
+        <span class="qk-on-the-way-tag__text">Arriving soon</span>
     </a>
     @endif
     <main>

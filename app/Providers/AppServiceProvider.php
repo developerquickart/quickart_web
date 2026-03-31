@@ -81,7 +81,7 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('Unable to fetch On the way order for header', [
+                Log::warning('Unable to fetch Arriving soon order for header', [
                     'user_id' => $userId,
                     'error' => $e->getMessage(),
                 ]);
