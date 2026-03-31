@@ -432,9 +432,16 @@
             text-decoration: none;
         }
         .qk-on-the-way-tag__icon {
-            width: 16px;
-            height: 16px;
+            width: 18px;
+            height: 18px;
             flex-shrink: 0;
+            border-radius: 50%;
+            background: rgba(76, 175, 80, 0.12);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6);
+            animation: qkOnTheWayPulse 1.8s ease-out infinite;
         }
         .qk-on-the-way-tag__text {
             font-size: 12px;
@@ -1103,14 +1110,14 @@
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
        class="qk-on-the-way-tag"
-       aria-label="Zapping to your doorstep!">
+       aria-label="Order zapping soon!">
         <span class="qk-on-the-way-tag__icon" aria-hidden="true">
             <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8.8 1.2a.6.6 0 0 0-1.06-.4L3.7 6.3a.6.6 0 0 0 .45 1H7L5.2 14.8a.6.6 0 0 0 1.06.4l4.04-5.5a.6.6 0 0 0-.48-.96H9L8.8 1.2Z"
-                      fill="#4caf50"/>
+                <path d="M8.9 1.2a.6.6 0 0 0-1.07-.36L4.2 6.5a.6.6 0 0 0 .47.97H7L5.4 14.7a.6.6 0 0 0 1.07.44l4.1-5.6a.6.6 0 0 0-.47-.97H9.1L8.9 1.2Z"
+                      fill="#00e676"/>
             </svg>
         </span>
-        <span class="qk-on-the-way-tag__text">Zapping to your doorstep!</span>
+        <span class="qk-on-the-way-tag__text">Order zapping soon!</span>
     </a>
     @endif
     <main>
