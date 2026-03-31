@@ -24,7 +24,7 @@
 <script>
   $(document).ready(function () {
     setTimeout(function () {
-      window.location.href = "https://quickart2.democheck.in/nodejsapp/api/success"; // your target URL
+      window.location.href = "{{ rtrim(env('NODE_APP_URL'), '/') }}/success"; // your target URL
     }, 5000); 
   });
 </script>
