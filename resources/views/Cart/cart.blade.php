@@ -125,27 +125,6 @@ if (isset($showCartProductList['data'])) {
                                                                             </div>
                                                                             <div class="col-8">
                                                                                 <div class="sub_btn_mainBox">
-                                                                                    @if ($product['isOfferProduct'] == 'false')
-                                                                                        @if ($product['isSubscription'] == "false")
-                                                                                            @if ($product['availability'] == "all" || $product['availability'] == "subscription")
-                                                                                            <div class="sub_box">
-                                                                                                <a class="subscribe_btn"
-                                                                                                    data-product='@json($product)'
-                                                                                                    onclick="removeToSubCartCall('{{ $product['varient_id']}}', 'add','{{ $product['cart_qty']}}','','','','','','{{ $product['product_name']}}','{{ $product['price']}}', '{{ $product['product_feature_id']}}')">
-                                                                                                    SUBSCRIBE
-                                                                                                    {{$product['percentage'] == 0 ? '' : ($product['percentage'] == null ? '' : '& SAVE ' . $product['percentage'] . '%') }}
-                                                                                                </a>
-                                                                                            </div>
-                                                                                            @endif
-                                                                                        @else
-                                                                                        <div class="sub_box">
-                                                                                            <div class="subscribe_btn"
-                                                                                                onclick="openSubscriptionTap(event)">
-                                                                                                SUBSCRIBED
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        @endif
-                                                                                    @endif
                                                                                     <div class="cart_button_Box">
                                                                                         @if ($product['isOfferProduct'] == 'false')
                                                                                         <div class="cart_btn" data-product-id="{{ trim($product['product_id']) }}" data-productdetail='@json($product)'>
