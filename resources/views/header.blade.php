@@ -432,8 +432,8 @@
             text-decoration: none;
         }
         .qk-on-the-way-tag__icon {
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             flex-shrink: 0;
             border-radius: 50%;
             background: #00e676;
