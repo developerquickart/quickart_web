@@ -436,11 +436,11 @@
             height: 18px;
             flex-shrink: 0;
             border-radius: 50%;
-            background: rgba(76, 175, 80, 0.12);
+            background: #00e676;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.6);
+            box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.65);
             animation: qkOnTheWayPulse 1.8s ease-out infinite;
         }
         .qk-on-the-way-tag__text {
