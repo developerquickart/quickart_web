@@ -63,28 +63,7 @@ if (isset($showCartProductList['data'])) {
                                                                     {{$productCat['cat_name']}}</span>
                                                                 </h5>
                                                             </div>
-                                                            <div class="sehedule_delivery_mainBox">
-                                                                <div class="schedule_box1">
-                                                                    @if($productCat['selectedDate'] != null)
-                                                                    <div class="other_category_box">
-                                                                        <div class="other_category_content">
-                                                                            <span>Your Other Category</span> will be
-                                                                            delivered
-                                                                            on
-                                                                            <span>Today</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    @else
-                                                                    <div class="schedule_box">
-                                                                        <div class="schedule_header"
-                                                                            id="scheduleHeader">
-                                                                            <div class="day_box" id="dayBox">Today</div>
-                                                                        </div>
-                                                                    </div>
-                                                                    @endif
-                                                                </div>
-                                                                
-                                                            </div>
+                                                            
                                                             
                                                         </div>
                                                         @php
