@@ -342,6 +342,17 @@
             text-overflow: ellipsis;
             max-width: 360px;
         }
+        .qk-delivery-eta__link {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+            min-width: 0;
+            cursor: pointer;
+        }
+        .qk-delivery-eta__link:hover {
+            color: inherit;
+            text-decoration: none;
+        }
         .qk-delivery-search {
             margin-top: 10px;
             padding: 0 8px;
@@ -775,6 +786,7 @@
                     <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
                         <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
                         <div class="qk-delivery-eta__left">
+                            <a href="{{ route('index') }}" class="qk-delivery-eta__link">
                             <div class="qk-delivery-eta__body">
                                 <span class="qk-delivery-eta__label">Delivery in</span>
                                 <div class="qk-delivery-eta__headline">
@@ -785,6 +797,7 @@
                                     <span class="qk-delivery-eta__location" data-delivery-eta-location>{{ session('delivery_location_name') ?: 'Current location' }}</span>
                                 </div>
                             </div>
+                            </a>
                         </div>
                         <a href="javascript:void(0)"
                            onclick="menu()"
