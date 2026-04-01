@@ -1608,8 +1608,8 @@
                         }else{
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Account Deleted',
-                                text: response.message,
+                                title: response.message || 'Sorry you are not a ZAP customer',
+                                text: response.message || 'Sorry you are not a zap customer',
                                 timer: 3000,
                                 showConfirmButton: false
                             });
