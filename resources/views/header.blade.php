@@ -420,7 +420,7 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 10px 16px;
+            padding: 14px 18px;
             border-radius: 16px 16px 0 0;
             background: linear-gradient(135deg, #2e317e 0%, #3a3ea1 100%);
             color: #fff;
@@ -1145,9 +1145,9 @@
                 }
             }
 
+            // Adjust once on initial load so it doesn't hide under browser chrome,
+            // then keep it fixed.
             adjustBannerOffset();
-            window.addEventListener('resize', adjustBannerOffset);
-            window.addEventListener('scroll', adjustBannerOffset);
         })();
     </script>
     @endif
