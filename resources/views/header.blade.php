@@ -412,20 +412,21 @@
         }
         .qk-on-the-way-tag {
             position: fixed;
-            right: 14px;
-            bottom: 84px;
+            left: 0;
+            right: 0;
+            bottom: 70px;
             z-index: 1250;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 9px 12px;
-            border-radius: 999px;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 16px 16px 0 0;
             background: linear-gradient(135deg, #2e317e 0%, #3a3ea1 100%);
             color: #fff;
             text-decoration: none;
-            box-shadow: 0 12px 28px rgba(30, 33, 94, 0.35);
+            box-shadow: 0 -4px 18px rgba(15, 18, 64, 0.45);
             animation: qkOnTheWayFloat 1.8s ease-in-out infinite;
-            max-width: 260px;
         }
         .qk-on-the-way-tag:hover {
             color: #fff;
@@ -462,8 +463,12 @@
         }
         @media (min-width: 992px) {
             .qk-on-the-way-tag {
+                left: auto;
                 right: 22px;
                 bottom: 24px;
+                border-radius: 999px;
+                padding: 9px 12px;
+                box-shadow: 0 12px 28px rgba(30, 33, 94, 0.35);
             }
             .qk-delivery-desktop-actions {
                 display: inline-flex;
