@@ -619,6 +619,101 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Re-validate and update delivery location for logged-in users (e.g. from Add Address map).
+     * Uses the same store distance logic as checkLoginLocationRange but does NOT touch login state.
+     */
+    public function checkAddressLocationRange(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'lat' => 'required|numeric|between:-90,90',
+                'lng' => 'required|numeric|between:-180,180',
+            ]);
+
+            $userId = (int) $request->session()->get('user_id', 0);
+            if ($userId <= 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Please sign in again to update your delivery location.',
+                ], 401);
+            }
+
+            $lat = (float) $validated['lat'];
+            $lng = (float) $validated['lng'];
+            $locationName = trim((string) $request->input('location_name', ''));
+
+            $nearestStore = DB::selectOne(
+                "SELECT
+                    id,
+                    name,
+                    max_delivery_distance,
+                    ST_DWithin(
+                        location,
+                        ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
+                        COALESCE(max_delivery_distance, 10000)
+                    ) AS in_range,
+                    ST_Distance(
+                        location,
+                        ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography
+                    ) AS distance_meters,
+                    ST_Y(location::geometry)::float AS store_lat,
+                    ST_X(location::geometry)::float AS store_lng
+                 FROM stores
+                 WHERE location IS NOT NULL
+                 ORDER BY distance_meters ASC
+                 LIMIT 1",
+                [$lng, $lat, $lng, $lat]
+            );
+
+            if (!$nearestStore) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Store location is not configured.',
+                ], 422);
+            }
+
+            $isInRange = in_array((string) $nearestStore->in_range, ['1', 't', 'true', 'TRUE'], true);
+
+            if (!$isInRange) {
+                return response()->json([
+                    'success' => true,
+                    'in_range' => false,
+                    'message' => 'please select a location in our servicable area',
+                    'distance_meters' => (float) $nearestStore->distance_meters,
+                    'store_name' => $nearestStore->name,
+                ]);
+            }
+
+            // Update delivery session only (keep user login intact)
+            $request->session()->put('delivery_user_lat', $lat);
+            $request->session()->put('delivery_user_lng', $lng);
+            $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
+            $request->session()->put('delivery_store_id', (int) $nearestStore->id);
+            if (isset($nearestStore->store_lat, $nearestStore->store_lng)) {
+                $request->session()->put('delivery_store_lat', (float) $nearestStore->store_lat);
+                $request->session()->put('delivery_store_lng', (float) $nearestStore->store_lng);
+            }
+
+            return response()->json([
+                'success' => true,
+                'in_range' => true,
+                'message' => 'Location updated successfully.',
+                'distance_meters' => (float) $nearestStore->distance_meters,
+                'store_name' => $nearestStore->name,
+                'location_name' => $locationName !== '' ? $locationName : 'Current location',
+            ]);
+        } catch (\Throwable $e) {
+            \Log::error('checkAddressLocationRange failed', [
+                'message' => $e->getMessage(),
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to validate location right now. Please try again shortly.',
+            ], 422);
+        }
+    }
+
     public function joinWaitlist(Request $request)
     {
         $number = trim((string) $request->input('number', ''));

@@ -261,6 +261,7 @@ Route::post('/loginsubmit', [AuthController::class, 'loginsubmit'])->name('login
 Route::post('/registeruser', [AuthController::class, 'registeruser'])->name('registeruser');
 Route::post('/loginotpsubmit', [AuthController::class, 'loginotpsubmit'])->name('loginotpsubmit');
 Route::post('/check-login-location-range', [AuthController::class, 'checkLoginLocationRange'])->name('checkLoginLocationRange');
+Route::post('/check-address-location-range', [AuthController::class, 'checkAddressLocationRange'])->name('checkAddressLocationRange');
 Route::get('/delivery-eta', [DeliveryEtaController::class, 'show'])->name('deliveryEta');
 Route::post('/join-waitlist', [AuthController::class, 'joinWaitlist'])->name('joinWaitlist');
 Route::post('/resend-otp', [AuthController::class, 'resend_otp']);

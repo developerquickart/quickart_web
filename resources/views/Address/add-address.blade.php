@@ -72,6 +72,8 @@ $countries = explode(',', $strToArr);
                                         <label for="house_no">Address Details (House No, Building & Block No & Area)
                                             <span class="required_icon">*</span></label>
                                         <input type="text" name="house_no" id="house_no" class="form-control" value="{{old('house_no')}}">
+                                        <input type="hidden" id="mapLat" value="{{ session('delivery_user_lat') }}">
+                                        <input type="hidden" id="mapLng" value="{{ session('delivery_user_lng') }}">
                                         <input type="hidden" id="latitude" name="latitude" value="{{old('latitude')}}">
                                         <input type="hidden" id="longitude" name="longitude" value="{{old('longitude')}}">
                                         <input type="hidden" id="addedFrom" name="addedFrom" value="{{\Request::get('addedFrom')}}">
@@ -259,36 +261,10 @@ input1.addEventListener('countrychange', () => {
 
 updateCountryCode1();
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(locationSuccess);
-    } else {
-        $("#locationData").html('Your browser does not support location data retrieval.');
-    }
     var map; 
     var markers = []; 
-    function locationSuccess(position) {
-        var mapLat = position.coords.latitude;
-        var mapLng = position.coords.longitude;
-        $('#mapLat').val(mapLat);
-        $('#mapLng').val(mapLng);
-        var currentLocation = new google.maps.LatLng(mapLat, mapLng);
-        const blueMarkerIcon = {
-            url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-            size: new google.maps.Size(71, 71),
-            origin: new google.maps.Point(0, 0),
-            anchor: new google.maps.Point(17, 34),
-            scaledSize: new google.maps.Size(25, 25),
-        };
-        var currentMarker = new google.maps.Marker({
-            position: currentLocation,
-            map: map,
-            title: "Your Current Location",
-            icon: blueMarkerIcon
-        });
-        map.setCenter(currentLocation);
-    }
 
-    var selected_location = '';
+    var selected_location = '{{ session('delivery_location_name') ?? '' }}';
     var selected_lat = '';
     var selected_lng = '';
     var selected_adr_components = [];
@@ -371,16 +347,9 @@ updateCountryCode1();
 
     $(document).ready(function() {
         $('.btnConfirm').on('click', function() {
-            let validLocations = <?php echo json_encode($countries); ?>;
-            let isValid = validLocations.some(loc => selected_location.includes(loc));
             let _token = jQuery('meta[name="csrf-token"]').attr('content');
             
             let isError = 0;
-            if (!isValid) {
-                alert('Service is not available in this area');
-                isError = 1;
-                // return;
-            }
             if (!selected_location) {
                 alert('Please select a location');
                 isError = 1;
@@ -388,21 +357,62 @@ updateCountryCode1();
             }
             console.log('isError',isError);
             
-            if(isError == 0){
-                $('#latitude').val(selected_lat);
-                $('#longitude').val(selected_lng);
-                $('.location_address').html(selected_location);
-                $('#address').val(selected_location);
-            }else{
-                $('#latitude').val("");
-                $('#longitude').val("");
-                $('.location_address').html("Please select a location");
-                $('#address').val("");
+            if(isError != 0){
+                return;
             }
-           
 
-            console.log("Saving Location:", selected_location, selected_lat, selected_lng, selected_country);
-            // saveDataAndGoBack(selected_location, selected_lat, selected_lng);
+            $.ajax({
+                url: "{{ route('checkAddressLocationRange') }}",
+                type: 'POST',
+                data: {
+                    _token: _token,
+                    lat: selected_lat,
+                    lng: selected_lng,
+                    location_name: selected_location
+                },
+                success: function (response) {
+                    if (response.success && response.in_range === true) {
+                        $('#latitude').val(selected_lat);
+                        $('#longitude').val(selected_lng);
+                        $('.location_address').html(selected_location);
+                        $('#address').val(selected_location);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Location updated',
+                            text: response.message || 'Your delivery location has been updated.'
+                        }).then(function () {
+                            window.location.reload();
+                        });
+                    } else if (response.success && response.in_range === false) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Out of range',
+                            text: 'please select a location in our servicable area'
+                        });
+                        $('#latitude').val("");
+                        $('#longitude').val("");
+                        $('.location_address').html("Please select a location");
+                        $('#address').val("");
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: (response && response.message) ? response.message : 'Unable to validate location.'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Unable to validate location. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: msg
+                    });
+                }
+            });
         });
     });
 
