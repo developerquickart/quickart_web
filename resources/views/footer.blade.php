@@ -157,9 +157,7 @@
     </div>
     <!-- End Copyright -->
 </div>
-<div id="scrollToTopBtn" class="top_btn show" title="Move To Top">
-    <img src="{{asset('assets/images/top.png')}}" class="img-fluid" alt="top">
-</div>
+{{-- Scroll to top button removed for cleaner bottom banner layout --}}
 
 <!-- Variant Modal Open... G1 -->
    <div tabindex="-1" data-testid="focus-trap-container" >
