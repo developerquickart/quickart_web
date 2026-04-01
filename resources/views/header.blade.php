@@ -1124,6 +1124,22 @@
         </span>
         <span class="qk-on-the-way-tag__text">Order zapping soon!</span>
     </a>
+    <script>
+        (function () {
+            var banner = document.querySelector('.qk-on-the-way-tag');
+            if (!banner) return;
+            function adjustAtTop() {
+                var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+                if (scrollTop <= 0) {
+                    banner.style.bottom = '40px';
+                } else {
+                    banner.style.bottom = '0px';
+                }
+            }
+            adjustAtTop();
+            window.addEventListener('scroll', adjustAtTop);
+        })();
+    </script>
     @endif
     <main>
         @if(!empty(session('user_id')))
@@ -1544,6 +1560,19 @@
                       success: function (response) {
                         // alert('Form submitted successfully!');
                         console.log(response);
+                        // If backend (or underlying Node API) indicates user is not a ZAP customer,
+                        // show a message and do NOT proceed to login/OTP/register flows.
+                        if (response.status === 0 && response.message === 'Sorry you are not a zap customer') {
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Sorry you are not a ZAP customer',
+                                text: response.message,
+                                timer: 4000,
+                                showConfirmButton: false
+                            });
+                            return;
+                        }
+
                         if(response.success == true && response.popup == 'otp'){
                             $('.entered_mobile').html(response.country_code+' '+response.number);
 
