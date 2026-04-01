@@ -414,7 +414,7 @@
             position: fixed;
             left: 0;
             right: 0;
-            bottom: 0;
+            bottom: env(safe-area-inset-bottom,0px);
             z-index: 1250;
             display: flex;
             align-items: center;
