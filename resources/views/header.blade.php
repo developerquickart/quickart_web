@@ -1124,6 +1124,32 @@
         </span>
         <span class="qk-on-the-way-tag__text">Order zapping soon!</span>
     </a>
+    <script>
+        (function () {
+            var banner = document.querySelector('.qk-on-the-way-tag');
+            if (!banner) return;
+
+            function adjustBannerOffset() {
+                try {
+                    if (window.visualViewport) {
+                        var vh = window.innerHeight || document.documentElement.clientHeight;
+                        var visible = window.visualViewport.height;
+                        var chromeHeight = Math.max(0, vh - visible);
+                        var offset = Math.min(Math.max(chromeHeight, 0), 48); // clamp between 0 and 48px
+                        banner.style.bottom = offset + 'px';
+                    } else {
+                        banner.style.bottom = '0px';
+                    }
+                } catch (e) {
+                    banner.style.bottom = '0px';
+                }
+            }
+
+            adjustBannerOffset();
+            window.addEventListener('resize', adjustBannerOffset);
+            window.addEventListener('scroll', adjustBannerOffset);
+        })();
+    </script>
     @endif
     <main>
         @if(!empty(session('user_id')))
