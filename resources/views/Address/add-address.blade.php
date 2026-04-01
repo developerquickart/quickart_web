@@ -379,9 +379,7 @@ updateCountryCode1();
                         Swal.fire({
                             icon: 'success',
                             title: 'Location updated',
-                            text: response.message || 'Your delivery location has been updated.'
-                        }).then(function () {
-                            window.location.reload();
+                            text: response.message || 'Your delivery location has been updated. You can now save this address.'
                         });
                     } else if (response.success && response.in_range === false) {
                         Swal.fire({
