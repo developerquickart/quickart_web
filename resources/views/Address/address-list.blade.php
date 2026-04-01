@@ -628,36 +628,66 @@ window.addEventListener("pageshow", function() {
     $(document).ready(function() {
         
         $('.btnConfirm').on('click', function() {
-            let validLocations = <?php echo json_encode($countries); ?>;
-            let isValid = validLocations.some(loc => selected_location.includes(loc));
             let _token = jQuery('meta[name="csrf-token"]').attr('content');
             let isError = 0;
-            if (!isValid) {
-                alert('Service is not available in this area');
-                isError = 1;
-                // return;
-            }
             if (!selected_location) {
                 alert('Please select a location');
                 isError = 1;
-                // return;
             }
-            console.log('isError',isError);
-            
-            if(isError == 0){
-                $('#latitude').val(selected_lat);
-                $('#longitude').val(selected_lng);
-                $('.location_address').html(selected_location);
-                $('#address').val(selected_location);
-            }else{
-                $('#latitude').val("");
-                $('#longitude').val("");
-                $('.location_address').html("Please select a location");
-                $('#address').val("");
+            if (isError != 0) {
+                return;
             }
 
-            console.log("Saving Location:", selected_location, selected_lat, selected_lng, selected_country);
-            // saveDataAndGoBack(selected_location, selected_lat, selected_lng);
+            $.ajax({
+                url: "{{ route('checkAddressLocationRange') }}",
+                type: 'POST',
+                data: {
+                    _token: _token,
+                    lat: selected_lat,
+                    lng: selected_lng,
+                    location_name: selected_location
+                },
+                success: function (response) {
+                    if (response.success && response.in_range === true) {
+                        $('#latitude').val(selected_lat);
+                        $('#longitude').val(selected_lng);
+                        $('.location_address').html(selected_location);
+                        $('#address').val(selected_location);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Location updated',
+                            text: response.message || 'Your delivery location has been updated. You can now save this address.'
+                        });
+                    } else if (response.success && response.in_range === false) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Out of range',
+                            text: 'please select a location in our servicable area'
+                        });
+                        $('#latitude').val("");
+                        $('#longitude').val("");
+                        $('.location_address').html("Please select a location");
+                        $('#address').val("");
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: (response && response.message) ? response.message : 'Unable to validate location.'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Unable to validate location. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: msg
+                    });
+                }
+            });
         });
 
         $('.submitAddress_btn').on('click',function(){
