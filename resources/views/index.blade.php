@@ -1197,13 +1197,21 @@ function navigateToNextPage(url) {
 
 <script>
 window.onload = function() {
+    @if(empty(session('user_id')))
+    {{-- Guest: prompt sign-in on homepage load; do not show marketing popup banner --}}
+    if (typeof jQuery !== 'undefined' && jQuery('#login').length) {
+        jQuery('#login').modal('show');
+    }
+    @else
     if (!sessionStorage.getItem("modalShown")) {
-        var modal = new bootstrap.Modal(document.getElementById("onload"));
-        if(modal){
+        var onloadEl = document.getElementById("onload");
+        if (onloadEl) {
+            var modal = new bootstrap.Modal(onloadEl);
             modal.show();
             sessionStorage.setItem("modalShown", "true");
         }
     }
+    @endif
 };
 
 function openPopUPScreen(type, bannerId, title) {
