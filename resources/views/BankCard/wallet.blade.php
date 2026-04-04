@@ -60,8 +60,57 @@ function getWalletMessage($resource = null) {
     return 'Wallet transaction';
 }
 @endphp
-<section class="account-page py-5">
-    <div class="container-fluid">
+<style>
+/* /wallet — mobile-friendly layout */
+.wallet-page.account-page { overflow-x: hidden; }
+.wallet-page .wallet-balance-col { max-width: 100%; }
+@media (max-width: 767.98px) {
+    .wallet-page.account-page { padding-top: 1rem !important; padding-bottom: 1.5rem !important; }
+    .wallet-page .container-fluid { padding-left: 12px; padding-right: 12px; }
+    .wallet-page .wallet_box { margin-left: 0; margin-right: 0; }
+    .wallet-page .amountBox span { font-size: clamp(1.35rem, 6vw, 1.85rem); font-weight: 700; }
+    .wallet-page .section-header { padding-left: 2px; padding-right: 2px; }
+    .wallet-page .wallet-filters .wallet-filter-actions { margin-top: 0 !important; }
+    .wallet-page .wallet-filters .wallet-filter-actions .btn { width: 100%; }
+    .wallet-page .card-header1 .card-title { margin-left: 0 !important; margin-top: 0.5rem !important; font-size: 1.1rem; }
+    .wallet-page table.wallet-table-mobile thead { display: none; }
+    .wallet-page table.wallet-table-mobile tbody tr {
+        display: block;
+        border: 1px solid #dee2e6;
+        border-radius: 10px;
+        margin-bottom: 14px;
+        padding: 12px 14px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .wallet-page table.wallet-table-mobile tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        border: none !important;
+        padding: 8px 0 !important;
+        text-align: right !important;
+        font-size: 13px;
+        word-break: break-word;
+    }
+    .wallet-page table.wallet-table-mobile tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #2e317e;
+        text-align: left;
+        flex: 0 0 42%;
+        max-width: 46%;
+    }
+    .wallet-page .wallet-year-heading { font-size: 1rem; margin-top: 1rem !important; }
+}
+@media (min-width: 768px) {
+    .wallet-page .table-responsive-wallet { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .wallet-page table.wallet-table-mobile { min-width: 720px; }
+}
+</style>
+<section class="account-page py-5 wallet-page">
+    <div class="container-fluid px-2 px-md-3">
         <div class="sidemenu_mainBox">
             <div class="sidemenu_menu_mainBox">
                 <aside id="sidebar" class="sidebar break-point-sm has-bg-image">
@@ -138,8 +187,8 @@ function getWalletMessage($resource = null) {
                     </div>
                     @if(isset($appInfo['data']) && count($appInfo['data']) > 0)
 
-                        <div class="row no-gutters">
-                            <div class="col-lg-6">
+                        <div class="row g-2">
+                            <div class="col-12 col-lg-6 wallet-balance-col">
                                 <div class="wallet_box">
                                     <div class="amountBox">AED
                                         <span>{{ number_format((float) ($appInfo['data']['userwallet'] ?? 0), 2) }}</span>
@@ -151,64 +200,51 @@ function getWalletMessage($resource = null) {
                         </div>
                     @endif
                     
-                    <div class="card mt-3">
-                        <div class="card-header1 card-header-info1">
-                            <h4 class="card-title" style=" margin-left:10px; margin-top:10px;">Recent activity</h4>
+                    <div class="card mt-3 border-0 shadow-sm">
+                        <div class="card-header1 card-header-info1 px-2 px-md-3">
+                            <h4 class="card-title px-1 px-md-2 mb-2 mb-md-0" style="margin-left:0; margin-top:10px;">Recent activity</h4>
                         
-                            <form method="GET" action="{{ url()->current() }}">
-                        
-                                <!-- Row 1: Filters -->
-                                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; margin-left:10px; margin-right:10px;">
-                        
-                                    <!-- Type Filter -->
-                                    <div style="min-width:100px;">
-                                        <label>Type</label>
-                                        <select name="type" class="form-control">
+                            <form method="GET" action="{{ url()->current() }}" class="wallet-filters">
+                                <div class="row g-2 gx-2 gy-2 align-items-end mb-3 mx-0">
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                        <label class="form-label small mb-1" for="wallet-filter-type">Type</label>
+                                        <select name="type" id="wallet-filter-type" class="form-select">
                                             <option value="all">All</option>
                                             <option value="added" {{ request('type') == 'added' ? 'selected' : '' }}>Added</option>
                                             <option value="deducted" {{ request('type') == 'deducted' ? 'selected' : '' }}>Deducted</option>
                                         </select>
                                     </div>
-                        
-                                    <!-- Start Date -->
-                                    <div style=" min-width:100px;">
-                                        <label>Start Date</label>
-                                        <input type="date" name="start_date" class="form-control" value="{{ $defaultStartDate }}">
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                        <label class="form-label small mb-1" for="wallet-start-date">Start date</label>
+                                        <input type="date" id="wallet-start-date" name="start_date" class="form-control" value="{{ $defaultStartDate }}">
                                     </div>
-                        
-                                    <!-- End Date -->
-                                    <div style="min-width:100px;">
-                                        <label>End Date</label>
-                                        <input type="date" name="end_date" class="form-control" value="{{ $defaultEndDate  }}">
+                                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                                        <label class="form-label small mb-1" for="wallet-end-date">End date</label>
+                                        <input type="date" id="wallet-end-date" name="end_date" class="form-control" value="{{ $defaultEndDate }}">
                                     </div>
-                                    <div style="margin-top:28px;">
-                                        <button type="submit" class="btn btn-primary"style="min-width:100px; height:40px;">
-                                            Filter
-                                        </button>
-                                    </div>
-                                    <div style="margin-top:28px;">
-                                        <a href="{{ url()->current() }}" class="btn btn-secondary"style="min-width:100px; height:40px;">
-                                            Reset
-                                        </a>
+                                    <div class="col-12 col-sm-6 col-md-12 col-lg-3 wallet-filter-actions d-flex flex-column flex-sm-row gap-2 gap-sm-2 pt-sm-0 pt-1">
+                                        <button type="submit" class="btn btn-primary flex-grow-1" style="min-height:40px;">Filter</button>
+                                        <a href="{{ url()->current() }}" class="btn btn-secondary flex-grow-1 text-center align-self-stretch d-flex align-items-center justify-content-center" style="min-height:40px;">Reset</a>
                                     </div>
                                 </div>
                             </form>
                         </div>
                     
-                        <div class="card-body">
+                        <div class="card-body px-2 px-md-3">
                         @if(isset($walletHIstoryList['data']) && count($walletHIstoryList['data']) > 0)
                             @foreach($walletHIstoryList['data'] as $yearData)
-                                <h5 style="margin-top:20px;">Year: {{ $yearData['year'] }}</h5>
-                                <table class="table table-striped">
+                                <h5 class="wallet-year-heading" style="margin-top:20px;">Year: {{ $yearData['year'] }}</h5>
+                                <div class="table-responsive-wallet">
+                                <table class="table table-striped wallet-table-mobile mb-0">
                                     <thead>
                                         <tr>
                                             <th>#</th>
                                             <th>Type</th>
-                                            <th>Order ID/Product Order ID</th>
+                                            <th>Order ID</th>
                                             <th>Amount</th>
-                                            <th>Expiry Date</th>
-                                            <th>Added Via</th>
-                                            <th>Added Date</th>
+                                            <th>Expiry</th>
+                                            <th>Via</th>
+                                            <th>Date</th>
                                         </tr>
                                     </thead>
                     
@@ -219,46 +255,43 @@ function getWalletMessage($resource = null) {
                     
                                             @php
                                                 $type = strtolower($item['type'] ?? '');
+                                                $orderRef = trim((!empty($item['group_id']) ? $item['group_id'] : '') . (!empty($item['cart_id']) ? ' (' . $item['cart_id'] . ')' : ''));
                                             @endphp
                     
                                             <tr>
-                                                <td>{{ $i++ }}</td>
-                    
-                                                <td>{{ ucfirst($item['type'] ?? '-') }}</td>
-                                                <td>{{ !empty($item['group_id']) ? $item['group_id'] : '' }}{{ !empty($item['cart_id']) ? ' (' . $item['cart_id'] . ')' : '' }}</td>
-                    
-                                                <td>
+                                                <td data-label="#">{{ $i++ }}</td>
+                                                <td data-label="Type">{{ ucfirst($item['type'] ?? '-') }}</td>
+                                                <td data-label="Order ID">{{ $orderRef !== '' ? $orderRef : '—' }}</td>
+                                                <td data-label="Amount">
                                                     @if($type === 'add')
                                                         <span style="color:#4b861a; font-weight:700;">
                                                             + AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
                                                         </span>
-                    
                                                     @elseif($type === 'deduction')
                                                         <span style="color:#dc1326; font-weight:700;">
                                                             - AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
                                                         </span>
-                    
                                                     @elseif($type === 'wallet_expired')
                                                         <span style="color:#6c757d; font-weight:700;">
                                                             AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
                                                         </span>
-                    
                                                     @else
                                                         AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
                                                     @endif
                                                 </td>
-                                                <td>{{ !empty($item['expiry_date']) 
-                                                        ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M') 
-                                                        : '-' 
+                                                <td data-label="Expiry">{{ !empty($item['expiry_date'])
+                                                        ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M')
+                                                        : '—'
                                                     }}</td>
-                                                <td>{{ getWalletMessage($item['resource'] ?? '') }}</td>
-                                                <td>{{ \Carbon\Carbon::parse($item['created_at'])->format('d M') }}</td>
+                                                <td data-label="Via">{{ getWalletMessage($item['resource'] ?? '') }}</td>
+                                                <td data-label="Date">{{ \Carbon\Carbon::parse($item['created_at'])->format('d M Y') }}</td>
                                             </tr>
                     
                                         @endforeach
                     
                                     </tbody>
                                 </table>
+                                </div>
                     
                             @endforeach
                     
