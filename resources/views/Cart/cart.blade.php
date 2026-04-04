@@ -31,10 +31,6 @@ if (isset($showCartProductList['data'])) {
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="cart_tabbing_mainBox">
-                            <div class="cart_tabbing_tabs">
-                                <a class="tablinks cart-tab-item active" id="dailyCartTab"
-                                    onclick="openCity(event, '1')">Daily Cart</a>
-                            </div>
                             <div class="cart_tabbing_content" id="content">
                                 <div id="1" class="tabcontent">
                                     <div class="content_Mainbox">
@@ -62,92 +58,6 @@ if (isset($showCartProductList['data'])) {
                                                                 <h5 class="heading-design-h5">
                                                                     {{$productCat['cat_name']}}</span>
                                                                 </h5>
-                                                            </div>
-                                                            <div class="sehedule_delivery_mainBox">
-                                                                <div class="schedule_box1">
-                                                                    @if($productCat['selectedDate'] != null)
-                                                                    <div class="other_category_box">
-                                                                        
-                                                                        @php
-                                                                            $selectedDate = \Carbon\Carbon::parse($productCat['selectedDate']);
-                                                                        @endphp
-                                                                        
-                                                                        @if($selectedDate->isPast() && !$selectedDate->isToday())
-                                                                            <div class="error-text" style="color:red;">
-                                                                                Your selected date is in the past.<br>
-                                                                                Please select a different date.
-                                                                            </div>
-                                                                        @endif
-                                                                        @php
-                                                                            $now = \Carbon\Carbon::now();
-                                                                        
-                                                                            $selectedDate = \Carbon\Carbon::parse($productCat['selectedDate']);
-                                                                            $selectedTime = trim($productCat['selectedTime']);
-                                                                        
-                                                                            // Define cutoff times (same as Dart)
-                                                                            $morningCutoff = \Carbon\Carbon::parse('10:00 AM');
-                                                                            $eveningCutoff = \Carbon\Carbon::parse('6:00 PM');
-                                                                        
-                                                                            $disableSlot = false;
-                                                                        
-                                                                            // TODAY condition
-                                                                            if ($selectedDate->isToday()) {
-                                                                                if ($now->gt($morningCutoff)) {
-                                                                                    $disableSlot = true;
-                                                                                }
-                                                                            }
-                                                                        
-                                                                            // TOMORROW condition
-                                                                            if ($selectedDate->isTomorrow() && $selectedTime == "06:00 am - 10:00 am") {
-                                                                                if ($now->gt($eveningCutoff)) {
-                                                                                    $disableSlot = true;
-                                                                                }
-                                                                            }
-                                                                        @endphp
-                                                                        <div class="other_category_content">
-                                                                            @if($selectedDate->isPast() && !$selectedDate->isToday())
-                                                                                <span style="color:red;">
-                                                                                    Your selected date is in the past.<br>
-                                                                                    Please select a different date.
-                                                                                </span>
-                                                                        
-                                                                            @elseif($disableSlot)
-                                                                                <span style="color:red;">
-                                                                                    Selected time slot is no longer available. Please choose another slot.
-                                                                                </span>
-                                                                        
-                                                                            @else
-                                                                                <span>Your Other Category</span> will be delivered on
-                                                                                <span>
-                                                                                    {{ $selectedDate->isToday() ? 'Today' :
-                                                                                       ($selectedDate->isTomorrow() ? 'Tomorrow' :
-                                                                                       $selectedDate->format('l')) }}
-                                                                                </span>
-                                                                                between
-                                                                                <span>{{ str_replace(':00', '', $productCat['selectedTime']) }}</span>
-                                                                            @endif
-                                                                        
-                                                                        </div>
-                                                                        <div class="other_category_icon" id="modalBtn"
-                                                                            data-productCat='@json($productCat)'
-                                                                            onclick="openMyModal('1','modalBtn', this, {{ $index }})">
-                                                                            <img src="assets/images/edit.png" alt=""
-                                                                                class="img-fluid">
-                                                                        </div>
-                                                                    </div>
-                                                                    @else
-                                                                    <div class="schedule_box">
-                                                                        <div class="schedule_header_one"
-                                                                            id="scheduleHeader" style="text-align:center;" data-productCat='@json($productCat)'
-                                                                                onclick="openMyModal('1','arrowBox', this, {{ $index }})">
-                                                                            <div class="day_box1" id="dayBox">
-                                                                                Pick Preferred Date & Time Slot
-                                                                            </div>
-                                                                            
-                                                                        </div>
-                                                                    </div>
-                                                                    @endif
-                                                                </div>
                                                             </div>
                                                             
                                                         </div>
@@ -1250,14 +1160,6 @@ document.addEventListener("DOMContentLoaded", function() {
     var rawTab = "{{ \Request::get('tab') }}";
     var savedTab = (rawTab === '' || rawTab === '2') ? '1' : rawTab;
     openCity(null, savedTab);
-
-    document.getElementById("dailyCartTab").addEventListener("click", function(event) {
-        localStorage.setItem("selectedTab", 1);
-        let url = new URL(window.location);
-        url.searchParams.set('tab', 1);
-        window.location.href = url.toString();
-        openCity(event, "1");
-    });
 });
 
 function openSubscriptionTap(event) {
@@ -2561,7 +2463,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <!--checkout subcart api call...G1 -->
 <script>
 function checkOutSubCartApiCall() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     localStorage.removeItem("selectedAddress");
     // console.log("Added to cart: ", varientId);
     var selectedDate = '',
@@ -3543,7 +3444,6 @@ function totalCalculationPayment() {
 let showCartData = @json($showCartProductList['data'] ?? []);
 // < !--checkout subcart api call...G1-- >
 function checkOutDailyCartApiCall(type) {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     let selectedMethod = "";
     let addressID = '';
     const addressInput = document.getElementById('addressId');

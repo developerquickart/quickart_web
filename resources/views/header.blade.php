@@ -461,6 +461,65 @@
             70% { box-shadow: 0 0 0 9px rgba(76, 175, 80, 0); }
             100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
         }
+        /* Sticky cart shortcut (all pages except /cart; same target as side menu My Cart) */
+        .qk-sticky-cart-fab {
+            position: fixed;
+            right: max(14px, env(safe-area-inset-right, 0px));
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1230;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #2e317e 0%, #454aad 100%);
+            color: #fff;
+            text-decoration: none;
+            box-shadow: 0 8px 24px rgba(30, 33, 94, 0.4);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .qk-sticky-cart-fab:hover {
+            color: #fff;
+            text-decoration: none;
+            transform: translateY(-50%) scale(1.04);
+            box-shadow: 0 10px 28px rgba(30, 33, 94, 0.48);
+        }
+        .qk-sticky-cart-fab:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 222, 52, 0.85), 0 8px 24px rgba(30, 33, 94, 0.4);
+        }
+        .qk-sticky-cart-fab__icon-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        .qk-sticky-cart-fab__img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
+        }
+        .qk-sticky-cart-fab__badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #ffde34;
+            color: #1a237e;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 18px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        }
         @media (min-width: 992px) {
             .qk-on-the-way-tag {
                 left: auto;
@@ -1112,6 +1171,20 @@
        
 
     </header>
+    @if(!empty(session('user_id')) && !request()->is('cart') && !request()->is('cart/*'))
+    <a href="{{ url('cart?tab=1') }}"
+       onclick="openCart()"
+       class="qk-sticky-cart-fab"
+       aria-label="My cart">
+        <span class="qk-sticky-cart-fab__icon-wrap">
+            <img src="{{ asset('assets/images/top_cart.png') }}" alt="" width="24" height="24" class="qk-sticky-cart-fab__img">
+            @php $qkStickyCartCount = (int) ($totalCartCount ?? 0); @endphp
+            @if($qkStickyCartCount > 0)
+                <span class="qk-sticky-cart-fab__badge" aria-hidden="true">{{ $qkStickyCartCount > 99 ? '99+' : $qkStickyCartCount }}</span>
+            @endif
+        </span>
+    </a>
+    @endif
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
        class="qk-on-the-way-tag"
