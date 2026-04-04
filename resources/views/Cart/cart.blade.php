@@ -363,7 +363,7 @@ if (isset($showCartProductList['data'])) {
                                                                                 style="display: inline-flex; align-items: center; gap: 8px;">
                                                                                 <label for="daily_wallet">AED
                                                                                     <span
-                                                                                        id="walletAmountD">{{ number_format($showCartProductList['data']['referral_balance'], 2) }}</span>
+                                                                                        id="walletAmountD">{{ number_format(max(0, (float)($showCartProductList['data']['referral_balance'] ?? 0)), 2) }}</span>
                                                                                 </label>
                                                                                 <input type="checkbox"
                                                                                     onclick="wallettotalCalculationPayment()"
@@ -393,7 +393,7 @@ if (isset($showCartProductList['data'])) {
                                                                                 style="display: inline-flex; align-items: center; gap: 8px;">
                                                                                 <label for="daily_wallet">AED
                                                                                     <span
-                                                                                        id="walletAmountCash">{{ number_format($showCartProductList['data']['wallet_balance'], 2) }}</span>
+                                                                                        id="walletAmountCash">{{ number_format(max(0, (float)($showCartProductList['data']['wallet_balance'] ?? 0)), 2) }}</span>
                                                                                 </label>
                                                                                 <input type="checkbox"
                                                                                     onclick="wallettotalCalculationPaymentCash()"
@@ -3290,8 +3290,8 @@ totalCalculationPayment();
 }
 }
 
-let walletD = parseFloat("{{ $showCartProductList['data']['referral_balance'] ?? 0 }}")
-let walletCash = parseFloat("{{ $showCartProductList['data']['wallet_balance'] ?? 0 }}")
+let walletD = Math.max(0, parseFloat("{{ max(0, (float)($showCartProductList['data']['referral_balance'] ?? 0)) }}") || 0)
+let walletCash = Math.max(0, parseFloat("{{ max(0, (float)($showCartProductList['data']['wallet_balance'] ?? 0)) }}") || 0)
 
 function wallettotalCalculationPayment() {
     const checkbox = document.getElementById('daily_wallet');
