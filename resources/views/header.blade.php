@@ -465,7 +465,7 @@
         .qk-sticky-cart-fab {
             position: fixed;
             right: max(14px, env(safe-area-inset-right, 0px));
-            top: 50%;
+            top: 80%;
             transform: translateY(-50%);
             z-index: 1230;
             display: flex;
@@ -490,35 +490,11 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(255, 222, 52, 0.85), 0 8px 24px rgba(30, 33, 94, 0.4);
         }
-        .qk-sticky-cart-fab__icon-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-        }
         .qk-sticky-cart-fab__img {
             width: 24px;
             height: 24px;
             object-fit: contain;
             filter: brightness(0) invert(1);
-        }
-        .qk-sticky-cart-fab__badge {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
-            border-radius: 999px;
-            background: #ffde34;
-            color: #1a237e;
-            font-size: 10px;
-            font-weight: 800;
-            line-height: 18px;
-            text-align: center;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
         }
         @media (min-width: 992px) {
             .qk-on-the-way-tag {
@@ -1176,13 +1152,7 @@
        onclick="openCart()"
        class="qk-sticky-cart-fab"
        aria-label="My cart">
-        <span class="qk-sticky-cart-fab__icon-wrap">
-            <img src="{{ asset('assets/images/top_cart.png') }}" alt="" width="24" height="24" class="qk-sticky-cart-fab__img">
-            @php $qkStickyCartCount = (int) ($totalCartCount ?? 0); @endphp
-            @if($qkStickyCartCount > 0)
-                <span class="qk-sticky-cart-fab__badge" aria-hidden="true">{{ $qkStickyCartCount > 99 ? '99+' : $qkStickyCartCount }}</span>
-            @endif
-        </span>
+        <img src="{{ asset('assets/images/top_cart.png') }}" alt="" width="24" height="24" class="qk-sticky-cart-fab__img">
     </a>
     @endif
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
