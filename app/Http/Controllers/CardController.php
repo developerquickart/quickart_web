@@ -375,9 +375,58 @@ class CardController extends Controller
             $errorMessage = $e->getMessage();
             return response()->json(['error' => $errorMessage], 500);
         }
+        //GetWallethisoty...G1
+        $walletHIstoryList = array();
+        try {
+            $client = new Client();
+            $type = $request->get('type', 'all');
+            $startDate = $request->get('start_date', '');
+            $endDate = $request->get('end_date', '');
+            // Map type
+            if ($type == 'added') {
+                $apiType = 'add';
+            } elseif ($type == 'deducted') {
+                $apiType = 'deduction';
+            } else {
+                $apiType = 'all';
+            }
+            $startDate = $request->get('start_date') 
+                ?? \Carbon\Carbon::now()->subMonths(3)->format('Y-m-d');
+            
+            $endDate = $request->get('end_date') 
+                ?? \Carbon\Carbon::now()->format('Y-m-d');
+                
+            // echo "<pre>";
+            // print_r($data_arr['user_id'] . " & " . $startDate . " & " . $endDate . " & " . $apiType);
+            // exit;
+            $response = $client->post($nodeappUrl . 'spent_by_wallet', [
+                'json' => [
+                    'user_id' =>  $data_arr['user_id'],
+                    "start_date" => $startDate,
+                    "end_date" => $endDate,
+                    "type" =>  $apiType
+                ]
+            ]);
 
-
-        return view('BankCard/wallet', compact('title', 'data_arr', 'appInfo'));
+            $statusCode = $response->getStatusCode();
+            if ($statusCode == 200) {
+                $walletHIstoryList = json_decode($response->getBody()->getContents(), true);
+            } else {
+                $errorMessage = "Unexpected status code: " . $statusCode;
+                return response()->json(['error' => $errorMessage], $statusCode);
+            }
+        } catch (RequestException $e) {
+            $errorMessage = $e->getMessage();
+            return response()->json(['error' => $errorMessage], 500);
+        } catch (\Exception $e) {
+            $errorMessage = $e->getMessage();
+            return response()->json(['error' => $errorMessage], 500);
+        }
+        // echo "<pre>";
+        // print_r(count($walletHIstoryList));
+        // exit;
+        return view('BankCard/wallet', compact('title', 'data_arr', 'appInfo', 'walletHIstoryList'));
     }
+    
 
 }
