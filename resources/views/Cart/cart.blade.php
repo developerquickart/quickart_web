@@ -3027,10 +3027,13 @@ function formatDate(dateString) {
 }
 
 // <!-- Save selected dat time for category in daily cart api call...G1 -->
+/** Daily cart: only this time slot is used for category sync (matches CartController checkout). */
+const DAILY_CART_FIXED_TIME_SLOT = '06:00 am - 10:00 am';
 
 function saveSelectedDateTimeApiCall(selectedBtn, type) {
     // console.log("Data Sent to Server:");
-    
+    var fixedSlot = DAILY_CART_FIXED_TIME_SLOT;
+
     var tab_list=document.getElementById("tabwise").value;
     let dataarray = [];
     if (selectedBtn == "save") {
@@ -3038,11 +3041,12 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
             alert("Error: No product selected!");
             return;
         }
-        let selectedDate = document.querySelector('input[name="date"]:checked').value;
-        let selectedTime = document.querySelector('input[name="time"]:checked').value;
+        let dateInput = document.querySelector('input[name="date"]:checked');
+        let selectedDate = dateInput ? dateInput.value : null;
+        let selectedTime = fixedSlot;
 
-        if (!selectedDate || !selectedTime) {
-            alert("Please select a date and time.");
+        if (!selectedDate) {
+            alert("Please select a date.");
             return;
         }
         dataarray = [{
@@ -3052,16 +3056,26 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
         }];
     } else {
         showCartData.data.forEach(category => {
-            if (category.selectedTime === null) {
-                // console.log("Category with missing selectedTime:", category);
+            if (!category.timeslotsdata || !category.timeslotsdata[0]) {
+                return;
+            }
+            if (category.selectedTime === null || category.selectedTime !== fixedSlot) {
                 dataarray.push({
                     cat_id: category.cat_id,
                     selected_date: category['timeslotsdata'][0]['date'],
-                    timeslots: category['timeslotsdata'][0]['timeslots'][0]['time_slots'],
+                    timeslots: fixedSlot,
                 });
             }
         });
-        // console.log("Updated Data Array:", dataarray);
+    }
+
+    if (selectedBtn !== "save" && dataarray.length === 0) {
+        if (type === "payNow") {
+            checkOutDailyCartApiCallWithData();
+        } else {
+            checkOutDailyCartPaymentApiCall(type);
+        }
+        return;
     }
 
     // console.log("Data Sent to Server:", dataarray);
@@ -3488,17 +3502,17 @@ function checkOutDailyCartApiCall(type) {
             });
         }
     }
-    // :white_check_mark: Final Validation
-        let isselectedTrue = false;
+    // Sync time slot to fixed morning window before checkout (anything else is corrected server-side).
+        let needsFixedSlotSync = false;
         for (let i = 0; i < showCartData['data'].length; i++) {
             const product = showCartData['data'][i];
-            if (!product.selectedTime) {
-                isselectedTrue = true;
+            if (!product.selectedTime || product.selectedTime !== DAILY_CART_FIXED_TIME_SLOT) {
+                needsFixedSlotSync = true;
                 saveSelectedDateTimeApiCall('add', type);
                 break;
             }
         }
-        if (!isselectedTrue) {
+        if (!needsFixedSlotSync) {
             if (type === "payNow") {
                 checkOutDailyCartApiCallWithData();
             } else {

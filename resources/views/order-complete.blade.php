@@ -1,5 +1,18 @@
 @include('header')
-<section class="order_successful_section">
+@if (\Request::get('screen') == 'daily')
+<style>
+    /* Mobile: short confirmation copy makes the footer feel like main content; stretch this section so the footer sits lower. */
+    @media (max-width: 767.98px) {
+        .order_successful_section.order-successful--daily {
+            min-height: calc(100dvh - 3.5rem);
+            padding-top: 1.5rem;
+            padding-bottom: 4rem;
+            box-sizing: border-box;
+        }
+    }
+</style>
+@endif
+<section class="order_successful_section @if (\Request::get('screen') == 'daily')order-successful--daily @endif">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-6">

@@ -380,36 +380,6 @@
             text-decoration: none;
         }
         .qk-delivery-eta__profile svg { display: block; }
-        .qk-delivery-desktop-actions {
-            display: none;
-            align-items: center;
-            gap: 8px;
-            margin-left: 10px;
-        }
-        .qk-delivery-action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 7px 10px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, 0.14);
-            border: 1px solid rgba(255, 255, 255, 0.26);
-            color: #fff;
-            font-size: 12px;
-            font-weight: 600;
-            text-decoration: none;
-            cursor: pointer;
-            line-height: 1;
-        }
-        .qk-delivery-action-btn img {
-            width: 14px;
-            height: 14px;
-            object-fit: contain;
-        }
-        .qk-delivery-action-btn:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.2);
-        }
         .qk-on-the-way-tag {
             position: fixed;
             left: 0;
@@ -504,12 +474,6 @@
                 border-radius: 999px;
                 padding: 9px 12px;
                 box-shadow: 0 12px 28px rgba(30, 33, 94, 0.35);
-            }
-            .qk-delivery-desktop-actions {
-                display: inline-flex;
-            }
-            .qk-delivery-action-btn img {
-                filter: brightness(0) invert(1);
             }
             .qk-loggedin-menu .main-nav-right {
                 display: none !important;
@@ -901,14 +865,6 @@
                                 <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-3.866 0-7 2.91-7 6.5 0 .828.672 1.5 1.5 1.5h11c.828 0 1.5-.672 1.5-1.5 0-3.59-3.134-6.5-7-6.5z" fill="currentColor"/>
                             </svg>
                         </a>
-                        @if(!empty($data_arr['user_id']))
-                        <div class="qk-delivery-desktop-actions">
-                            <a href="{{url('cart?tab=1')}}" onclick="openCart()" class="qk-delivery-action-btn">
-                                <img src="{{asset('assets/images/top_cart.png')}}" alt="Cart">
-                                <span>My Cart</span>
-                            </a>
-                        </div>
-                        @endif
                     </div>
                     <div class="qk-delivery-search">
                         <div class="search-wrapper">
