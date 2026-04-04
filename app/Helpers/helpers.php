@@ -2,139 +2,17 @@
 use Carbon\Carbon;
 
 
-//Set Total cashback in cart page...G1
+//Set Total cashback in cart page...G1 (time-slot cashback banners disabled)
 function calculateTotalCashback($rootJson)
 {
-    try {
-        if (empty($rootJson) || !is_array($rootJson)) {
-            return "0";
-        }
-
-        $totalCashback = 0.0;
-
-        foreach ($rootJson as $cat) {
-            $timeslotsData = $cat['timeslotsdata'] ?? [];
-            $products = $cat['products'] ?? [];
-
-            if (empty($timeslotsData) || empty($products)) {
-                continue;
-            }
-
-            // selected values
-            $selectedDate = (string)($cat['selectedDate'] ?? "");
-            $selectedTime = (string)($cat['selectedTime'] ?? "");
-
-            // fallback to first slot if missing
-            if (empty($selectedDate) || empty($selectedTime)) {
-                $firstDateEntry = $timeslotsData[0] ?? [];
-                $selectedDate = (string)($firstDateEntry['date'] ?? "");
-                $firstTimeslots = $firstDateEntry['timeslots'] ?? [];
-                $selectedTime = !empty($firstTimeslots)
-                    ? (string)($firstTimeslots[0]['time_slots'] ?? "")
-                    : "";
-            }
-
-            // find date entry
-            $dateEntry = null;
-            foreach ($timeslotsData as $d) {
-                if (($d['date'] ?? "") === $selectedDate) {
-                    $dateEntry = $d;
-                    break;
-                }
-            }
-            if ($dateEntry === null) continue;
-
-            // find slot
-            $slot = null;
-            foreach (($dateEntry['timeslots'] ?? []) as $s) {
-                if (($s['time_slots'] ?? "") === $selectedTime) {
-                    $slot = $s;
-                    break;
-                }
-            }
-            if ($slot === null) continue;
-
-            // slot values
-            $discount = (float)($slot['discount'] ?? 0);
-            $minAmount = (float)($slot['min_amount'] ?? 0);
-
-            // category total
-            $catTotal = 0.0;
-            foreach ($products as $p) {
-                $qty = (int)($p['cart_qty'] ?? 0);
-                $price = (float)($p['price'] ?? 0);
-                $catTotal += $qty * $price;
-            }
-            if ($catTotal <= 0) continue;
-
-            // cashback for this category
-            if ($discount > 0 && $catTotal >= $minAmount) {
-                $totalCashback += ($catTotal * $discount / 100);
-            }
-        }
-
-        return $totalCashback > 0
-            ? "AED " . number_format($totalCashback, 2) . " cashback on this order"
-            : "";
-    } catch (Exception $e) {
-        return "";
-    }
+    return "";
 }
 
-// Check time slot msg...G1
+// Check time slot msg...G1 (time-slot cashback banners disabled)
 if (!function_exists('checkSelectedTimeslotCashback')) {
     function checkSelectedTimeslotCashback($data)
     {
-        try {
-            $timeslotsData = $data['timeslotsdata'] ?? [];
-            $products = $data['products'] ?? [];
-
-            if (empty($timeslotsData)) return "";
-
-            $selectedDate = (string)($data['selectedDate'] ?? "");
-            $selectedTime = (string)($data['selectedTime'] ?? "");
-
-            if (empty($selectedDate) || empty($selectedTime)) {
-                $firstDateEntry = $timeslotsData[0] ?? [];
-                $selectedDate = (string)($firstDateEntry['date'] ?? "");
-                $firstTimeslots = $firstDateEntry['timeslots'] ?? [];
-                $selectedTime = !empty($firstTimeslots)
-                    ? (string)($firstTimeslots[0]['time_slots'] ?? "")
-                    : "";
-            }
-
-            $dateEntry = collect($timeslotsData)->firstWhere('date', $selectedDate);
-            if (!$dateEntry) return "";
-
-            $slot = collect($dateEntry['timeslots'] ?? [])->firstWhere('time_slots', $selectedTime);
-            if (!$slot) return "";
-
-            $discount = (float)($slot['discount'] ?? 0);
-            $minAmount = (float)($slot['min_amount'] ?? 0);
-
-            $total = 0.0;
-            foreach ($products as $p) {
-                $qty = (int)($p['cart_qty'] ?? 0);
-                $price = (float)($p['price'] ?? 0);
-                $total += $qty * $price;
-            }
-
-            if ($total <= 0) return "";
-
-            if ($discount > 0) {
-                if ($total >= $minAmount) {
-                    $cashback = $total * $discount / 100;
-                    return "Awesome! You’ve earned AED " . number_format($cashback, 2) . " cashback";
-                } else {
-                    $needed = number_format($minAmount - $total, 2);
-                    return "You have to add AED $needed to get $discount% cashback for selected time slot $selectedTime";
-                }
-            }
-
-            return "";
-        } catch (\Throwable $e) {
-            return "";
-        }
+        return "";
     }
 }
 

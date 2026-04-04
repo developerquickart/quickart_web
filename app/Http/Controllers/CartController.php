@@ -18,64 +18,11 @@ class CartController extends Controller
         
     }
 
-function checkSelectedTimeslotCashback($data) {
-    try {
-        $timeslotsData = $data['timeslotsdata'] ?? [];
-        $products = $data['products'] ?? [];
-
-        if (empty($timeslotsData)) return "";
-
-        // 1. Get selected date/time
-        $selectedDate = $data['selectedDate'] ?? "";
-        $selectedTime = $data['selectedTime'] ?? "";
-
-        // 2. If empty, use first available
-        if (empty($selectedDate) || empty($selectedTime)) {
-            $firstDateEntry = $timeslotsData[0];
-            $selectedDate = $firstDateEntry['date'] ?? "";
-            $firstTimeslots = $firstDateEntry['timeslots'] ?? [];
-            $selectedTime = !empty($firstTimeslots)
-                ? ($firstTimeslots[0]['time_slots'] ?? "")
-                : "";
-        }
-
-        // 3. Find matching date entry
-        $dateEntry = collect($timeslotsData)->firstWhere('date', $selectedDate);
-        if (empty($dateEntry)) return "";
-
-        // 4. Find matching time slot
-        $slot = collect($dateEntry['timeslots'] ?? [])->firstWhere('time_slots', $selectedTime);
-        if (empty($slot)) return "";
-
-        // 5. Discount & minAmount
-        $discount = floatval($slot['discount'] ?? 0);
-        $minAmount = floatval($slot['min_amount'] ?? 0);
-
-        // 6. Calculate total cart amount
-        $total = 0;
-        foreach ($products as $p) {
-            $qty = intval($p['cart_qty'] ?? 0);
-            $price = floatval($p['price'] ?? 0);
-            $total += $qty * $price;
-        }
-        if ($total <= 0) return "";
-
-        // 7. Eligibility check
-        if ($discount > 0) {
-            if ($total >= $minAmount) {
-                $cashback = $total * $discount / 100;
-                return "Awesome! You’ve earned AED " . number_format($cashback, 2) . " cashback";
-            } else {
-                $needed = number_format($minAmount - $total, 2);
-                return "You have to add AED $needed to get $discount% cashback for selected time slot $selectedTime";
-            }
-        }
-
-        return "";
-    } catch (Exception $e) {
-        return "";
+    /** Unused for display: global helper checkSelectedTimeslotCashback (helpers.php) disables slot cashback copy. */
+    public function checkSelectedTimeslotCashback($data)
+    {
+        return '';
     }
-}
 
 
  

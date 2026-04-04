@@ -2979,19 +2979,7 @@ function updateTimes(selectedDate, index, timeSlotSelected) {
                 <div class="schedule2">
                     <input type="radio" id="${timeId}" name="time" value="${slot.time_slots}" ${checked} onchange="updateSelected('${selectedDate}', '${slot.time_slots}')">
                     <label for="${timeId}">
-                        <div class="dateBox2"><div class="date_text">${slot.time_slots.replace(/:00/g, '').replace(' - ', ' to ')} </div> 
-                        ${
-                            slot.discount > 0
-                              ? `<div class="dis_text">
-                                   ${slot.discount}% cashback
-                                   ${
-                                     slot.min_amount > 0
-                                       ? `<div class="above_text">above <b>AED ${slot.min_amount}</b></div>`
-                                       : ''
-                                   }
-                                 </div>`
-                              : ''
-                          }
+                        <div class="dateBox2"><div class="date_text">${slot.time_slots.replace(/:00/g, '').replace(' - ', ' to ')} </div>
                       </div>
                     </label>
                 </div>
