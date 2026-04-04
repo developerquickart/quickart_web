@@ -73,40 +73,91 @@ function getWalletMessage($resource = null) {
     .wallet-page .wallet-filters .wallet-filter-actions { margin-top: 0 !important; }
     .wallet-page .wallet-filters .wallet-filter-actions .btn { width: 100%; }
     .wallet-page .card-header1 .card-title { margin-left: 0 !important; margin-top: 0.5rem !important; font-size: 1.1rem; }
-    .wallet-page table.wallet-table-mobile thead { display: none; }
-    .wallet-page table.wallet-table-mobile tbody tr {
-        display: block;
+    .wallet-page .wallet-year-heading { font-size: 1rem; margin-top: 1rem !important; }
+    /* Mobile: collapsible row — summary shows Order ID + Amount only */
+    .wallet-page .wallet-acc {
         border: 1px solid #dee2e6;
-        border-radius: 10px;
-        margin-bottom: 14px;
-        padding: 12px 14px;
+        border-radius: 12px;
+        margin-bottom: 10px;
         background: #fff;
         box-shadow: 0 1px 3px rgba(0,0,0,.06);
+        overflow: hidden;
     }
-    .wallet-page table.wallet-table-mobile tbody td {
+    .wallet-page .wallet-acc__summary {
+        padding: 14px 14px 14px 14px;
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .wallet-page .wallet-acc__summary::-webkit-details-marker { display: none; }
+    .wallet-page .wallet-acc__summary-inner {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .wallet-page .wallet-acc__summary-text {
+        flex: 1;
+        min-width: 0;
+    }
+    .wallet-page .wallet-acc__order {
+        font-weight: 600;
+        font-size: 13px;
+        color: #222;
+        word-break: break-word;
+        line-height: 1.4;
+    }
+    .wallet-page .wallet-acc__amount {
+        margin-top: 8px;
+        font-size: 15px;
+        line-height: 1.3;
+        font-weight: 700;
+    }
+    .wallet-page .wallet-acc__chev {
+        flex-shrink: 0;
+        width: 8px;
+        height: 8px;
+        margin-top: 6px;
+        border-right: 2px solid #2e317e;
+        border-bottom: 2px solid #2e317e;
+        transform: rotate(45deg);
+        transition: transform 0.2s ease;
+        pointer-events: none;
+    }
+    .wallet-page .wallet-acc[open] .wallet-acc__chev {
+        transform: rotate(-135deg);
+        margin-top: 10px;
+    }
+    .wallet-page .wallet-acc__panel {
+        padding: 4px 14px 14px;
+        border-top: 1px solid #eee;
+        font-size: 13px;
+    }
+    .wallet-page .wallet-acc__row {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
         gap: 12px;
-        border: none !important;
-        padding: 8px 0 !important;
-        text-align: right !important;
-        font-size: 13px;
-        word-break: break-word;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
     }
-    .wallet-page table.wallet-table-mobile tbody td::before {
-        content: attr(data-label);
+    .wallet-page .wallet-acc__row:last-child { border-bottom: none; }
+    .wallet-page .wallet-acc__label {
         font-weight: 600;
         color: #2e317e;
-        text-align: left;
         flex: 0 0 42%;
         max-width: 46%;
     }
-    .wallet-page .wallet-year-heading { font-size: 1rem; margin-top: 1rem !important; }
+    .wallet-page .wallet-acc__value {
+        text-align: right;
+        word-break: break-word;
+        flex: 1;
+        color: #333;
+    }
 }
 @media (min-width: 768px) {
     .wallet-page .table-responsive-wallet { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .wallet-page table.wallet-table-mobile { min-width: 720px; }
+    .wallet-page table.wallet-table-desktop { min-width: 720px; }
 }
 </style>
 <section class="account-page py-5 wallet-page">
@@ -234,65 +285,110 @@ function getWalletMessage($resource = null) {
                         @if(isset($walletHIstoryList['data']) && count($walletHIstoryList['data']) > 0)
                             @foreach($walletHIstoryList['data'] as $yearData)
                                 <h5 class="wallet-year-heading" style="margin-top:20px;">Year: {{ $yearData['year'] }}</h5>
-                                <div class="table-responsive-wallet">
-                                <table class="table table-striped wallet-table-mobile mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Type</th>
-                                            <th>Order ID</th>
-                                            <th>Amount</th>
-                                            <th>Expiry</th>
-                                            <th>Via</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                    
-                                    <tbody>
-                                        @php $i = 1; @endphp
-                    
-                                        @foreach($yearData['items'] as $item)
-                    
-                                            @php
-                                                $type = strtolower($item['type'] ?? '');
-                                                $orderRef = trim((!empty($item['group_id']) ? $item['group_id'] : '') . (!empty($item['cart_id']) ? ' (' . $item['cart_id'] . ')' : ''));
-                                            @endphp
-                    
-                                            <tr>
-                                                <td data-label="#">{{ $i++ }}</td>
-                                                <td data-label="Type">{{ ucfirst($item['type'] ?? '-') }}</td>
-                                                <td data-label="Order ID">{{ $orderRef !== '' ? $orderRef : '—' }}</td>
-                                                <td data-label="Amount">
-                                                    @if($type === 'add')
-                                                        <span style="color:#4b861a; font-weight:700;">
-                                                            + AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
-                                                        </span>
-                                                    @elseif($type === 'deduction')
-                                                        <span style="color:#dc1326; font-weight:700;">
-                                                            - AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
-                                                        </span>
-                                                    @elseif($type === 'wallet_expired')
-                                                        <span style="color:#6c757d; font-weight:700;">
-                                                            AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
-                                                        </span>
-                                                    @else
-                                                        AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
-                                                    @endif
-                                                </td>
-                                                <td data-label="Expiry">{{ !empty($item['expiry_date'])
-                                                        ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M')
-                                                        : '—'
-                                                    }}</td>
-                                                <td data-label="Via">{{ getWalletMessage($item['resource'] ?? '') }}</td>
-                                                <td data-label="Date">{{ \Carbon\Carbon::parse($item['created_at'])->format('d M Y') }}</td>
-                                            </tr>
-                    
-                                        @endforeach
-                    
-                                    </tbody>
-                                </table>
+
+                                {{-- Mobile: tap row to expand (summary = Order ID + Amount only) --}}
+                                <div class="d-md-none wallet-acc-list">
+                                    @foreach($yearData['items'] as $item)
+                                        @php
+                                            $type = strtolower($item['type'] ?? '');
+                                            $orderRef = trim((!empty($item['group_id']) ? $item['group_id'] : '') . (!empty($item['cart_id']) ? ' (' . $item['cart_id'] . ')' : ''));
+                                        @endphp
+                                        <details class="wallet-acc">
+                                            <summary class="wallet-acc__summary">
+                                                <div class="wallet-acc__summary-inner">
+                                                    <div class="wallet-acc__summary-text">
+                                                        <div class="wallet-acc__order">{{ $orderRef !== '' ? $orderRef : '—' }}</div>
+                                                        <div class="wallet-acc__amount">
+                                                            @if($type === 'add')
+                                                                <span style="color:#4b861a;">+ AED {{ number_format((float)($item['amount'] ?? 0), 2) }}</span>
+                                                            @elseif($type === 'deduction')
+                                                                <span style="color:#dc1326;">- AED {{ number_format((float)($item['amount'] ?? 0), 2) }}</span>
+                                                            @elseif($type === 'wallet_expired')
+                                                                <span style="color:#6c757d;">AED {{ number_format((float)($item['amount'] ?? 0), 2) }}</span>
+                                                            @else
+                                                                AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                    <span class="wallet-acc__chev" aria-hidden="true"></span>
+                                                </div>
+                                            </summary>
+                                            <div class="wallet-acc__panel">
+                                                <div class="wallet-acc__row">
+                                                    <span class="wallet-acc__label">#</span>
+                                                    <span class="wallet-acc__value">{{ $loop->iteration }}</span>
+                                                </div>
+                                                <div class="wallet-acc__row">
+                                                    <span class="wallet-acc__label">Type</span>
+                                                    <span class="wallet-acc__value">{{ ucfirst($item['type'] ?? '—') }}</span>
+                                                </div>
+                                                <div class="wallet-acc__row">
+                                                    <span class="wallet-acc__label">Expiry</span>
+                                                    <span class="wallet-acc__value">{{ !empty($item['expiry_date'])
+                                                            ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M Y')
+                                                            : '—'
+                                                        }}</span>
+                                                </div>
+                                                <div class="wallet-acc__row">
+                                                    <span class="wallet-acc__label">Via</span>
+                                                    <span class="wallet-acc__value">{{ getWalletMessage($item['resource'] ?? '') }}</span>
+                                                </div>
+                                                <div class="wallet-acc__row">
+                                                    <span class="wallet-acc__label">Date</span>
+                                                    <span class="wallet-acc__value">{{ \Carbon\Carbon::parse($item['created_at'])->format('d M Y') }}</span>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    @endforeach
                                 </div>
-                    
+
+                                {{-- Tablet/desktop: full table --}}
+                                <div class="table-responsive-wallet d-none d-md-block">
+                                    <table class="table table-striped wallet-table-desktop mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Type</th>
+                                                <th>Order ID</th>
+                                                <th>Amount</th>
+                                                <th>Expiry</th>
+                                                <th>Via</th>
+                                                <th>Date</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php $i = 1; @endphp
+                                            @foreach($yearData['items'] as $item)
+                                                @php
+                                                    $type = strtolower($item['type'] ?? '');
+                                                    $orderRef = trim((!empty($item['group_id']) ? $item['group_id'] : '') . (!empty($item['cart_id']) ? ' (' . $item['cart_id'] . ')' : ''));
+                                                @endphp
+                                                <tr>
+                                                    <td>{{ $i++ }}</td>
+                                                    <td>{{ ucfirst($item['type'] ?? '-') }}</td>
+                                                    <td>{{ $orderRef !== '' ? $orderRef : '—' }}</td>
+                                                    <td>
+                                                        @if($type === 'add')
+                                                            <span style="color:#4b861a; font-weight:700;">+ AED {{ number_format((float)($item['amount'] ?? 0), 2) }}</span>
+                                                        @elseif($type === 'deduction')
+                                                            <span style="color:#dc1326; font-weight:700;">- AED {{ number_format((float)($item['amount'] ?? 0), 2) }}</span>
+                                                        @elseif($type === 'wallet_expired')
+                                                            <span style="color:#6c757d; font-weight:700;">AED {{ number_format((float)($item['amount'] ?? 0), 2) }}</span>
+                                                        @else
+                                                            AED {{ number_format((float)($item['amount'] ?? 0), 2) }}
+                                                        @endif
+                                                    </td>
+                                                    <td>{{ !empty($item['expiry_date'])
+                                                            ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M')
+                                                            : '—'
+                                                        }}</td>
+                                                    <td>{{ getWalletMessage($item['resource'] ?? '') }}</td>
+                                                    <td>{{ \Carbon\Carbon::parse($item['created_at'])->format('d M Y') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
                             @endforeach
                     
                         @else
