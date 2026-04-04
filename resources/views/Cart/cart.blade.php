@@ -31,9 +31,11 @@ if (isset($showCartProductList['data'])) {
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="cart_tabbing_mainBox">
-                            <div class="cart_tabbing_tabs" style="border-bottom:none !important; margin:0 !important; padding:0 !important;">
+                            <div class="cart_tabbing_tabs">
                                 <a class="tablinks cart-tab-item active" id="dailyCartTab"
-                                    onclick="openCity(event, '1')" style="width:0 !important; padding:0 !important; border:0 !important; background-color:transparent !important; opacity:0 !important; pointer-events:none !important;">Daily Cart</a>
+                                    onclick="openCity(event, '1')">Daily Cart</a>
+                                <a class="tablinks cart-tab-item" id="subscriptionCartTab"
+                                    onclick="openCity(event, '2')">Subscription Cart</a>
                             </div>
                             <div class="cart_tabbing_content" id="content">
                                 <div id="1" class="tabcontent">
@@ -63,7 +65,92 @@ if (isset($showCartProductList['data'])) {
                                                                     {{$productCat['cat_name']}}</span>
                                                                 </h5>
                                                             </div>
-                                                            
+                                                            <div class="sehedule_delivery_mainBox">
+                                                                <div class="schedule_box1">
+                                                                    @if($productCat['selectedDate'] != null)
+                                                                    <div class="other_category_box">
+                                                                        
+                                                                        @php
+                                                                            $selectedDate = \Carbon\Carbon::parse($productCat['selectedDate']);
+                                                                        @endphp
+                                                                        
+                                                                        @if($selectedDate->isPast() && !$selectedDate->isToday())
+                                                                            <div class="error-text" style="color:red;">
+                                                                                Your selected date is in the past.<br>
+                                                                                Please select a different date.
+                                                                            </div>
+                                                                        @endif
+                                                                        @php
+                                                                            $now = \Carbon\Carbon::now();
+                                                                        
+                                                                            $selectedDate = \Carbon\Carbon::parse($productCat['selectedDate']);
+                                                                            $selectedTime = trim($productCat['selectedTime']);
+                                                                        
+                                                                            // Define cutoff times (same as Dart)
+                                                                            $morningCutoff = \Carbon\Carbon::parse('10:00 AM');
+                                                                            $eveningCutoff = \Carbon\Carbon::parse('6:00 PM');
+                                                                        
+                                                                            $disableSlot = false;
+                                                                        
+                                                                            // TODAY condition
+                                                                            if ($selectedDate->isToday()) {
+                                                                                if ($now->gt($morningCutoff)) {
+                                                                                    $disableSlot = true;
+                                                                                }
+                                                                            }
+                                                                        
+                                                                            // TOMORROW condition
+                                                                            if ($selectedDate->isTomorrow() && $selectedTime == "06:00 am - 10:00 am") {
+                                                                                if ($now->gt($eveningCutoff)) {
+                                                                                    $disableSlot = true;
+                                                                                }
+                                                                            }
+                                                                        @endphp
+                                                                        <div class="other_category_content">
+                                                                            @if($selectedDate->isPast() && !$selectedDate->isToday())
+                                                                                <span style="color:red;">
+                                                                                    Your selected date is in the past.<br>
+                                                                                    Please select a different date.
+                                                                                </span>
+                                                                        
+                                                                            @elseif($disableSlot)
+                                                                                <span style="color:red;">
+                                                                                    Selected time slot is no longer available. Please choose another slot.
+                                                                                </span>
+                                                                        
+                                                                            @else
+                                                                                <span>Your Other Category</span> will be delivered on
+                                                                                <span>
+                                                                                    {{ $selectedDate->isToday() ? 'Today' :
+                                                                                       ($selectedDate->isTomorrow() ? 'Tomorrow' :
+                                                                                       $selectedDate->format('l')) }}
+                                                                                </span>
+                                                                                between
+                                                                                <span>{{ str_replace(':00', '', $productCat['selectedTime']) }}</span>
+                                                                            @endif
+                                                                        
+                                                                        </div>
+                                                                        <div class="other_category_icon" id="modalBtn"
+                                                                            data-productCat='@json($productCat)'
+                                                                            onclick="openMyModal('1','modalBtn', this, {{ $index }})">
+                                                                            <img src="assets/images/edit.png" alt=""
+                                                                                class="img-fluid">
+                                                                        </div>
+                                                                    </div>
+                                                                    @else
+                                                                    <div class="schedule_box">
+                                                                        <div class="schedule_header_one"
+                                                                            id="scheduleHeader" style="text-align:center;" data-productCat='@json($productCat)'
+                                                                                onclick="openMyModal('1','arrowBox', this, {{ $index }})">
+                                                                            <div class="day_box1" id="dayBox">
+                                                                                Pick Preferred Date & Time Slot
+                                                                            </div>
+                                                                            
+                                                                        </div>
+                                                                    </div>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
                                                             
                                                         </div>
                                                         @php
@@ -109,7 +196,11 @@ if (isset($showCartProductList['data'])) {
                                                                                         <span>{{number_format($product['mrp'], 2)}}</span></span>
                                                                                     @endif
                                                                                 </div>
+                                                                                 <div class="actual_price">Item Total AED 
+                                                                                    <span>{{ number_format((float)($product['price'] ?? 0) * (int)($product['cart_qty'] ?? 0), 2) }}</span>
+                                                                                </div>
                                                                             </div>
+                                                                           
                                                                         </div>
                                                                     </div>
                                                                     <div class="order_details mt-2">
@@ -125,6 +216,27 @@ if (isset($showCartProductList['data'])) {
                                                                             </div>
                                                                             <div class="col-8">
                                                                                 <div class="sub_btn_mainBox">
+                                                                                    @if ($product['isOfferProduct'] == 'false')
+                                                                                        @if ($product['isSubscription'] == "false")
+                                                                                            @if ($product['availability'] == "all" || $product['availability'] == "subscription")
+                                                                                            <div class="sub_box">
+                                                                                                <a class="subscribe_btn"
+                                                                                                    data-product='@json($product)'
+                                                                                                    onclick="removeToSubCartCall('{{ $product['varient_id']}}', 'add','{{ $product['cart_qty']}}','','','','','','{{ $product['product_name']}}','{{ $product['price']}}', '{{ $product['product_feature_id']}}')">
+                                                                                                    SUBSCRIBE
+                                                                                                    {{$product['percentage'] == 0 ? '' : ($product['percentage'] == null ? '' : '& SAVE ' . $product['percentage'] . '%') }}
+                                                                                                </a>
+                                                                                            </div>
+                                                                                            @endif
+                                                                                        @else
+                                                                                        <div class="sub_box">
+                                                                                            <div class="subscribe_btn"
+                                                                                                onclick="openSubscriptionTap(event)">
+                                                                                                SUBSCRIBED
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        @endif
+                                                                                    @endif
                                                                                     <div class="cart_button_Box">
                                                                                         @if ($product['isOfferProduct'] == 'false')
                                                                                         <div class="cart_btn" data-product-id="{{ trim($product['product_id']) }}" data-productdetail='@json($product)'>
@@ -345,27 +457,26 @@ if (isset($showCartProductList['data'])) {
                                                                         <td>Delivery Partner Tip</td>
                                                                         <td id='deliveryTip'>AED 0.00</td>
                                                                     </tr>
-                                                                    <tr class="small-text">
-                                                                        <td>VAT</td>
-                                                                        <td>AED
-                                                                            {{number_format($showCartProductList['data']['vat'], 2)}}
-                                                                        </td>
-                                                                    </tr>
+                                                                    <!--<tr class="small-text">-->
+                                                                    <!--    <td>VAT</td>-->
+                                                                    <!--    <td>AED-->
+                                                                    <!--        {{number_format($showCartProductList['data']['vat'], 2)}}-->
+                                                                    <!--    </td>-->
+                                                                    <!--</tr>-->
                                                                     <tr>
                                                                         <td>Total Value</td>
                                                                         <td id=totalValue><strong>AED
                                                                                 {{number_format($showCartProductList['data']['total_price'], 2)}}</strong>
                                                                         </td>
                                                                     </tr>
-                                                                    {{-- Quickart Wallet (daily) — hidden temporarily
                                                                     <tr class="quickart-cash">
-                                                                        <td>Quickart Wallet</td>
+                                                                        <td>Referral Wallet</td>
                                                                         <td>
                                                                             <span
                                                                                 style="display: inline-flex; align-items: center; gap: 8px;">
                                                                                 <label for="daily_wallet">AED
                                                                                     <span
-                                                                                        id="walletAmountD">{{ number_format($showCartProductList['data']['wallet_balance'], 2) }}</span>
+                                                                                        id="walletAmountD">{{ number_format($showCartProductList['data']['referral_balance'], 2) }}</span>
                                                                                 </label>
                                                                                 <input type="checkbox"
                                                                                     onclick="wallettotalCalculationPayment()"
@@ -388,15 +499,33 @@ if (isset($showCartProductList['data'])) {
                                                                             </span>
                                                                         </td>
                                                                     </tr>
-                                                                    --}}
-                                                                    <tr class="quickart-cash d-none" aria-hidden="true">
-                                                                        <td colspan="2">
-                                                                            <span id="walletAmountD">{{ number_format($showCartProductList['data']['wallet_balance'], 2) }}</span>
-                                                                            <input type="checkbox" onclick="wallettotalCalculationPayment()" name="daily_wallet" id="daily_wallet">
-                                                                            <input type="hidden" id="walletPercentageD" name="wallet-percentage" value="{{$showCartProductList['data']['wallet_deduction_percentage']}}">
-                                                                            <span id="walletTextD" style="display: none;">
-                                                                                <span id="selectedWalletAmountD">0.00</span>
-                                                                                <label id="appliedWalletD" style="display: none;">AED Wallet applied</label>
+                                                                    <tr class="quickart-cash">
+                                                                        <td>Cash Wallet</td>
+                                                                        <td>
+                                                                            <span
+                                                                                style="display: inline-flex; align-items: center; gap: 8px;">
+                                                                                <label for="daily_wallet">AED
+                                                                                    <span
+                                                                                        id="walletAmountCash">{{ number_format($showCartProductList['data']['wallet_balance'], 2) }}</span>
+                                                                                </label>
+                                                                                <input type="checkbox"
+                                                                                    onclick="wallettotalCalculationPaymentCash()"
+                                                                                    name="daily_wallet"
+                                                                                    id="daily_wallet_cash">
+                                                                                <input type='hidden'
+                                                                                    id='walletPercentageCash'
+                                                                                    name='wallet-percentage'
+                                                                                    value="{{$showCartProductList['data']['wallet_deduction_percentage']}}">
+                                                                            </span>
+                                                                            <br>
+                                                                            <span id="walletTextCash"
+                                                                                style="color: green; display: none;">
+                                                                                <span
+                                                                                    id="selectedWalletAmountCash">0.00</span>
+                                                                                <label id="appliedWalletCash"
+                                                                                    style="color: black; display: inline;">
+                                                                                    AED Wallet applied
+                                                                                </label>
                                                                             </span>
                                                                         </td>
                                                                     </tr>
@@ -621,6 +750,7 @@ if (isset($showCartProductList['data'])) {
                                                             <input type="hidden" name="coupon_discount" id="coupon_discount" >
                                                             <input type="hidden" name="delivery_charges" id="delivery_charges" >
                                                             <input type="hidden" name="wallet_use_amt" id="wallet_use_amt" >
+                                                             <input type="hidden" name="wallet_use_amt_cash" id="wallet_use_amt_cash" >
                                                             <input type="hidden" name="final_price" id="final_price" >
                                                             <div class="pay_btn"
                                                                 onclick="checkOutDailyCartApiCall('payNow')">
@@ -1041,15 +1171,14 @@ if (isset($showCartProductList['data'])) {
                                                                         {{number_format($subCartProductList['data']['delivery_charge'], 2)}}
                                                                     </td>
                                                                 </tr>
-                                                                <tr class="small-text">
-                                                                    <td>VAT</td>
-                                                                    <td>AED
-                                                                        {{number_format($subCartProductList['data']['vat'], 2)}}
-                                                                    </td>
-                                                                </tr>
-                                                                {{-- Quickart Wallet (subscription) — hidden temporarily
+                                                                <!--<tr class="small-text">-->
+                                                                <!--    <td>VAT</td>-->
+                                                                <!--    <td>AED-->
+                                                                <!--        {{number_format($subCartProductList['data']['vat'], 2)}}-->
+                                                                <!--    </td>-->
+                                                                <!--</tr>-->
                                                                 <tr class="quickart-cash">
-                                                                    <td>Quickart Wallet</td>
+                                                                    <td>Referral Wallet</td>
                                                                     <td>
                                                                         <span
                                                                             style="display: inline-flex; align-items: center; gap: 8px;">
@@ -1076,18 +1205,35 @@ if (isset($showCartProductList['data'])) {
                                                                         </span>
                                                                     </td>
                                                                 </tr>
-                                                                --}}
-                                                                <tr class="quickart-cash d-none" aria-hidden="true">
-                                                                    <td colspan="2">
-                                                                        <span id="walletAmountS">{{ number_format($subCartProductList['data']['wallet_balance'], 2) }}</span>
-                                                                        <input type="checkbox" onclick="onWalletSelected(this)" name="subscription_wallet" id="subscription_wallet">
-                                                                        <input type="hidden" id="walletPercentage" name="wallet-percentage" value="{{$subCartProductList['data']['wallet_deduction_percentage']}}">
-                                                                        <span id="walletText" style="display: none;">
-                                                                            <span id="selectedWalletAmount">0.00</span>
-                                                                            <label id="appliedWallet" style="display: none;">AED Wallet applied</label>
+                                                                 <tr class="quickart-cash">
+                                                                    <td>Cash Wallet</td>
+                                                                    <td>
+                                                                        <span
+                                                                            style="display: inline-flex; align-items: center; gap: 8px;">
+                                                                            <label for="subscription_wallet">AED
+                                                                                <span
+                                                                                    id="cashWalletAmountS">{{ number_format($subCartProductList['data']['referral_balance'], 2) }}</span>
+                                                                            </label>
+                                                                            <input type="checkbox"
+                                                                                onclick="onCashWalletSelected(this)"
+                                                                                name="subscription_wallet"
+                                                                                id="subscription_cash_wallet">
+                                                                            <input type='hidden' id='walletPercentage'
+                                                                                name='wallet-percentage'
+                                                                                value="{{$subCartProductList['data']['wallet_deduction_percentage']}}">
+                                                                        </span>
+                                                                        <br>
+                                                                        <span id="cashWalletText"
+                                                                            style="color: green; display: none;">
+                                                                            <span id="selectedCashWalletAmount"></span>
+                                                                            <label id="appliedCashWallet"
+                                                                                style="color: black; display: inline;">
+                                                                                AED Wallet applied
+                                                                            </label>
                                                                         </span>
                                                                     </td>
                                                                 </tr>
+                                                           
                                                                 <tr>
                                                                     <td>Total to Pay</td>
                                                                     <td>
@@ -1586,9 +1732,9 @@ if (isset($showCartProductList['data'])) {
                         <!-- Date Selection -->
                         <div class="subheading" id="dateListLabel" style="float:left; margin:18px 40px 0 0">Choose a date</div>
                         <div id="dateList" class="schedule-list"></div>
-                        <hr style="display:none;">
-                        <div class="subheading" style="display:none;">Choose a time</div>
-                        <div id="timeList" class="schedule-list" style="display:none;"></div>
+                        <hr>
+                        <div class="subheading">Choose a time</div>
+                        <div id="timeList" class="schedule-list"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -1732,7 +1878,7 @@ if (isset($showCartProductList['data'])) {
                                 <fieldset class="form-group">
                                     <label for="email">Email <span class="required_icon">*</span></label>
                                     <input type="email" name="email" id="addemail" class="form-control" required pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-    title="Enter a valid email address (e.g. name@example.com)">
+                                            title="Enter a valid email address (e.g. name@example.com)">
                                 </fieldset>
                                 <fieldset class="form-group">
                                     <img src="" class="door-img" width="70" height="70" />
@@ -1820,10 +1966,8 @@ function openCity(evt, tabId) {
 
 document.addEventListener("DOMContentLoaded", function() {
     
-    var savedTab = "{{ \Request::get('tab') }}" || "1";
-    if (savedTab !== "1") {
-        savedTab = "1";
-    }
+    // var savedTab = localStorage.getItem("selectedTab") || "1";
+    var savedTab = "{{\Request::get('tab')}}";
     openCity(null, savedTab);
 
     document.getElementById("dailyCartTab").addEventListener("click", function(event) {
@@ -1834,6 +1978,9 @@ document.addEventListener("DOMContentLoaded", function() {
         openCity(event, "1");
     });
 
+    document.getElementById("subscriptionCartTab").addEventListener("click", function(event) {
+        openSubscriptionTap(event);
+    });
 });
 
 function openSubscriptionTap(event) {
@@ -2049,7 +2196,6 @@ document.querySelectorAll('input[name="toggle-two"]').forEach(radio => {
 <!-- delete to subcart api call...G1 -->
 <script>
 function removeToSubCartCall(varientId, rStatus, cQty, ctimeSlot, cSubTotlaDelivery, cSubDeliveryDate, cRepeatOrder, cIsAutoRenew, name, price, featureId) {
-    const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
     const selectedDays = [];
     let selectedDayString = "",
         selectedWeekValue = "",
@@ -2073,8 +2219,6 @@ function removeToSubCartCall(varientId, rStatus, cQty, ctimeSlot, cSubTotlaDeliv
         if (selectedTime) {
             selectedTimeSlot = selectedTime.value;
         }
-        // If UI doesn't provide a time selection (hidden), enforce fixed slot.
-        if (!selectedTimeSlot) selectedTimeSlot = FIXED_TIME_SLOT;
     }else if (rStatus == 'plus') {
             qty = parseInt(cQty || 0) + 1;
         selectedWeekValue = cSubTotlaDelivery;
@@ -2181,7 +2325,7 @@ function showWeekListUI(screenName, element) {
     modal.setAttribute("data-qty", productModel.cart_qty ?? '');
     modal.setAttribute("data-varient-id", productModel.varient_id ?? '');
     modal.setAttribute("data-isautorenew", productModel.isautorenew ?? 'no');
-    modal.setAttribute("data-feature-id", productModel.product_feature_id ?? 'no');
+    modal.setAttribute("data-feature-id", productModel.product_feature_id ?? '');
 
 
     function convertTo24HourFormat(time) {
@@ -2235,9 +2379,9 @@ function showWeekListUI(screenName, element) {
 
     const checkbox = document.getElementById("isAutorenew");
 
-if (productModel.isautorenew === "yes" && checkbox) {
-    checkbox.checked = true;
-}
+    if (productModel.isautorenew === "yes" && checkbox) {
+        checkbox.checked = true;
+    }
 
     let dateInput = document.querySelector("#subscribe .modal-body #select-date");
     if (dateInput) {
@@ -2446,7 +2590,6 @@ function handleOnCLickAction(event) {
 }
 
 function AddToSubCartCall(element) {
-    const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
 
     let modal = document.getElementById("subscribe");
 
@@ -2491,8 +2634,6 @@ function AddToSubCartCall(element) {
     if (selectedTime) {
         selectedTimeSlot = selectedTime.value;
     }
-    // UI is intentionally hidden on /cart; enforce fixed slot.
-    if (!selectedTimeSlot) selectedTimeSlot = FIXED_TIME_SLOT;
     const checkbox = document.getElementById("isAutorenew");
     if (checkbox.checked) {
         console.log("Checkbox is checked");
@@ -2568,7 +2709,13 @@ function AddToSubCartCall(element) {
             icon: "warning",
             draggable: true
         });
-    } 
+    } else if (selectedTimeSlot === "") {
+        Swal.fire({
+            title: "{{ENV('SELECTTIMESLOTMSG')}}",
+            icon: "warning",
+            draggable: true
+        });
+    }
 }
 </script>
 
@@ -2684,38 +2831,116 @@ document.addEventListener("DOMContentLoaded", function() {
 <!-- WalletSelectedby percentage handle...G1 -->
 <script>
 let baseTotal = parseFloat("{{ $subCartProductList['data']['total_price'] ?? 0 }}");
-let walletB = parseFloat("{{ $subCartProductList['data']['wallet_balance'] ?? 0 }}")
+let walletB = parseFloat("{{ $subCartProductList['data']['referral_balance'] ?? 0 }}")
+let cashWalletB = parseFloat("{{ $subCartProductList['data']['wallet_balance'] ?? 0 }}")
 
 function onWalletSelected(checkbox) {
-    let walletText = document.getElementById("walletText");
-    // let walletAmount = parseFloat(document.getElementById("walletAmountS").innerText);
-    let walletPercentage = parseFloat(document.getElementById("walletPercentage").value);
-    // console.log("Wallet Selected: Amount & Percentage → " + walletAmount + " & " + walletPercentage);
-    let deductedAmount = (baseTotal * walletPercentage) / 100;
+//     let walletText = document.getElementById("walletText");
+//     // let walletAmount = parseFloat(document.getElementById("walletAmountS").innerText);
+//     let walletPercentage = parseFloat(document.getElementById("walletPercentage").value);
+//     // console.log("Wallet Selected: Amount & Percentage → " + walletAmount + " & " + walletPercentage);
+//     let deductedAmount = (baseTotal * walletPercentage) / 100;
    
-   console.log("G1------>", walletB);
-    console.log("G1------>", deductedAmount + walletB);
-    if (checkbox.checked) {
-        if (deductedAmount <= walletB) {
-            document.getElementById("selectedWalletAmount").innerText = deductedAmount.toFixed(2);
-            walletText.style.display = "inline";
-            document.getElementById("totalPay").innerText = "AED " + (baseTotal - deductedAmount).toFixed(2);
-            document.getElementById("totalAmt").innerText = "AED " + (baseTotal - deductedAmount).toFixed(2);
-        } else {
-            document.getElementById("selectedWalletAmount").innerText = walletB.toFixed(2);
-            walletText.style.display = "inline";
-            document.getElementById("totalPay").innerText = "AED " + (baseTotal - walletB).toFixed(2);
-            document.getElementById("totalAmt").innerText = "AED " + (baseTotal - walletB).toFixed(2);
-        }
+//   console.log("G1------>", walletB);
+//     console.log("G1------>", deductedAmount + walletB);
+//     if (checkbox.checked) {
+//         if (deductedAmount <= walletB) {
+//             document.getElementById("selectedWalletAmount").innerText = deductedAmount.toFixed(2);
+//             walletText.style.display = "inline";
+//             document.getElementById("totalPay").innerText = "AED " + (baseTotal - deductedAmount).toFixed(2);
+//             document.getElementById("totalAmt").innerText = "AED " + (baseTotal - deductedAmount).toFixed(2);
+//         } else {
+//             document.getElementById("selectedWalletAmount").innerText = walletB.toFixed(2);
+//             walletText.style.display = "inline";
+//             document.getElementById("totalPay").innerText = "AED " + (baseTotal - walletB).toFixed(2);
+//             document.getElementById("totalAmt").innerText = "AED " + (baseTotal - walletB).toFixed(2);
+//         }
 
 
-    } else {
-        walletText.style.display = "none";
-        document.getElementById("totalPay").innerHTML = "AED " + baseTotal.toFixed(2);
-        document.getElementById("totalAmt").innerHTML = "AED " + baseTotal.toFixed(2);
+//     } else {
+//         walletText.style.display = "none";
+//         document.getElementById("totalPay").innerHTML = "AED " + baseTotal.toFixed(2);
+//         document.getElementById("totalAmt").innerHTML = "AED " + baseTotal.toFixed(2);
 
-        // console.log("Wallet Unselected");
+//         // console.log("Wallet Unselected");
+//     }
+document.getElementById("walletText").style.display = checkbox.checked ? "inline" : "none";
+    updateFinalTotal();
+}
+
+function onCashWalletSelected(checkbox) {
+//     let walletText = document.getElementById("cashWalletText");
+//         let selectedWalletAmount = parseFloat(document.getElementById("selectedWalletAmount").innerText);
+
+//     // let walletAmount = parseFloat(document.getElementById("walletAmountS").innerText);
+//     // let walletPercentage = parseFloat(document.getElementById("walletPercentage").value);
+//     // console.log("Wallet Selected: Amount & Percentage → " + walletAmount + " & " + walletPercentage);
+//     let deductedAmount = (baseTotal - selectedWalletAmount);
+   
+//   console.log("G1------>", cashWalletB);
+//     console.log("G1------>", deductedAmount + cashWalletB);
+//     if (checkbox.checked) {
+//         if (deductedAmount <= cashWalletB) {
+//             document.getElementById("selectedCashWalletAmount").innerText = deductedAmount.toFixed(2);
+//             walletText.style.display = "inline";
+//             document.getElementById("totalPay").innerText = "AED " + (baseTotal - deductedAmount).toFixed(2);
+//             document.getElementById("totalAmt").innerText = "AED " + (baseTotal - deductedAmount).toFixed(2);
+//         } else {
+//             document.getElementById("selectedCashWalletAmount").innerText = cashWalletB.toFixed(2);
+//             walletText.style.display = "inline";
+//             document.getElementById("totalPay").innerText = "AED " + (baseTotal - cashWalletB).toFixed(2);
+//             document.getElementById("totalAmt").innerText = "AED " + (baseTotal - cashWalletB).toFixed(2);
+//         }
+
+
+//     } else {
+//         walletText.style.display = "none";
+//         document.getElementById("totalPay").innerHTML = "AED " + baseTotal.toFixed(2);
+//         document.getElementById("totalAmt").innerHTML = "AED " + baseTotal.toFixed(2);
+
+//         // console.log("Wallet Unselected");
+//     }
+ document.getElementById("cashWalletText").style.display = checkbox.checked ? "inline" : "none";
+    updateFinalTotal();
+}
+
+function updateFinalTotal() {
+
+    let walletChecked = document.getElementById("subscription_wallet")?.checked;
+    let cashChecked = document.getElementById("subscription_cash_wallet")?.checked;
+
+    let walletPercentage = parseFloat(document.getElementById("walletPercentage").value) || 0;
+
+    let referralUsed = 0;
+    let cashUsed = 0;
+
+    // ================= REFERRAL WALLET =================
+    if (walletChecked) {
+        let walletCalc = (baseTotal * walletPercentage) / 100;
+        referralUsed = Math.min(walletCalc, walletB);
     }
+
+    let remainingAfterReferral = baseTotal - referralUsed;
+
+    // ================= CASH WALLET =================
+    if (cashChecked) {
+        cashUsed = Math.min(remainingAfterReferral, cashWalletB);
+    }
+
+    let finalTotal = remainingAfterReferral - cashUsed;
+
+    if (finalTotal < 0) finalTotal = 0;
+
+    // ================= UI UPDATE =================
+    document.getElementById("selectedWalletAmount").innerText = referralUsed.toFixed(2);
+    document.getElementById("selectedCashWalletAmount").innerText = cashUsed.toFixed(2);
+
+    document.getElementById("totalPay").innerText = "AED " + finalTotal.toFixed(2);
+    document.getElementById("totalAmt").innerText = "AED " + finalTotal.toFixed(2);
+
+    // console.log("Referral Used:", referralUsed);
+    // console.log("Cash Used:", cashUsed);
+    // console.log("Final Total:", finalTotal);
 }
 </script>
 
@@ -3068,7 +3293,19 @@ function checkOutSubCartApiCall() {
     var selectedDate = '',
         selectedTimeSlot = '',
         selectedPartnerInstruction = '';
-        var addressID1 = "";
+    let fullText = document.getElementById("totalAmt").innerText;  
+    let totalPrice = parseFloat(fullText.replace("AED", "").trim());
+    let selectedPayment = document.querySelector("input[name='toggle-two']:checked");
+    let paymentType = selectedPayment.value;
+    if (paymentType === "Pay Per Delivery" && totalPrice <= 0) {
+        Swal.fire({
+            title: "Your wallet balance is sufficient to cover the entire order amount, so other payment options are not available",
+            icon: "warning"
+        });
+        return; 
+    }
+    
+    var addressID1 = "";
     // const addressID = document.getElementById("addressId").value;
     const addressInput = document.getElementById('addressId');
     if (addressInput && addressInput.value && addressInput.value.trim() !== '' && addressInput.value !== 'undefined') {
@@ -3136,11 +3373,13 @@ function checkOutSubCartApiCall() {
         }
     });
     const walletCheckbox = document.getElementById("subscription_wallet");
+    let cashChecked = document.getElementById("subscription_cash_wallet");
     let isWalletSlected = "no";
     if (walletCheckbox.checked) {
         isWalletSlected = "yes";
-    } else {
-        isWalletSlected = "no";
+    }
+    if (cashChecked.checked){
+         isWalletSlected = "yes";
     }
     const autoRenewID = document.getElementById("autoRenewID").value;
     // console.log(`autoRenewID-----: ${autoRenewID}`);
@@ -3152,9 +3391,11 @@ function checkOutSubCartApiCall() {
         });
         return;
     }
-       let orderInstruction = document.getElementById("orderInstruction").value;
+    let orderInstruction = document.getElementById("orderInstruction").value;
 
     let selectedWalletAmount = parseFloat(document.getElementById("selectedWalletAmount").innerText);
+    let selectedCashWalletAmount = parseFloat(document.getElementById("selectedCashWalletAmount").innerText);
+    
     // console.log(`selectedWalletAmount: ${selectedWalletAmount}`);
     if (addressID1 !== "" && siNO !== "" && isRequired !== 1 && isPastDate !== 1) {
         $("#ajaxLoader").show();
@@ -3172,6 +3413,7 @@ function checkOutSubCartApiCall() {
                 walletStatus: isWalletSlected,
                 disccountAmount: 0,
                 totalwalletamt: selectedWalletAmount,
+                totalcashwalletamt:selectedCashWalletAmount,
                 _token: _token,
                 orderInstruction:orderInstruction
             },
@@ -3264,12 +3506,27 @@ function checkOutSubCartPaymentApiCall(btnType) {
     if (selectedMethod1) {
         selectedMethod = selectedMethod1.value;
     }
-    // console.log("Selected Payment Method:", selectedMethod);
-    // let selectedInstruction = document.querySelector('input[name="instruct"]:checked');
-    // if (selectedInstruction) {
-    //     // console.log("Selected Instruction:", selectedInstruction.value);
-    //     selectedPartnerInstruction = selectedInstruction.value;
-    // }
+    let fullText = document.getElementById("totalAmt").innerText;  
+    let totalPrice = parseFloat(fullText.replace("AED", "").trim());
+    
+    let selectedPayment = document.querySelector("input[name='toggle-two']:checked");
+    let paymentType = selectedPayment.value;
+    if (paymentType === "Pay Per Delivery" && totalPrice <= 0) {
+        Swal.fire({
+            title: "Your wallet balance is sufficient to cover the entire order amount, so other payment options are not available",
+            icon: "warning"
+        });
+        return; 
+    }
+    
+    if (totalPrice <= 0) {
+        Swal.fire({
+            title: "Your wallet balance is sufficient to cover the entire order amount, so other payment options are not available",
+            icon: "warning"
+        });
+        return;
+    }
+
      let selectedInstructions = document.querySelectorAll('input[name="instruction[]"]:checked');
     let values = [];
     selectedInstructions.forEach(item => {
@@ -3300,15 +3557,19 @@ function checkOutSubCartPaymentApiCall(btnType) {
 
     });
     const walletCheckbox = document.getElementById("subscription_wallet");
+    let cashChecked = document.getElementById("subscription_cash_wallet");
     let isWalletSlected = "no";
     if (walletCheckbox.checked) {
         isWalletSlected = "yes";
-    } else {
-        isWalletSlected = "no";
+    }
+    if (cashChecked.checked){
+         isWalletSlected = "yes";
     }
 
 
     let selectedWalletAmount = parseFloat(document.getElementById("selectedWalletAmount").innerText);
+    let selectedCashWalletAmount = parseFloat(document.getElementById("selectedCashWalletAmount").innerText);
+
    let orderInstruction = document.getElementById("orderInstruction").value;
 
     if (addressID !== "" && isRequired !== 1 && isPastDate !== 1) {
@@ -3327,6 +3588,7 @@ function checkOutSubCartPaymentApiCall(btnType) {
                 walletStatus: isWalletSlected,
                 disccountAmount: 0,
                 totalwalletamt: selectedWalletAmount,
+                totalcashwalletamt:selectedCashWalletAmount,
                 orderInstruction: orderInstruction,
                 _token: _token,
             },
@@ -3462,12 +3724,19 @@ function openMyModal(tab,btn, element, selectedIndex) {
     selectedProductData = productData;
     
     document.getElementById("selectedDateTimeModal").innerText = "Select date & time for " + productData.cat_name;
-    // Cart UI should not allow users to change date/time, but keep modal safe.
-    document.getElementById("dayBoxn").innerText = "Today";
-    if (document.getElementById("timeBoxn")) document.getElementById("timeBoxn").style.display = "none";
-    if (document.getElementById("dateListLabel")) document.getElementById("dateListLabel").style.display = "none";
-    if (document.getElementById("dateList")) document.getElementById("dateList").style.display = "none";
-    if (document.getElementById("timeList")) document.getElementById("timeList").style.display = "none";
+    if (btn == "modalBtn") {
+        document.getElementById("dayBoxn").innerText = productData.selectedDate;
+        // document.getElementById("timeBoxn").innerText = productData.selectedTime;
+        let timeStr = productData.selectedTime; // e.g. "06:00 am - 10:00 am"
+        let formatted = timeStr.replace(/:00/g, ''); // remove all ":00"
+        document.getElementById("timeBoxn").innerText = formatted;
+    } else {
+        document.getElementById("dayBoxn").innerText = productData.timeslotsdata[0].date;
+        // document.getElementById("timeBoxn").innerText = productData.timeslotsdata[0].timeslots[0].time_slots;
+        let timeStr = productData.timeslotsdata[0].timeslots[0].time_slots; 
+        let formatted = timeStr.replace(/:00/g, '');
+        document.getElementById("timeBoxn").innerText = formatted;
+    }
     // console.log("g1---->", productData.cat_id)
     ;
     if (productData.cat_id != 0) {
@@ -3589,41 +3858,31 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
     
     var tab_list=document.getElementById("tabwise").value;
     let dataarray = [];
-    const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
-    const getLocalISODate = (d) => {
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        const dd = String(d.getDate()).padStart(2, '0');
-        return `${yyyy}-${mm}-${dd}`;
-    };
-    const todayDateStr = getLocalISODate(new Date());
     if (selectedBtn == "save") {
         if (!selectedProductData) {
             alert("Error: No product selected!");
             return;
         }
-        // Always enforce: Today + 06:00 am - 10:00 am
+        let selectedDate = document.querySelector('input[name="date"]:checked').value;
+        let selectedTime = document.querySelector('input[name="time"]:checked').value;
+
+        if (!selectedDate || !selectedTime) {
+            alert("Please select a date and time.");
+            return;
+        }
         dataarray = [{
             cat_id: selectedProductData.cat_id,
-            selected_date: todayDateStr,
-            timeslots: FIXED_TIME_SLOT
+            selected_date: selectedDate,
+            timeslots: selectedTime
         }];
     } else {
         showCartData.data.forEach(category => {
-            // Always enforce checkout date/time:
-            // - date: today's date only (local machine date)
-            // - time: fixed "06:00 am - 10:00 am" slot
-            const desiredDate = todayDateStr;
-            const desiredTime = FIXED_TIME_SLOT;
-            const isFixed =
-                category.selectedTime === desiredTime &&
-                category.selectedDate === desiredDate;
-
-            if (!isFixed) {
+            if (category.selectedTime === null) {
+                // console.log("Category with missing selectedTime:", category);
                 dataarray.push({
                     cat_id: category.cat_id,
-                    selected_date: desiredDate,
-                    timeslots: desiredTime,
+                    selected_date: category['timeslotsdata'][0]['date'],
+                    timeslots: category['timeslotsdata'][0]['timeslots'][0]['time_slots'],
                 });
             }
         });
@@ -3787,6 +4046,7 @@ function applyCouponAPICall(couponCode) {
                 document.getElementById("couponID").innerText = result.action['data']['coupon_id'];
                 document.getElementById("coupon_discount").value = (result.action['data']['save_amount']);
                wallettotalCalculationPayment();
+               wallettotalCalculationPaymentCash(); 
                totalCalculationPayment();
                gtag('event', 'apply_couponW', {
                   coupon: result.action['data']['coupon_code'],
@@ -3826,6 +4086,7 @@ function removeCoupon() {
     document.getElementById("couponDiscount").innerText = "AED 0.00";
     document.getElementById("coupon_discount").value = 0;
     wallettotalCalculationPayment();
+    wallettotalCalculationPaymentCash(); 
     totalCalculationPayment();
 }
 
@@ -3847,60 +4108,112 @@ selectedRadio = radio;
 document.getElementById("deliveryTip").innerText = "AED "+radio.value+".00";
 document.getElementById("delivery_partner_tip").value = radio.value;
 wallettotalCalculationPayment();
+wallettotalCalculationPaymentCash(); 
 totalCalculationPayment();
 }
 }
 
-let walletD = parseFloat("{{ $showCartProductList['data']['wallet_balance'] ?? 0 }}")
+let walletD = parseFloat("{{ $showCartProductList['data']['referral_balance'] ?? 0 }}")
+let walletCash = parseFloat("{{ $showCartProductList['data']['wallet_balance'] ?? 0 }}")
 
 function wallettotalCalculationPayment() {
-  
-const checkbox = document.getElementById('daily_wallet');
-// const walletBalance = parseFloat(document.getElementById('walletAmountD').innerText) || 0;
-const walletPercentageD = parseFloat(document.getElementById('walletPercentageD').value) || 0;
-
-var total_price = parseFloat(document.getElementById("total_price").value) || 0;
-var cod_extra_charges = parseFloat(document.getElementById("cod_extra_charges").value) || 0;
-var delivery_partner_tip = parseFloat(document.getElementById("delivery_partner_tip").value) || 0;
-var delivery_charges = parseFloat(document.getElementById("delivery_charges").value) || 0;
-var coupon_discount = parseFloat(document.getElementById("coupon_discount").value) || 0;
-
-var finalPrice = (total_price + cod_extra_charges + delivery_partner_tip + delivery_charges) - coupon_discount;
-var finalWalletAmount=0;
-if (checkbox.checked) {
-var walletAmount=(finalPrice*walletPercentageD)/100; 
-if(walletD >= walletAmount){
-finalWalletAmount=walletAmount;   
-}else
-{
-finalWalletAmount=walletD;     
+    const checkbox = document.getElementById('daily_wallet');
+    // const walletBalance = parseFloat(document.getElementById('walletAmountD').innerText) || 0;
+    const walletPercentageD = parseFloat(document.getElementById('walletPercentageD').value) || 0;
+    
+    var total_price = parseFloat(document.getElementById("total_price").value) || 0;
+    var cod_extra_charges = parseFloat(document.getElementById("cod_extra_charges").value) || 0;
+    var delivery_partner_tip = parseFloat(document.getElementById("delivery_partner_tip").value) || 0;
+    var delivery_charges = parseFloat(document.getElementById("delivery_charges").value) || 0;
+    var coupon_discount = parseFloat(document.getElementById("coupon_discount").value) || 0;
+    
+    var finalPrice = (total_price + cod_extra_charges + delivery_partner_tip + delivery_charges) - coupon_discount;
+    var finalWalletAmount=0;
+    if (checkbox.checked) {
+    var walletAmount=(finalPrice*walletPercentageD)/100; 
+    if(walletD >= walletAmount){
+        finalWalletAmount=walletAmount;   
+    }else
+    {
+        finalWalletAmount=walletD;     
+    }
+    // console.log("G1------>",walletD);
+    // Show applied wallet UI
+    document.getElementById('walletTextD').style.display = 'block';
+    document.getElementById('selectedWalletAmountD').innerText = finalWalletAmount.toFixed(2);
+    // Set hidden input to pass to backend if needed
+    document.getElementById('wallet_use_amt').value = finalWalletAmount;
+    } else {
+    // Unchecked: hide and reset
+    document.getElementById('walletTextD').style.display = 'none';
+    document.getElementById('selectedWalletAmountD').innerText = '0.00';
+    document.getElementById('wallet_use_amt').value = 0;
+    }
+    wallettotalCalculationPaymentCash();
+    // Call the main total recalculation function
+    totalCalculationPayment();
 }
-console.log("G1------>",walletD);
-// Show applied wallet UI
-document.getElementById('walletTextD').style.display = 'block';
-document.getElementById('selectedWalletAmountD').innerText = finalWalletAmount.toFixed(2);
-// Set hidden input to pass to backend if needed
-document.getElementById('wallet_use_amt').value = finalWalletAmount;
-} else {
-// Unchecked: hide and reset
-document.getElementById('walletTextD').style.display = 'none';
-document.getElementById('selectedWalletAmountD').innerText = '0.00';
-document.getElementById('wallet_use_amt').value = 0;
-}
-// Call the main total recalculation function
-totalCalculationPayment();
+// Cash wallet functionality added...G1
+function wallettotalCalculationPaymentCash() {
+    const checkbox = document.getElementById('daily_wallet_cash');
+    const walletPercentageD = parseFloat(document.getElementById('walletPercentageCash').value) || 0;
+    
+    var total_price = parseFloat(document.getElementById("total_price").value) || 0;
+    var cod_extra_charges = parseFloat(document.getElementById("cod_extra_charges").value) || 0;
+    var delivery_partner_tip = parseFloat(document.getElementById("delivery_partner_tip").value) || 0;
+    var delivery_charges = parseFloat(document.getElementById("delivery_charges").value) || 0;
+    var coupon_discount = parseFloat(document.getElementById("coupon_discount").value) || 0;
+    var wallet_use_amt = parseFloat(document.getElementById("wallet_use_amt").value) || 0;
+
+    
+    var finalPrice = (total_price + cod_extra_charges + delivery_partner_tip + delivery_charges) - coupon_discount;
+    var finalWalletAmount1=0;
+    if (checkbox.checked) {
+        
+        // console.log("G1------>",walletCash);
+        // console.log("G1---finalPrice--->",finalPrice);
+        // console.log("G1----wallet_use_amt-->",wallet_use_amt);
+        finalWalletAmount1 = finalPrice - wallet_use_amt;
+        if (finalWalletAmount1 < 0) finalWalletAmount1 = 0.0;
+    
+        var finalWalletAmount=0;
+        if (walletCash <= finalWalletAmount1) {
+          finalWalletAmount = walletCash; // apply full cash wallet
+        } else {
+          finalWalletAmount = finalWalletAmount1; // apply only remaining amount
+        }
+        //  console.log("G1-----finalWalletAmount1-->",finalWalletAmount);
+    
+        // Show applied wallet UI
+        document.getElementById('walletTextCash').style.display = 'block';
+        document.getElementById('selectedWalletAmountCash').innerText = finalWalletAmount.toFixed(2);
+        document.getElementById('wallet_use_amt_cash').value = finalWalletAmount;
+    } else {
+        // Unchecked: hide and reset
+        document.getElementById('walletTextCash').style.display = 'none';
+        document.getElementById('selectedWalletAmountCash').innerText = '0.00';
+        document.getElementById('wallet_use_amt_cash').value = 0;
+    }
+    // Call the main total recalculation function
+    totalCalculationPayment();
 }
 
 function toggleCODCharges(value) {
-const codChargesInput = document.getElementById('cod_extra_charges');
-const codCharges = document.getElementById('cod_charges').value;
-if (value === 'COD') {
-document.getElementById("codCharges").innerText = "AED "+codCharges+".00";
-codChargesInput.value = codCharges; // Apply COD charge
-} else {
-document.getElementById("codCharges").innerText = "AED 0.00";
-codChargesInput.value = 0; // No charge for other payment methods
-}
+  const codChargesInput = document.getElementById('cod_extra_charges');
+  const codCharges = parseFloat(document.getElementById('cod_charges').value) || 0;
+//   var totalPrice = parseFloat(document.getElementById("toPay").value) || 0;
+  let totalText = document.getElementById("toPay").innerText || "0";
+  let totalPrice = parseFloat(totalText.replace(/[^0-9.-]+/g,"")) || 0;
+
+  console.log("value:", value, "totalPrice:", totalPrice);
+
+  if (value && value.toUpperCase().trim() === 'COD' && totalPrice > 0) {
+    document.getElementById("codCharges").innerText = "AED " + codCharges.toFixed(2);
+    codChargesInput.value = codCharges;
+  } else {
+    document.getElementById("codCharges").innerText = "AED 0.00";
+    codChargesInput.value = 0;
+  }
 // G1 add code for hide and unhide option...
   const codDiv = document.getElementById('COD');
     const payNowDiv = document.getElementById('Pay Now');
@@ -3916,10 +4229,12 @@ codChargesInput.value = 0; // No charge for other payment methods
 
 // Recalculate final total
 wallettotalCalculationPayment();
+wallettotalCalculationPaymentCash(); 
 totalCalculationPayment();
 }
 
 function totalCalculationPayment() {
+     console.log("G1---totalPrice---> called",);
     // Parse float values from input fields
     var total_price = parseFloat(document.getElementById("total_price").value) || 0;
     var cod_extra_charges = parseFloat(document.getElementById("cod_extra_charges").value) || 0;
@@ -3927,17 +4242,16 @@ function totalCalculationPayment() {
     var delivery_charges = parseFloat(document.getElementById("delivery_charges").value) || 0;
     var coupon_discount = parseFloat(document.getElementById("coupon_discount").value) || 0;
     var wallet_use_amt = parseFloat(document.getElementById("wallet_use_amt").value) || 0;
+    var wallet_use_amt_cash = parseFloat(document.getElementById("wallet_use_amt_cash").value) || 0;
 
     // Correct calculation
     var finalPrice = 
         (total_price + cod_extra_charges + delivery_partner_tip + delivery_charges) 
-        - (coupon_discount + wallet_use_amt);
+        - (coupon_discount + wallet_use_amt + wallet_use_amt_cash);
         
     var finalFirstPrice = 
         (total_price + cod_extra_charges + delivery_partner_tip + delivery_charges) 
         - (coupon_discount);
-            
-
     // Round to 2 decimal places
     finalPrice = finalPrice.toFixed(2);
     finalFirstPrice = finalFirstPrice.toFixed(2);
@@ -3946,9 +4260,6 @@ function totalCalculationPayment() {
     document.getElementById("final_price").value = finalPrice;
     document.getElementById("totalValue").innerText = "AED " + finalFirstPrice;
     document.getElementById("totalAmtDaily").innerText = "AED " + finalPrice;
-
-    
-    
 }
 
 
@@ -3962,6 +4273,20 @@ function checkOutDailyCartApiCall(type) {
     let selectedMethod = "";
     let addressID = '';
     const addressInput = document.getElementById('addressId');
+    // var totalPrice = parseFloat(document.getElementById("toPay").value) || 0;
+    let totalText = document.getElementById("toPay").innerText || "0";
+    let totalPrice = parseFloat(totalText.replace(/[^0-9.-]+/g,"")) || 0;
+
+    // console.log("G1---totalPrice---> ", totalPrice);
+    if (totalPrice <= 0 && type != "payNow") {
+        Swal.fire({
+            title: "Your wallet balance is sufficient to cover the entire order amount, so other payment options are not available",
+            icon: "warning"
+        });
+        return;
+    }
+    
+    
     if (addressInput.value !== 'undefined' && addressInput.value !== null && addressInput.value.trim() !== '') {
       const addressID = addressInput.value;
       console.log('AddressID:', addressID);
@@ -3991,22 +4316,9 @@ function checkOutDailyCartApiCall(type) {
     }
     // :white_check_mark: Final Validation
         let isselectedTrue = false;
-        const FIXED_TIME_SLOT = '06:00 am - 10:00 am';
-        const getLocalISODate = (d) => {
-            const yyyy = d.getFullYear();
-            const mm = String(d.getMonth() + 1).padStart(2, '0');
-            const dd = String(d.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
-        };
-        const todayDateStr = getLocalISODate(new Date());
         for (let i = 0; i < showCartData['data'].length; i++) {
             const product = showCartData['data'][i];
-            const needsUpdate =
-                !product.selectedTime ||
-                product.selectedTime !== FIXED_TIME_SLOT ||
-                product.selectedDate !== todayDateStr;
-
-            if (needsUpdate) {
+            if (!product.selectedTime) {
                 isselectedTrue = true;
                 saveSelectedDateTimeApiCall('add', type);
                 break;
@@ -4057,13 +4369,16 @@ function checkOutDailyCartApiCallWithData() {
     selectedPartnerInstruction = values.join(", ");
     
     const walletCheckbox = document.getElementById("daily_wallet");
+    const cashWalletCheckbox = document.getElementById("daily_wallet_cash");
     let isWalletSlected = "no";
     if (walletCheckbox.checked) {
         isWalletSlected = "yes";
-    } else {
-        isWalletSlected = "no";
+    }
+    if (cashWalletCheckbox.checked){
+        isWalletSlected = "yes";
     }
     let selectedWalletAmount = parseFloat(document.getElementById("selectedWalletAmountD").innerText);
+    let selectedWalletCashAmount = parseFloat(document.getElementById("selectedWalletAmountCash").innerText);
     let disccountAmount = document.getElementById("couponDiscount").innerText;
     let couponCode = document.getElementById("couponCode").innerText;
     let couponId = document.getElementById("couponID").innerText;
@@ -4091,6 +4406,7 @@ function checkOutDailyCartApiCallWithData() {
             walletStatus: isWalletSlected,
             disccountAmount: disccountAmount,
             totalwalletamt: selectedWalletAmount,
+            totalcashwalletamt: selectedWalletCashAmount,
             couponId: couponId,
             couponCode: couponCode,
             tip: selectedPartnerTip,
@@ -4177,12 +4493,15 @@ function checkOutDailyCartPaymentApiCall(btnType) {
     selectedPartnerInstruction = values.join(", ");
     
     const walletCheckbox = document.getElementById("daily_wallet");
+    const cashWalletCheckbox = document.getElementById("daily_wallet_cash");
     let isWalletSlected = "no";
     if (walletCheckbox.checked) {
         isWalletSlected = "yes";
-    } else {
-        isWalletSlected = "no";
     }
+    if (cashWalletCheckbox.checked){
+        isWalletSlected = "yes";
+    }
+    let selectedWalletCashAmount = parseFloat(document.getElementById("selectedWalletAmountCash").innerText);
     let selectedWalletAmount = parseFloat(document.getElementById("selectedWalletAmountD").innerText);
     let disccountAmount = document.getElementById("couponDiscount").innerText;
     let couponCode = document.getElementById("couponCode").innerText;
@@ -4218,6 +4537,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
             couponCode: couponCode,
             disccountAmount: disccountAmount,
             totalwalletamt: selectedWalletAmount,
+            totalcashwalletamt: selectedWalletCashAmount,
             tip: selectedPartnerTip,
             orderInstruction: orderInstruction,
             _token: _token
@@ -4857,7 +5177,7 @@ function deleteAddress(addressId) {
                     </div>
                     <div class="fdate" id="checkDDate"> </div>
 
-                    <div class="subscription_duration" id="timeModel" style="display:none;">
+                    <div class="subscription_duration" id="timeModel">
                         <div class="order-subheading d-flex">
                             <img src="{{asset('assets/images/Clock.png')}}" alt="" class="img-fluid"
                                 style="max-width:25px">

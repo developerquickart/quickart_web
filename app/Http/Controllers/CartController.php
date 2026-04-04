@@ -379,7 +379,6 @@ function checkSelectedTimeslotCashback($data) {
 
                 $errorMessage = $e->getMessage();
             } catch (\Exception $e) {
-
                 $errorMessage = $e->getMessage();
             }
    
@@ -426,12 +425,18 @@ function checkSelectedTimeslotCashback($data) {
             $paymentType = 'payperdelivery';
         }
         $walletAmt = "0";
+        $cashWalletAmt = "0";
+        
         if ($request->totalwalletamt == "NaN" || $request->totalwalletamt == "" || $request->totalwalletamt == null) {
             $walletAmt = "0";
         } else {
             $walletAmt = $request->totalwalletamt;
         }
-        
+        if ($request->totalcashwalletamt == "NaN" || $request->totalcashwalletamt == "" || $request->totalcashwalletamt == null) {
+            $cashWalletAmt = "0";
+        } else {
+            $cashWalletAmt = $request->totalcashwalletamt;
+        }
         
      
         $productListT = [];
@@ -457,7 +462,8 @@ function checkSelectedTimeslotCashback($data) {
                     "del_partner_instruction" => $request->selectedPartnerInstruction,
                     "payment_type" => $paymentType,
                     "del_partner_tip" => "0",
-                    "totalwalletamt" => $walletAmt,
+                    "totalrefwalletamt" => $walletAmt,
+                    "totalwalletamt" => $cashWalletAmt,
                     "platform" => "web",
                     "browser" => $browser,
                     "order_instruction" => $request->orderInstruction
@@ -510,10 +516,16 @@ function checkSelectedTimeslotCashback($data) {
         //     $paymentType = 'payperdelivery';
         // }
         $walletAmt = "0";
+        $cashWalletAmt = "0";
         if ($request->totalwalletamt == "NaN" || $request->totalwalletamt == "" || $request->totalwalletamt == null) {
             $walletAmt = "0";
         } else {
             $walletAmt = $request->totalwalletamt;
+        }
+        if ($request->totalcashwalletamt == "NaN" || $request->totalcashwalletamt == "" || $request->totalcashwalletamt == null) {
+            $cashWalletAmt = "0";
+        } else {
+            $cashWalletAmt = $request->totalcashwalletamt;
         }
 
         // print_r("user_id => $user_ID,
@@ -534,7 +546,8 @@ function checkSelectedTimeslotCashback($data) {
         //             del_partner_instruction => $request->instruction,
         //             payment_type => $paymentType,
         //             del_partner_tip => 0,
-        //             totalwalletamt =>  $walletAmt,platform => Web");
+        //             "totalrefwalletamt" => $walletAmt,
+                    // "totalwalletamt" => $cashWalletAmt,,platform => Web");
         $productListT = [];
         try {
             $client = new Client();
@@ -558,7 +571,8 @@ function checkSelectedTimeslotCashback($data) {
                     "del_partner_instruction" => $request->selectedPartnerInstruction,
                     "payment_type" => "paynow",
                     "del_partner_tip" => "0",
-                    "totalwalletamt" => $walletAmt,
+                    "totalrefwalletamt" => $walletAmt,
+                    "totalwalletamt" => $cashWalletAmt,
                     "platform" => "web",
                     "group_id" => null,
                     "browser" => $browser,
@@ -696,12 +710,19 @@ function checkSelectedTimeslotCashback($data) {
         // print_r('jivan');
         // die();
         $walletAmt = "0";
+        $cashWalletAmt = "0";
         $siNo = '';
         if ($request->totalwalletamt == "NaN" || $request->totalwalletamt == "" || $request->totalwalletamt == null) {
             $walletAmt = "0";
         } else {
             $walletAmt = $request->totalwalletamt;
         }
+        if ($request->totalcashwalletamt == "NaN" || $request->totalcashwalletamt == "" || $request->totalcashwalletamt == null) {
+            $cashWalletAmt = "0";
+        } else {
+            $cashWalletAmt = $request->totalcashwalletamt;
+        }
+        
         if ($request->paymentMethod == "COD") {
             $method = 'COD';
             $siNo = '';
@@ -729,7 +750,8 @@ function checkSelectedTimeslotCashback($data) {
         //             coupon_code => $request->couponCode,
         //             del_partner_instruction => $request->instruction,
         //             del_partner_tip => $request->tip,
-        //             totalwalletamt => $walletAmt,
+        //             "totalrefwalletamt" => $walletAmt,
+                    // "totalwalletamt" => $cashWalletAmt,
         //             platform => Web,
         //             delivery_date => null,
         //             time_slot => null,
@@ -756,7 +778,8 @@ function checkSelectedTimeslotCashback($data) {
                     "device_id" => "",
                     "del_partner_instruction" => !empty($request->selectedPartnerInstruction)?$request->selectedPartnerInstruction:'',
                     "del_partner_tip" => !empty($request->tip)?$request->tip:'',
-                    "totalwalletamt" => $walletAmt,
+                    "totalrefwalletamt" => $walletAmt,
+                    "totalwalletamt" => $cashWalletAmt,
                     "platform" => "web",
                     "browser" => $browser,
                     "delivery_date" => date('Y-m-d', strtotime('+2 day')),
@@ -801,10 +824,16 @@ function checkSelectedTimeslotCashback($data) {
         $user_ID = !empty(session()->get('user_id'))?session()->get('user_id'):'';
         $store_ID = env('STORE_ID');
         $walletAmt = "0";
+        $cashWalletAmt = "0";
         if ($request->totalwalletamt == "NaN" || $request->totalwalletamt == "" || $request->totalwalletamt == null) {
             $walletAmt = "0";
         } else {
             $walletAmt = $request->totalwalletamt;
+        }
+        if ($request->totalcashwalletamt == "NaN" || $request->totalcashwalletamt == "" || $request->totalcashwalletamt == null) {
+            $cashWalletAmt = "0";
+        } else {
+            $cashWalletAmt = $request->totalcashwalletamt;
         }
         $productListT = [];
         $browser = detectBrowser($request);
@@ -831,7 +860,8 @@ function checkSelectedTimeslotCashback($data) {
                     "del_partner_instruction" => $request->selectedPartnerInstruction,
                     "payment_type" => 'paynow',
                     "del_partner_tip" => $request->tip,
-                    "totalwalletamt" => $walletAmt,
+                    "totalrefwalletamt" => $walletAmt,
+                    "totalwalletamt" => $cashWalletAmt,
                     "platform" => "web", //do not change,
                     "browser"=>$browser,
                     "group_id" => null,
@@ -874,10 +904,6 @@ function checkSelectedTimeslotCashback($data) {
     
      public function dailyOrderSuccess(Request $request)
     {
-        // Allow longer processing time for payment success callback
-        @set_time_limit(0);
-        @ini_set('max_execution_time', '0');
-
         // echo "<pre>";
         // print_r($request->all());
         // die();
