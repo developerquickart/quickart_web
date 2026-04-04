@@ -142,7 +142,7 @@ function getWalletMessage($resource = null) {
                             <div class="col-lg-6">
                                 <div class="wallet_box">
                                     <div class="amountBox">AED
-                                        <span>{{number_format($appInfo['data']['userwallet'], 2)}}</span>
+                                        <span>{{ number_format((float) ($appInfo['data']['userwallet'] ?? 0), 2) }}</span>
                                     </div>
                                     <div class="wallet_text">Your Available Balance</div>
                                     <p>Wallet amount will be deducted as per delivery schedule.</p>
