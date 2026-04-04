@@ -278,6 +278,10 @@ function checkSelectedTimeslotCashback($data) {
         return redirect()->to('/'); // or use '/home' if that's your homepage
         }
 
+        if ($request->query('tab') === '2') {
+            return redirect('/cart?tab=1');
+        }
+
         $subCartProductList = array();
         $showCartProductList = array();
         $mightHaveMissedProductList = array();
