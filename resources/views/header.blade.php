@@ -1307,8 +1307,8 @@
 
         /**
          * Use the same numeric path as the map picker: Number(), optional google.maps.LatLng snap, then 6-decimal round.
-         * @param {string} [debugTag] If set, logs to console with prefix [qk-login-location]
-         * @returns {{lat: number, lng: number}|null}
+         * debugTag: optional string; logs to console with prefix [qk-login-location]
+         * Returns an object with lat/lng numbers, or null if invalid.
          */
         function normalizeLoginCoordsForSubmit(rawLat, rawLng, debugTag) {
             var lat = Number(rawLat);
