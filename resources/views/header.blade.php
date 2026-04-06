@@ -1152,6 +1152,13 @@
                     return r.json();
                 })
                 .then(function (data) {
+                    console.log('[qk-login-location] /delivery-eta response (header strip)', data && {
+                        source: data.source,
+                        minutes: data.minutes,
+                        label: data.label,
+                        distance_label: data.distance_label,
+                        distance_meters: data.distance_meters
+                    });
                     if (data && (data.route_matrix_response != null || data.route_matrix_response_raw != null)) {
                         console.log('[delivery-eta] Google Route Matrix HTTP status:', data.route_matrix_http_status);
                         console.log('[delivery-eta] Google Route Matrix (parsed JSON):', data.route_matrix_response);
@@ -1185,7 +1192,8 @@
                         }
                     });
                 })
-                .catch(function () {
+                .catch(function (err) {
+                    console.warn('[qk-login-location] /delivery-eta fetch failed', err);
                     roots.forEach(function (root) {
                         var timeEl = root.querySelector('[data-delivery-eta-time]');
                         var distanceEl = root.querySelector('[data-delivery-eta-distance]');
@@ -1297,6 +1305,37 @@
             setTimeout(run, 250);
         }
 
+        /**
+         * Use the same numeric path as the map picker: Number(), optional google.maps.LatLng snap, then 6-decimal round.
+         * @param {string} [debugTag] If set, logs to console with prefix [qk-login-location]
+         * @returns {{lat: number, lng: number}|null}
+         */
+        function normalizeLoginCoordsForSubmit(rawLat, rawLng, debugTag) {
+            var lat = Number(rawLat);
+            var lng = Number(rawLng);
+            if (!isFinite(lat) || !isFinite(lng)) {
+                console.warn('[qk-login-location] normalize: non-finite input', debugTag || '', { rawLat: rawLat, rawLng: rawLng });
+                return null;
+            }
+            if (window.google && google.maps && typeof google.maps.LatLng === 'function') {
+                try {
+                    var ll = new google.maps.LatLng(lat, lng);
+                    lat = ll.lat();
+                    lng = ll.lng();
+                } catch (e) {
+                    console.warn('[qk-login-location] normalize: LatLng() failed, using numbers', debugTag || '', e);
+                }
+            } else if (debugTag) {
+                console.info('[qk-login-location] normalize: google.maps not ready, skipping LatLng() —', debugTag);
+            }
+            lat = Math.round(lat * 1e6) / 1e6;
+            lng = Math.round(lng * 1e6) / 1e6;
+            if (debugTag) {
+                console.log('[qk-login-location] normalize: result', debugTag, { lat: lat, lng: lng });
+            }
+            return { lat: lat, lng: lng };
+        }
+
         function handleSuccessfulLoginAfterLocation(serverMessage) {
             if (pendingProductId) {
                 if(action == 'addToCart'){
@@ -1361,9 +1400,8 @@
             }
             window.__qkLoginLocBusy = true;
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
-            var latNum = typeof lat === 'number' ? lat : parseFloat(lat);
-            var lngNum = typeof lng === 'number' ? lng : parseFloat(lng);
-            if (!isFinite(latNum) || !isFinite(lngNum)) {
+            var norm = normalizeLoginCoordsForSubmit(lat, lng, 'submitLoginLocationCheck(in=' + (locationName || '') + ')');
+            if (!norm) {
                 window.__qkLoginLocBusy = false;
                 $('.use_current_location_btn').data('qk-location-loading', false);
                 Swal.fire({
@@ -1373,8 +1411,13 @@
                 });
                 return;
             }
-            latNum = Math.round(latNum * 1e6) / 1e6;
-            lngNum = Math.round(lngNum * 1e6) / 1e6;
+            var latNum = norm.lat;
+            var lngNum = norm.lng;
+            console.log('[qk-login-location] POST /check-login-location-range', {
+                lat: latNum,
+                lng: lngNum,
+                location_name: locationName || ''
+            });
             $.ajax({
                 url: "{{ route('checkLoginLocationRange') }}",
                 type: 'POST',
@@ -1386,6 +1429,7 @@
                     $('.use_current_location_btn').data('qk-location-loading', false);
                 },
                 success: function (response) {
+                    console.log('[qk-login-location] check-login-location-range response', response);
                     if (response.success && response.in_range) {
                         handleSuccessfulLoginAfterLocation(response.message);
                     } else if (response.success && response.in_range === false) {
@@ -1413,7 +1457,14 @@
                         });
                     }
                 },
-                error: function (xhr) {
+                error: function (xhr, status, err) {
+                    console.warn('[qk-login-location] check-login-location-range HTTP error', {
+                        status: xhr.status,
+                        statusText: xhr.statusText,
+                        ajaxStatus: status,
+                        err: err,
+                        responseJSON: xhr.responseJSON
+                    });
                     let msg = 'Unable to validate location. Please try again.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
@@ -1783,21 +1834,41 @@
                     return;
                 }
                 $btn.data('qk-location-loading', true);
+                console.log('[qk-login-location] use current location: waiting for Maps (if needed) then geolocation…');
 
-                navigator.geolocation.getCurrentPosition(function (position) {
-                    $btn.data('qk-location-loading', false);
-                    submitLoginLocationCheck(position.coords.latitude, position.coords.longitude, 'Current location');
-                }, function () {
-                    $btn.data('qk-location-loading', false);
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Location Permission Required',
-                        text: 'Unable to fetch current location. Please select location on map.'
+                function runGeolocationWhenReady() {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        var c = position.coords;
+                        console.log('[qk-login-location] geolocation raw Coordinates', {
+                            latitude: c.latitude,
+                            longitude: c.longitude,
+                            accuracy: c.accuracy,
+                            altitude: c.altitude,
+                            altitudeAccuracy: c.altitudeAccuracy,
+                            heading: c.heading,
+                            speed: c.speed
+                        });
+                        console.log('[qk-login-location] geolocation position.timestamp', position.timestamp);
+                        console.log('[qk-login-location] geolocation → submitLoginLocationCheck (same normalize as map picker)');
+                        submitLoginLocationCheck(c.latitude, c.longitude, 'Current location');
+                    }, function (geoErr) {
+                        $btn.data('qk-location-loading', false);
+                        console.warn('[qk-login-location] geolocation error', geoErr);
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Location Permission Required',
+                            text: 'Unable to fetch current location. Please select location on map.'
+                        });
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
                     });
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
+                }
+
+                ensureLoginMapLoaded(function () {
+                    console.log('[qk-login-location] Maps API ready for LatLng normalization:', !!(window.google && google.maps));
+                    runGeolocationWhenReady();
                 });
             });
 
