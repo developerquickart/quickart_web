@@ -38,6 +38,8 @@ return [
         'maps_server_key' => env('GOOGLE_MAPS_SERVER_KEY'),
         /** When true (or APP_DEBUG), /delivery-eta includes full Route Matrix JSON for browser console inspection */
         'log_route_matrix_response' => env('GOOGLE_LOG_ROUTE_MATRIX_RESPONSE', false),
+        /** Passed to Routes API computeRouteMatrix (ccTLD), optional regional bias */
+        'routes_region_code' => env('GOOGLE_ROUTES_REGION_CODE', 'AE'),
     ],
 
 ];

@@ -1159,6 +1159,12 @@
                         distance_label: data.distance_label,
                         distance_meters: data.distance_meters
                     });
+                    if (data && data.eta_coords_used) {
+                        console.log('[qk-login-location] /delivery-eta session coords → Google origins/destinations', data.eta_coords_used);
+                    }
+                    if (data && data.route_matrix_debug) {
+                        console.log('[qk-login-location] Google Routes computeRouteMatrix debug (URL, field mask, full request_json per attempt)', data.route_matrix_debug);
+                    }
                     if (data && (data.route_matrix_response != null || data.route_matrix_response_raw != null)) {
                         console.log('[delivery-eta] Google Route Matrix HTTP status:', data.route_matrix_http_status);
                         console.log('[delivery-eta] Google Route Matrix (parsed JSON):', data.route_matrix_response);
