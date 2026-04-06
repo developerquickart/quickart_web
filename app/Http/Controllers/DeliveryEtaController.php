@@ -22,10 +22,10 @@ class DeliveryEtaController extends Controller
             return response()->json(['minutes' => null, 'label' => null], 401);
         }
 
-        $userLat = session('delivery_user_lat');
-        $userLng = session('delivery_user_lng');
-        $storeLat = session('delivery_store_lat');
-        $storeLng = session('delivery_store_lng');
+        $userLat = $this->sessionCoord('delivery_user_lat');
+        $userLng = $this->sessionCoord('delivery_user_lng');
+        $storeLat = $this->sessionCoord('delivery_store_lat');
+        $storeLng = $this->sessionCoord('delivery_store_lng');
 
         if ($userLat === null || $userLng === null || $storeLat === null || $storeLng === null) {
             return response()->json([
@@ -125,12 +125,47 @@ class DeliveryEtaController extends Controller
         return response()->json($body);
     }
 
+    private function sessionCoord(string $key): ?float
+    {
+        $v = session($key);
+        if ($v === null || $v === '') {
+            return null;
+        }
+        if (is_array($v)) {
+            return null;
+        }
+        if (is_numeric($v)) {
+            $f = (float) $v;
+
+            return is_finite($f) ? $f : null;
+        }
+
+        return null;
+    }
+
     /**
      * Google Routes API — Compute Route Matrix (REST).
      *
      * @return array{minutes: int, route_matrix_parsed?: array|null, route_matrix_raw_body?: string|null, route_matrix_http_status?: int}|null
      */
     private function fetchRouteMatrixMinutes(float $originLat, float $originLng, float $destLat, float $destLng, string $apiKey): ?array
+    {
+        $preferences = ['TRAFFIC_AWARE', 'TRAFFIC_UNAWARE', null];
+        foreach ($preferences as $pref) {
+            $parsed = $this->postRouteMatrixOnce($originLat, $originLng, $destLat, $destLng, $apiKey, $pref);
+            if (is_array($parsed)) {
+                return $parsed;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  ?string  $routingPreference  TRAFFIC_AWARE, TRAFFIC_UNAWARE, or null to omit
+     * @return array{minutes: int, route_matrix_parsed?: array|null, route_matrix_raw_body?: string|null, route_matrix_http_status?: int}|null
+     */
+    private function postRouteMatrixOnce(float $originLat, float $originLng, float $destLat, float $destLng, string $apiKey, ?string $routingPreference): ?array
     {
         $url = 'https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix';
 
@@ -160,8 +195,10 @@ class DeliveryEtaController extends Controller
                 ],
             ],
             'travelMode' => 'DRIVE',
-            'routingPreference' => 'TRAFFIC_AWARE',
         ];
+        if ($routingPreference !== null && $routingPreference !== '') {
+            $body['routingPreference'] = $routingPreference;
+        }
 
         try {
             $response = Http::timeout(12)
@@ -178,6 +215,7 @@ class DeliveryEtaController extends Controller
             if (! $response->ok()) {
                 Log::warning('Route Matrix HTTP error', [
                     'status' => $httpStatus,
+                    'routingPreference' => $routingPreference,
                     'body' => $rawBody,
                 ]);
 
@@ -186,17 +224,17 @@ class DeliveryEtaController extends Controller
 
             $rows = $response->json();
             if (! is_array($rows)) {
-                Log::warning('Route Matrix invalid JSON');
+                Log::warning('Route Matrix invalid JSON', ['routingPreference' => $routingPreference]);
 
                 return null;
             }
             if (isset($rows['error'])) {
-                Log::warning('Route Matrix API error', ['error' => $rows['error']]);
+                Log::warning('Route Matrix API error', ['error' => $rows['error'], 'routingPreference' => $routingPreference]);
 
                 return null;
             }
             if ($rows === []) {
-                Log::warning('Route Matrix empty response');
+                Log::warning('Route Matrix empty response', ['routingPreference' => $routingPreference]);
 
                 return null;
             }
@@ -207,23 +245,19 @@ class DeliveryEtaController extends Controller
             }
 
             if (($element['condition'] ?? '') !== 'ROUTE_EXISTS') {
-                Log::warning('Route Matrix route missing', ['element' => $element]);
+                Log::info('Route Matrix route missing — will retry if other routing modes available', [
+                    'routingPreference' => $routingPreference,
+                    'element' => $element,
+                ]);
 
                 return null;
             }
 
             $durationRaw = $element['duration'] ?? '';
-            if (is_string($durationRaw) && preg_match('/^(\d+)s$/', $durationRaw, $m)) {
-                $seconds = (int) $m[1];
-            } elseif (is_numeric($durationRaw)) {
-                $seconds = (int) $durationRaw;
-            } else {
-                Log::warning('Route Matrix duration parse failed', ['duration' => $durationRaw]);
+            $seconds = $this->parseRouteMatrixDurationSeconds($durationRaw);
+            if ($seconds === null || $seconds <= 0) {
+                Log::warning('Route Matrix duration parse failed', ['duration' => $durationRaw, 'routingPreference' => $routingPreference]);
 
-                return null;
-            }
-
-            if ($seconds <= 0) {
                 return null;
             }
 
@@ -240,10 +274,30 @@ class DeliveryEtaController extends Controller
                 'route_matrix_http_status' => $httpStatus,
             ];
         } catch (\Throwable $e) {
-            Log::error('Route Matrix exception', ['message' => $e->getMessage()]);
+            Log::error('Route Matrix exception', ['message' => $e->getMessage(), 'routingPreference' => $routingPreference]);
 
             return null;
         }
+    }
+
+    /**
+     * @param  mixed  $durationRaw
+     */
+    private function parseRouteMatrixDurationSeconds($durationRaw): ?int
+    {
+        if (is_string($durationRaw) && preg_match('/^(\d+)s$/', $durationRaw, $m)) {
+            return (int) $m[1];
+        }
+        if (is_numeric($durationRaw)) {
+            return (int) $durationRaw;
+        }
+        if (is_array($durationRaw)) {
+            if (isset($durationRaw['seconds']) && is_numeric($durationRaw['seconds'])) {
+                return (int) $durationRaw['seconds'];
+            }
+        }
+
+        return null;
     }
 
     private function formatDistanceLabel(?int $distanceMeters): ?string

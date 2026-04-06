@@ -1292,6 +1292,11 @@
             resetLoginLocationStep();
         }
 
+        /** Let the browser apply Set-Cookie from the location-check XHR before navigating (avoids empty ETA session on fast redirects). */
+        function qkDeferNavigate(run) {
+            setTimeout(run, 250);
+        }
+
         function handleSuccessfulLoginAfterLocation(serverMessage) {
             if (pendingProductId) {
                 if(action == 'addToCart'){
@@ -1305,7 +1310,7 @@
                     pendingProductId = null;
                     $('#login').modal('hide');
                     $('#subscribe').modal('hide');
-                    window.location.reload();
+                    qkDeferNavigate(function () { window.location.reload(); });
                     return;
                 }
                 if(action == 'wishlist'){
@@ -1318,7 +1323,7 @@
                         timer: 3000,
                         showConfirmButton: false
                     });
-                    window.location.href="{{url('wishlist')}}";
+                    qkDeferNavigate(function () { window.location.href="{{url('wishlist')}}"; });
                     return;
                 }
                 if(action == 'notifyme'){
@@ -1331,12 +1336,12 @@
                         timer: 3000,
                         showConfirmButton: false
                     });
-                    window.location.href="{{url('notify')}}";
+                    qkDeferNavigate(function () { window.location.href="{{url('notify')}}"; });
                     return;
                 }
             } else {
                 if(action == 'trailpack'){
-                    window.location.href="{{url('trial-pack')}}";
+                    qkDeferNavigate(function () { window.location.href="{{url('trial-pack')}}"; });
                 } else {
                     Swal.fire({
                         icon: 'success',
@@ -1345,7 +1350,7 @@
                         timer: 3000,
                         showConfirmButton: false
                     });
-                    window.location.href="{{route('index')}}";
+                    qkDeferNavigate(function () { window.location.href="{{route('index')}}"; });
                 }
             }
         }
@@ -1374,6 +1379,7 @@
                 url: "{{ route('checkLoginLocationRange') }}",
                 type: 'POST',
                 dataType: 'json',
+                xhrFields: { withCredentials: true },
                 data: { lat: latNum, lng: lngNum, location_name: locationName || '', _token: _token },
                 complete: function () {
                     window.__qkLoginLocBusy = false;

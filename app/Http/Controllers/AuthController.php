@@ -607,6 +607,7 @@ class AuthController extends Controller
                 ]);
             }
             $request->session()->forget('pending_login_user');
+            $request->session()->save();
 
             return response()->json([
                 'success' => true,
@@ -710,6 +711,7 @@ class AuthController extends Controller
                     'store_id' => $nearestStore->id ?? null,
                 ]);
             }
+            $request->session()->save();
 
             return response()->json([
                 'success' => true,
