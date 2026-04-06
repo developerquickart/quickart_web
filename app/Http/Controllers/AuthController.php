@@ -545,6 +545,8 @@ class AuthController extends Controller
                     ST_X(location::geometry)::float AS store_lng
                  FROM stores
                  WHERE location IS NOT NULL
+                   AND ST_Y(location::geometry) IS NOT NULL
+                   AND ST_X(location::geometry) IS NOT NULL
                  ORDER BY distance_meters ASC
                  LIMIT 1",
                 [$lng, $lat, $lng, $lat]
@@ -594,9 +596,15 @@ class AuthController extends Controller
             $request->session()->put('delivery_user_lng', $lng);
             $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
             $request->session()->put('delivery_store_id', (int) $nearestStore->id);
-            if (isset($nearestStore->store_lat, $nearestStore->store_lng)) {
-                $request->session()->put('delivery_store_lat', (float) $nearestStore->store_lat);
-                $request->session()->put('delivery_store_lng', (float) $nearestStore->store_lng);
+            $storeLatRaw = $nearestStore->store_lat ?? null;
+            $storeLngRaw = $nearestStore->store_lng ?? null;
+            if (is_numeric($storeLatRaw) && is_numeric($storeLngRaw)) {
+                $request->session()->put('delivery_store_lat', (float) $storeLatRaw);
+                $request->session()->put('delivery_store_lng', (float) $storeLngRaw);
+            } else {
+                \Log::warning('checkLoginLocationRange: nearest store missing numeric lat/lng for ETA', [
+                    'store_id' => $nearestStore->id ?? null,
+                ]);
             }
             $request->session()->forget('pending_login_user');
 
@@ -661,6 +669,8 @@ class AuthController extends Controller
                     ST_X(location::geometry)::float AS store_lng
                  FROM stores
                  WHERE location IS NOT NULL
+                   AND ST_Y(location::geometry) IS NOT NULL
+                   AND ST_X(location::geometry) IS NOT NULL
                  ORDER BY distance_meters ASC
                  LIMIT 1",
                 [$lng, $lat, $lng, $lat]
@@ -690,9 +700,15 @@ class AuthController extends Controller
             $request->session()->put('delivery_user_lng', $lng);
             $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
             $request->session()->put('delivery_store_id', (int) $nearestStore->id);
-            if (isset($nearestStore->store_lat, $nearestStore->store_lng)) {
-                $request->session()->put('delivery_store_lat', (float) $nearestStore->store_lat);
-                $request->session()->put('delivery_store_lng', (float) $nearestStore->store_lng);
+            $storeLatRaw = $nearestStore->store_lat ?? null;
+            $storeLngRaw = $nearestStore->store_lng ?? null;
+            if (is_numeric($storeLatRaw) && is_numeric($storeLngRaw)) {
+                $request->session()->put('delivery_store_lat', (float) $storeLatRaw);
+                $request->session()->put('delivery_store_lng', (float) $storeLngRaw);
+            } else {
+                \Log::warning('checkAddressLocationRange: nearest store missing numeric lat/lng for ETA', [
+                    'store_id' => $nearestStore->id ?? null,
+                ]);
             }
 
             return response()->json([

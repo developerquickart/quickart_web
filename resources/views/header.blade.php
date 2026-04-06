@@ -1351,13 +1351,36 @@
         }
 
         function submitLoginLocationCheck(lat, lng, locationName) {
+            if (window.__qkLoginLocBusy) {
+                return;
+            }
+            window.__qkLoginLocBusy = true;
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
+            var latNum = typeof lat === 'number' ? lat : parseFloat(lat);
+            var lngNum = typeof lng === 'number' ? lng : parseFloat(lng);
+            if (!isFinite(latNum) || !isFinite(lngNum)) {
+                window.__qkLoginLocBusy = false;
+                $('.use_current_location_btn').data('qk-location-loading', false);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Occured',
+                    text: 'Invalid coordinates. Please try again or pick your location on the map.'
+                });
+                return;
+            }
+            latNum = Math.round(latNum * 1e6) / 1e6;
+            lngNum = Math.round(lngNum * 1e6) / 1e6;
             $.ajax({
                 url: "{{ route('checkLoginLocationRange') }}",
                 type: 'POST',
-                data: { lat: lat, lng: lng, location_name: locationName || '', _token: _token },
+                dataType: 'json',
+                data: { lat: latNum, lng: lngNum, location_name: locationName || '', _token: _token },
+                complete: function () {
+                    window.__qkLoginLocBusy = false;
+                    $('.use_current_location_btn').data('qk-location-loading', false);
+                },
                 success: function (response) {
-                    if (response.success && response.in_range === true) {
+                    if (response.success && response.in_range) {
                         handleSuccessfulLoginAfterLocation(response.message);
                     } else if (response.success && response.in_range === false) {
                         waitlistUserId = response.waitlist_user_id || null;
@@ -1741,6 +1764,7 @@
             });
 
             $('.use_current_location_btn').on('click', function () {
+                var $btn = $(this);
                 if (!navigator.geolocation) {
                     Swal.fire({
                         icon: 'error',
@@ -1749,10 +1773,16 @@
                     });
                     return;
                 }
+                if ($btn.data('qk-location-loading')) {
+                    return;
+                }
+                $btn.data('qk-location-loading', true);
 
                 navigator.geolocation.getCurrentPosition(function (position) {
+                    $btn.data('qk-location-loading', false);
                     submitLoginLocationCheck(position.coords.latitude, position.coords.longitude, 'Current location');
                 }, function () {
+                    $btn.data('qk-location-loading', false);
                     Swal.fire({
                         icon: 'warning',
                         title: 'Location Permission Required',
