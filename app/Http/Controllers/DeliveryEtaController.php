@@ -54,7 +54,7 @@ class DeliveryEtaController extends Controller
             ]);
         }
 
-        $cacheKey = 'delivery_eta_rm_v3_' . session('user_id') . '_' . md5(implode('|', [
+        $cacheKey = 'delivery_eta_rm_v4_' . session('user_id') . '_' . md5(implode('|', [
             round((float) $storeLat, 5),
             round((float) $storeLng, 5),
             round((float) $userLat, 5),
@@ -340,9 +340,12 @@ class DeliveryEtaController extends Controller
             }
 
             $minutes = max(1, (int) ceil($seconds / 60)) + self::PACKAGING_BUFFER_MINUTES;
-            $distanceMeters = isset($element['distanceMeters']) && is_numeric($element['distanceMeters'])
-                ? (int) round($element['distanceMeters'])
+            $distanceMeters = array_key_exists('distanceMeters', $element) && is_numeric($element['distanceMeters'])
+                ? (int) round((float) $element['distanceMeters'])
                 : null;
+            if ($distanceMeters === null) {
+                $distanceMeters = (int) round($this->haversineMeters($originLat, $originLng, $destLat, $destLng));
+            }
 
             unset($attemptLog['failure_reason']);
 
@@ -387,6 +390,21 @@ class DeliveryEtaController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Straight-line distance on the WGS84 spheroid (good fallback when Routes API omits driving metres).
+     */
+    private function haversineMeters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $r = 6371000.0;
+        $phi1 = deg2rad($lat1);
+        $phi2 = deg2rad($lat2);
+        $dphi = deg2rad($lat2 - $lat1);
+        $dlambda = deg2rad($lon2 - $lon1);
+        $a = sin($dphi / 2) ** 2 + cos($phi1) * cos($phi2) * sin($dlambda / 2) ** 2;
+
+        return 2 * $r * atan2(sqrt($a), sqrt(max(0.0, 1 - $a)));
     }
 
     private function formatDistanceLabel(?int $distanceMeters): ?string
