@@ -1142,6 +1142,14 @@
     (function () {
         window.__QK_NODE_APP_BASE__ = @json(rtrim((string) env('NODE_APP_URL'), '/'));
         window.__QK_USER_ID__ = @json(session('user_id'));
+        /** Updates sticky FAB badge instantly (same dailycartCount as Node API; avoids browser CORS on NODE_APP_URL). */
+        window.setStickyDailyCartBadge = function (n) {
+            var badge = document.querySelector('[data-sticky-cart-badge]');
+            if (!badge) return;
+            var v = parseInt(n, 10);
+            badge.textContent = isFinite(v) && v > 0 ? String(v) : '0';
+        };
+        /** Optional: direct fetch to Node (often blocked by CORS from the browser). Prefer setStickyDailyCartBadge from Laravel AJAX cart_count. */
         window.refreshStickyCartCount = function () {
             var badge = document.querySelector('[data-sticky-cart-badge]');
             if (!badge || !window.__QK_USER_ID__ || !window.__QK_NODE_APP_BASE__) {
@@ -1159,7 +1167,7 @@
                     if (json && json.data && json.data.dailycartCount != null) {
                         n = parseInt(json.data.dailycartCount, 10) || 0;
                     }
-                    badge.textContent = n;
+                    window.setStickyDailyCartBadge(n);
                 })
                 .catch(function () {});
         };

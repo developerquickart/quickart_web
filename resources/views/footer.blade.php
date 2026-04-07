@@ -872,18 +872,19 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                             }
                         }
                     }
-                    var dailyCartCount = result.cart_count.dailycartCount || 0;
+                    var cc = (result.cart_count && typeof result.cart_count === 'object') ? result.cart_count : {};
+                    var dailyCartCount = parseInt(cc.dailycartCount, 10) || 0;
                     // console.log(dailyCartCount);
-                    var subscriptionCartCount = result.cart_count.subscriptioncartCount || 0;
+                    var subscriptionCartCount = parseInt(cc.subscriptioncartCount, 10) || 0;
                     var totalCartCount = dailyCartCount + subscriptionCartCount;
                     jQuery('.cart-value').text(totalCartCount);
-                    if (typeof window.refreshStickyCartCount === 'function') {
-                        window.refreshStickyCartCount();
+                    if (typeof window.setStickyDailyCartBadge === 'function') {
+                        window.setStickyDailyCartBadge(dailyCartCount);
                     }
-                    var totalPrice = parseFloat(result.cart_count.dailytotalPrice) + parseFloat(
-                        result.cart_count.subscriptiontotalPrice);
-                    var savedAmount = parseFloat(result.cart_count.dailydiscountOnMrp) + parseFloat(
-                        result.cart_count.subscriptiondiscountOnMrp);
+                    var totalPrice = parseFloat(cc.dailytotalPrice) + parseFloat(
+                        cc.subscriptiontotalPrice);
+                    var savedAmount = parseFloat(cc.dailydiscountOnMrp) + parseFloat(
+                        cc.subscriptiondiscountOnMrp);
                     jQuery('.countText').text(totalCartCount + ' items | AED ' + totalPrice.toFixed(
                         2));
                     jQuery('.saveText').html('You have saved <span>AED ' + savedAmount.toFixed(2) +

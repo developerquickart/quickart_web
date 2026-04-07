@@ -877,9 +877,6 @@
                                 value: pPrice,
                                 currency: 'AED'
                                 });
-                    if (typeof window.refreshStickyCartCount === 'function') {
-                        window.refreshStickyCartCount();
-                    }
                     // window.location.reload();
                 }
             },
