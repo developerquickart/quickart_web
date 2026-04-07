@@ -24,6 +24,7 @@ class Controller extends BaseController
         // \View::share('user_name',$firstWord);
         
         \View::share('totalCartCount', 0);
+        \View::share('dailyCartCountSticky', 0);
         if($user_ID){
             try {
                 $client = new Client();
@@ -42,6 +43,7 @@ class Controller extends BaseController
                     $subscriptioncartCount = !empty($CartCount['data']['subscriptioncartCount'])?$CartCount['data']['subscriptioncartCount']:0;
                     $totalCartCount = $dailycartCount + $subscriptioncartCount;
                     \View::share('totalCartCount', $totalCartCount);
+                    \View::share('dailyCartCountSticky', $dailycartCount);
                     
                   //  echo "<pre>";print_r($CartCount); echo "</pre>";exit;
 

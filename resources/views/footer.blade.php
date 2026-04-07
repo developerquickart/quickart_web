@@ -877,6 +877,9 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                     var subscriptionCartCount = result.cart_count.subscriptioncartCount || 0;
                     var totalCartCount = dailyCartCount + subscriptionCartCount;
                     jQuery('.cart-value').text(totalCartCount);
+                    if (typeof window.refreshStickyCartCount === 'function') {
+                        window.refreshStickyCartCount();
+                    }
                     var totalPrice = parseFloat(result.cart_count.dailytotalPrice) + parseFloat(
                         result.cart_count.subscriptiontotalPrice);
                     var savedAmount = parseFloat(result.cart_count.dailydiscountOnMrp) + parseFloat(

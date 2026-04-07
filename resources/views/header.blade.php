@@ -460,11 +460,36 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(255, 222, 52, 0.85), 0 8px 24px rgba(30, 33, 94, 0.4);
         }
+        .qk-sticky-cart-fab__inner {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
         .qk-sticky-cart-fab__img {
             width: 24px;
             height: 24px;
             object-fit: contain;
             filter: brightness(0) invert(1);
+        }
+        .qk-sticky-cart-fab__badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: #ffde34;
+            color: #2e317e;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 18px;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            pointer-events: none;
         }
         @media (min-width: 992px) {
             .qk-on-the-way-tag {
@@ -1108,8 +1133,38 @@
        onclick="openCart()"
        class="qk-sticky-cart-fab"
        aria-label="My cart">
-        <img src="{{ asset('assets/images/top_cart.png') }}" alt="" width="24" height="24" class="qk-sticky-cart-fab__img">
+        <span class="qk-sticky-cart-fab__inner">
+            <img src="{{ asset('assets/images/top_cart.png') }}" alt="" width="24" height="24" class="qk-sticky-cart-fab__img">
+            <span class="qk-sticky-cart-fab__badge" data-sticky-cart-badge aria-hidden="true">{{ (int) ($dailyCartCountSticky ?? 0) }}</span>
+        </span>
     </a>
+    <script>
+    (function () {
+        window.__QK_NODE_APP_BASE__ = @json(rtrim((string) env('NODE_APP_URL'), '/'));
+        window.__QK_USER_ID__ = @json(session('user_id'));
+        window.refreshStickyCartCount = function () {
+            var badge = document.querySelector('[data-sticky-cart-badge]');
+            if (!badge || !window.__QK_USER_ID__ || !window.__QK_NODE_APP_BASE__) {
+                return;
+            }
+            var url = window.__QK_NODE_APP_BASE__ + '/updateproductdetails';
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ user_id: window.__QK_USER_ID__ })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (json) {
+                    var n = 0;
+                    if (json && json.data && json.data.dailycartCount != null) {
+                        n = parseInt(json.data.dailycartCount, 10) || 0;
+                    }
+                    badge.textContent = n;
+                })
+                .catch(function () {});
+        };
+    })();
+    </script>
     @endif
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
