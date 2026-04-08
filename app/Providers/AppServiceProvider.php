@@ -34,10 +34,12 @@ class AppServiceProvider extends ServiceProvider
                 'show' => false,
                 'group_id' => null,
             ];
+            $headerAddressList = [];
 
             $userId = session()->get('user_id');
             if (empty($userId)) {
                 $view->with('onTheWayOrder', $onTheWayOrder);
+                $view->with('headerAddressList', $headerAddressList);
                 return;
             }
 
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
                 $nodeAppUrl = env('NODE_APP_URL');
                 if (empty($nodeAppUrl)) {
                     $view->with('onTheWayOrder', $onTheWayOrder);
+                    $view->with('headerAddressList', $headerAddressList);
                     return;
                 }
 
@@ -80,6 +83,21 @@ class AppServiceProvider extends ServiceProvider
                         }
                     }
                 }
+
+                $addressResp = $client->post($nodeAppUrl . 'show_address', [
+                    'json' => [
+                        'user_id' => $userId,
+                        'store_id' => env('STORE_ID'),
+                    ],
+                    'http_errors' => false,
+                    'timeout' => 8,
+                ]);
+                if ($addressResp->getStatusCode() === 200) {
+                    $addressPayload = json_decode($addressResp->getBody()->getContents(), true);
+                    if (is_array($addressPayload) && !empty($addressPayload['data']) && is_array($addressPayload['data'])) {
+                        $headerAddressList = $addressPayload['data'];
+                    }
+                }
             } catch (\Throwable $e) {
                 Log::warning('Unable to fetch Arriving soon order for header', [
                     'user_id' => $userId,
@@ -88,6 +106,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('onTheWayOrder', $onTheWayOrder);
+            $view->with('headerAddressList', $headerAddressList);
         });
     }
 }

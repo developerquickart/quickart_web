@@ -342,6 +342,77 @@
             text-overflow: ellipsis;
             max-width: 360px;
         }
+        .qk-delivery-eta__meta { gap: 8px; }
+        .qk-location-switch-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            padding: 0;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .qk-location-switch-btn svg { display: block; }
+        .qk-location-switch-sheet .modal-dialog {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0;
+            width: 100%;
+            max-width: 100%;
+            transform: translateY(100%);
+            transition: transform .22s ease-out;
+        }
+        .qk-location-switch-sheet.show .modal-dialog { transform: translateY(0); }
+        .qk-location-switch-sheet .modal-content {
+            border: 0;
+            border-radius: 18px 18px 0 0;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        .qk-location-switch-body { padding: 14px; }
+        .qk-header-map {
+            height: 220px;
+            border-radius: 12px;
+            border: 1px solid #e3e6ef;
+            margin-top: 8px;
+        }
+        .qk-header-address-list {
+            margin-top: 12px;
+            max-height: 210px;
+            overflow-y: auto;
+            border: 1px solid #eceef3;
+            border-radius: 10px;
+            background: #fafbff;
+        }
+        .qk-header-address-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 10px 12px;
+            border-bottom: 1px solid #eceef3;
+            cursor: pointer;
+        }
+        .qk-header-address-item:last-child { border-bottom: none; }
+        .qk-header-address-item input { margin-top: 4px; }
+        .qk-header-address-item strong { display: block; font-size: 13px; color: #1a237e; }
+        .qk-header-address-item span { display: block; font-size: 12px; color: #666; }
+        .qk-header-selected-source {
+            margin-top: 10px;
+            margin-bottom: 2px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: #eef2ff;
+            color: #1a237e;
+            font-size: 12px;
+            font-weight: 600;
+        }
         .qk-delivery-eta__link {
             color: inherit;
             text-decoration: none;
@@ -878,6 +949,15 @@
                                 </div>
                                 <div class="qk-delivery-eta__meta">
                                     <span class="qk-delivery-eta__location" data-delivery-eta-location>{{ session('delivery_location_name') ?: 'Current location' }}</span>
+                                    <button type="button"
+                                        class="qk-location-switch-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#headerLocationSwitchModal"
+                                        aria-label="Change delivery location">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M12 2a7 7 0 0 1 7 7c0 4.52-5.04 10.88-6.24 12.32a1 1 0 0 1-1.52 0C10.04 19.88 5 13.52 5 9a7 7 0 0 1 7-7zm0 9.5A2.5 2.5 0 1 0 12 6a2.5 2.5 0 0 0 0 5.5z" fill="currentColor"/>
+                                        </svg>
+                                    </button>
                                 </div>
                             </div>
                             </a>
@@ -898,6 +978,52 @@
                                 <button class="btn search_buttonBox" type="submit" id="searchBtn">
                                     <img src="https://www.quickart.ae/assets/images/search_icon.png" alt="search" class="img-fluid search_icon">
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal fade qk-location-switch-sheet" id="headerLocationSwitchModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Change delivery location</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="qk-location-switch-body">
+                                <div class="d-flex gap-2 mb-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm qk-header-current-location-btn">Fetch current location</button>
+                                    <span class="small text-muted align-self-center">Or pick on map / choose saved address</span>
+                                </div>
+                                <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
+                                <div id="qk-header-location-map" class="qk-header-map"></div>
+                                <div class="qk-header-selected-source">
+                                    Selected source: <span class="qk-header-selected-source-value">Not selected</span>
+                                </div>
+
+                                <div class="qk-header-address-list">
+                                    @if(!empty($headerAddressList) && is_array($headerAddressList))
+                                        @foreach($headerAddressList as $hAddress)
+                                            <label class="qk-header-address-item">
+                                                <input type="radio"
+                                                    name="qk_header_location_choice"
+                                                    class="qk-header-address-radio"
+                                                    data-lat="{{ $hAddress['lat'] ?? '' }}"
+                                                    data-lng="{{ $hAddress['lng'] ?? '' }}"
+                                                    data-name="{{ trim(($hAddress['house_no'] ?? '') . ', ' . ($hAddress['society_name'] ?? '')) }}"
+                                                    value="{{ $hAddress['address_id'] ?? '' }}">
+                                                <div>
+                                                    <strong>{{ $hAddress['type'] ?? 'Address' }}</strong>
+                                                    <span>{{ trim(($hAddress['house_no'] ?? '') . ', ' . ($hAddress['society_name'] ?? '')) }}</span>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    @else
+                                        <div class="p-3 small text-muted">No saved addresses found. Choose on map or fetch current location.</div>
+                                    @endif
+                                </div>
+
+                                <button type="button" class="submit_btn w-100 mt-3 qk-header-location-apply-btn">Change location</button>
                             </div>
                         </div>
                     </div>
@@ -1209,7 +1335,8 @@
         (function () {
             var roots = document.querySelectorAll('[data-delivery-eta-root]');
             if (!roots.length) return;
-            fetch('{{ url('/delivery-eta') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+            window.qkRefreshDeliveryEtaStrip = function () {
+                fetch('{{ url('/delivery-eta') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function (r) {
                     if (!r.ok) throw new Error('delivery-eta');
                     return r.json();
@@ -1270,6 +1397,8 @@
                         if (distanceEl) distanceEl.style.display = 'none';
                     });
                 });
+            };
+            window.qkRefreshDeliveryEtaStrip();
         })();
         </script>
         @endif
@@ -1345,6 +1474,12 @@
         let selectedLoginLat = null;
         let selectedLoginLng = null;
         let waitlistUserId = null;
+        let headerSwitchMap = null;
+        let headerSwitchMarker = null;
+        let headerSwitchAutocomplete = null;
+        let selectedHeaderLat = null;
+        let selectedHeaderLng = null;
+        let selectedHeaderLocationName = '';
 
         function resetLoginLocationStep() {
             selectedLoginLat = null;
@@ -1613,6 +1748,121 @@
             });
             loginLocationMap.setCenter({ lat: lat, lng: lng });
             $('.confirm_map_location_btn').prop('disabled', false);
+        }
+
+        function initHeaderLocationSwitchMap(defaultLat, defaultLng) {
+            const mapCenter = {
+                lat: defaultLat || 25.2048,
+                lng: defaultLng || 55.2708
+            };
+            headerSwitchMap = new google.maps.Map(document.getElementById('qk-header-location-map'), {
+                center: mapCenter,
+                zoom: 14,
+                mapTypeId: 'roadmap',
+            });
+            const input = document.querySelector('.qk-header-location-search');
+            if (input) {
+                headerSwitchAutocomplete = new google.maps.places.Autocomplete(input);
+                headerSwitchAutocomplete.addListener('place_changed', function () {
+                    const place = headerSwitchAutocomplete.getPlace();
+                    if (!place.geometry || !place.geometry.location) {
+                        return;
+                    }
+                    const lat = place.geometry.location.lat();
+                    const lng = place.geometry.location.lng();
+                    const name = (place.formatted_address || input.value || 'Selected location').trim();
+                    setHeaderLocationMarker(lat, lng, name);
+                    setHeaderSelectedSourceLabel('Map selection', name);
+                });
+            }
+            headerSwitchMap.addListener('click', function (event) {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                setHeaderLocationMarker(lat, lng, 'Selected location');
+                setHeaderSelectedSourceLabel('Map selection', 'Selected location');
+            });
+        }
+
+        function setHeaderLocationMarker(lat, lng, locationName) {
+            selectedHeaderLat = lat;
+            selectedHeaderLng = lng;
+            selectedHeaderLocationName = (locationName || 'Selected location').trim();
+            if (!headerSwitchMap) {
+                return;
+            }
+            if (headerSwitchMarker) {
+                headerSwitchMarker.setMap(null);
+            }
+            headerSwitchMarker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: headerSwitchMap
+            });
+            headerSwitchMap.setCenter({ lat: lat, lng: lng });
+            $('.qk-header-address-radio').prop('checked', false);
+        }
+
+        function setHeaderSelectedSourceLabel(source, locationName) {
+            var sourceText = source || 'Not selected';
+            var nameText = (locationName || '').trim();
+            var finalText = sourceText;
+            if (nameText) {
+                finalText += ' - ' + nameText;
+            }
+            $('.qk-header-selected-source-value').text(finalText);
+        }
+
+        function submitHeaderLocationCheck(lat, lng, locationName) {
+            var _token = jQuery('meta[name="csrf-token"]').attr('content');
+            var norm = normalizeLoginCoordsForSubmit(lat, lng, 'submitHeaderLocationCheck');
+            if (!norm) {
+                Swal.fire({ icon: 'error', title: 'Error Occured', text: 'Invalid coordinates selected.' });
+                return;
+            }
+            $.ajax({
+                url: "{{ route('checkAddressLocationRange') }}",
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: _token,
+                    lat: norm.lat,
+                    lng: norm.lng,
+                    location_name: locationName || 'Selected location'
+                },
+                success: function (response) {
+                    if (response.success && response.in_range === true) {
+                        var label = response.location_name || locationName || 'Current location';
+                        $('[data-delivery-eta-location]').text(label);
+                        if (typeof window.qkRefreshDeliveryEtaStrip === 'function') {
+                            window.qkRefreshDeliveryEtaStrip();
+                        }
+                        $('#headerLocationSwitchModal').modal('hide');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Location updated',
+                            text: response.message || 'Delivery location changed successfully.'
+                        });
+                    } else if (response.success && response.in_range === false) {
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Out of range',
+                            text: response.message || 'please select a location in our servicable area'
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: (response && response.message) ? response.message : 'Unable to validate location.'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    let msg = 'Unable to validate location. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    Swal.fire({ icon: 'error', title: 'Error', text: msg });
+                }
+            });
         }
 
         function resendOtp(element) {
@@ -1965,6 +2215,85 @@
                 }
                 const pickedLocationName = ($('#login-location-search').val() || '').trim() || 'Selected location';
                 submitLoginLocationCheck(selectedLoginLat, selectedLoginLng, pickedLocationName);
+            });
+
+            $('#headerLocationSwitchModal').on('shown.bs.modal', function () {
+                setHeaderSelectedSourceLabel('Not selected', '');
+                ensureLoginMapLoaded(function () {
+                    if (!headerSwitchMap) {
+                        var initLat = Number('{{ session('delivery_user_lat') ?: 25.2048 }}');
+                        var initLng = Number('{{ session('delivery_user_lng') ?: 55.2708 }}');
+                        initHeaderLocationSwitchMap(initLat, initLng);
+                        if (isFinite(initLat) && isFinite(initLng)) {
+                            setHeaderLocationMarker(initLat, initLng, '{{ session('delivery_location_name') ?: 'Current location' }}');
+                        }
+                    }
+                    setTimeout(function () {
+                        if (headerSwitchMap) {
+                            google.maps.event.trigger(headerSwitchMap, 'resize');
+                            if (selectedHeaderLat !== null && selectedHeaderLng !== null) {
+                                headerSwitchMap.setCenter({ lat: selectedHeaderLat, lng: selectedHeaderLng });
+                            }
+                        }
+                    }, 120);
+                });
+            });
+
+            $('.qk-header-address-radio').on('change', function () {
+                var rawLat = $(this).data('lat');
+                var rawLng = $(this).data('lng');
+                var name = ($(this).data('name') || 'Saved address').toString().trim();
+                var lat = Number(rawLat);
+                var lng = Number(rawLng);
+                if (!isFinite(lat) || !isFinite(lng)) {
+                    return;
+                }
+                setHeaderLocationMarker(lat, lng, name);
+                setHeaderSelectedSourceLabel('Saved address', name);
+            });
+
+            $('.qk-header-current-location-btn').on('click', function () {
+                var $btn = $(this);
+                if (!navigator.geolocation) {
+                    Swal.fire({ icon: 'error', title: 'Error Occured', text: 'Your browser does not support geolocation.' });
+                    return;
+                }
+                if ($btn.data('qk-location-loading')) {
+                    return;
+                }
+                $btn.data('qk-location-loading', true);
+                ensureLoginMapLoaded(function () {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        $btn.data('qk-location-loading', false);
+                        var lat = position.coords.latitude;
+                        var lng = position.coords.longitude;
+                        setHeaderLocationMarker(lat, lng, 'Current location');
+                        setHeaderSelectedSourceLabel('Current location', 'Current location');
+                    }, function () {
+                        $btn.data('qk-location-loading', false);
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Location Permission Required',
+                            text: 'Unable to fetch current location. Please choose from map or saved address.'
+                        });
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                });
+            });
+
+            $('.qk-header-location-apply-btn').on('click', function () {
+                if (selectedHeaderLat === null || selectedHeaderLng === null) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select Location',
+                        text: 'Please select a saved address, pick on map, or fetch current location first.'
+                    });
+                    return;
+                }
+                submitHeaderLocationCheck(selectedHeaderLat, selectedHeaderLng, selectedHeaderLocationName || 'Selected location');
             });
 
             $('.join_waitlist_btn').on('click', function () {
