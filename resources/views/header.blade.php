@@ -377,6 +377,24 @@
             overflow-y: auto;
         }
         .qk-location-switch-body { padding: 14px; }
+        .qk-header-location-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .qk-header-location-action-btn {
+            width: 100%;
+            min-height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            white-space: normal;
+            line-height: 1.2;
+            font-size: 12px;
+            padding: 8px 10px;
+        }
         .qk-header-map {
             height: 220px;
             border-radius: 12px;
@@ -412,6 +430,15 @@
             color: #1a237e;
             font-size: 12px;
             font-weight: 600;
+        }
+        @media (max-width: 480px) {
+            .qk-header-location-actions {
+                grid-template-columns: 1fr;
+            }
+            .qk-header-location-action-btn {
+                min-height: 42px;
+                font-size: 13px;
+            }
         }
         .qk-delivery-eta__link {
             color: inherit;
@@ -991,9 +1018,9 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="qk-location-switch-body">
-                                <div class="d-flex gap-2 mb-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm qk-header-current-location-btn">Fetch current location</button>
-                                    <span class="small text-muted align-self-center">Or pick on map / choose saved address</span>
+                                <div class="qk-header-location-actions">
+                                    <button type="button" class="btn btn-outline-primary btn-sm qk-header-location-action-btn qk-header-current-location-btn">Fetch current location</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm qk-header-location-action-btn qk-header-manual-location-btn">Enter manually on map</button>
                                 </div>
                                 <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
                                 <div id="qk-header-location-map" class="qk-header-map"></div>
@@ -2300,6 +2327,18 @@
                         maximumAge: 0
                     });
                 });
+            });
+
+            $('.qk-header-manual-location-btn').on('click', function () {
+                var mapEl = document.getElementById('qk-header-location-map');
+                var searchEl = document.querySelector('.qk-header-location-search');
+                if (mapEl && typeof mapEl.scrollIntoView === 'function') {
+                    mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                if (searchEl) {
+                    setTimeout(function () { searchEl.focus(); }, 220);
+                }
+                setHeaderSelectedSourceLabel('Map selection', '');
             });
 
             $('.qk-header-location-apply-btn').on('click', function () {
