@@ -2312,6 +2312,12 @@
                 submitHeaderLocationCheck(selectedHeaderLat, selectedHeaderLng, selectedHeaderLocationName || 'Selected location');
             });
 
+            $('.qk-location-switch-btn').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+
             $('.join_waitlist_btn').on('click', function () {
                 var _token = jQuery('meta[name="csrf-token"]').attr('content');
                 const sentUserId = waitlistUserId;
