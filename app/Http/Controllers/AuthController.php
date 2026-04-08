@@ -516,7 +516,9 @@ class AuthController extends Controller
             ]);
 
             $pendingUser = $request->session()->get('pending_login_user');
-            if (empty($pendingUser) || empty($pendingUser['id'])) {
+            $hasPendingLogin = !empty($pendingUser) && !empty($pendingUser['id']);
+            $loggedInUserId = (int) $request->session()->get('user_id', 0);
+            if (!$hasPendingLogin && $loggedInUserId <= 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Session expired. Please verify OTP again.',
@@ -586,11 +588,13 @@ class AuthController extends Controller
                 ]);
             }
 
-            // Finalize login only after location gate passes.
-            $request->session()->put('user_id', $pendingUser['id']);
-            $request->session()->put('user_phone', $pendingUser['email']);
-            $request->session()->put('user_email', $pendingUser['user_phone']);
-            $request->session()->put('user_name', $pendingUser['name']);
+            // Finalize login only when OTP pending session exists; otherwise keep active login intact.
+            if ($hasPendingLogin) {
+                $request->session()->put('user_id', $pendingUser['id']);
+                $request->session()->put('user_phone', $pendingUser['email']);
+                $request->session()->put('user_email', $pendingUser['user_phone']);
+                $request->session()->put('user_name', $pendingUser['name']);
+            }
             $request->session()->put('delivery_user_lat', $lat);
             $request->session()->put('delivery_user_lng', $lng);
             $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
@@ -605,7 +609,9 @@ class AuthController extends Controller
                     'store_id' => $nearestStore->id ?? null,
                 ]);
             }
-            $request->session()->forget('pending_login_user');
+            if ($hasPendingLogin) {
+                $request->session()->forget('pending_login_user');
+            }
             $request->session()->save();
 
             return response()->json([
