@@ -376,25 +376,123 @@
             max-height: 85vh;
             overflow-y: auto;
         }
-        .qk-location-switch-body { padding: 14px; }
-        .qk-header-location-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
+        .qk-location-switch-close {
+            border: 0;
+            background: transparent;
+            color: #1a237e;
+            font-size: 24px;
+            line-height: 1;
+            padding: 0 2px;
+            cursor: pointer;
         }
-        .qk-header-location-action-btn {
+        .qk-location-switch-body { padding: 14px; }
+        .qk-header-location-actions { margin-bottom: 10px; }
+        .qk-header-current-location-card {
             width: 100%;
-            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1px solid #e4e8ef;
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px 12px;
+            color: #1a237e;
+        }
+        .qk-header-current-location-card:hover { background: #f8fbff; }
+        .qk-header-current-location-left { display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+        .qk-header-current-location-icon {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #e9f7ec;
+            color: #1f8f3a;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            text-align: center;
-            white-space: normal;
-            line-height: 1.2;
-            font-size: 12px;
-            padding: 8px 10px;
+            flex-shrink: 0;
+            margin-top: 1px;
         }
+        .qk-header-current-location-title {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #2a8e3a;
+            line-height: 1.1;
+            text-align: left;
+        }
+        .qk-header-current-location-sub {
+            display: block;
+            margin-top: 2px;
+            font-size: 12px;
+            color: #6f7484;
+            line-height: 1.25;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+        .qk-header-current-location-arrow {
+            color: #8b91a4;
+            flex-shrink: 0;
+        }
+        .qk-header-add-address-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border: 1px solid #e4e8ef;
+            border-radius: 12px;
+            background: #fff;
+            padding: 10px 12px;
+            color: #1a237e;
+            margin-top: 8px;
+            text-decoration: none;
+        }
+        .qk-header-add-address-btn:hover { text-decoration: none; color: #1a237e; background: #fafcff; }
+        .qk-header-add-address-left { display: flex; align-items: center; gap: 10px; }
+        .qk-header-add-address-plus {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #eef2ff;
+            color: #2e317e;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .qk-header-add-address-text { font-size: 16px; font-weight: 700; color: #2e317e; }
+        .qk-header-location-search-wrap {
+            position: relative;
+        }
+        .qk-header-location-search {
+            padding-right: 34px;
+        }
+        .qk-header-search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border: 0;
+            border-radius: 50%;
+            background: #eef1f6;
+            color: #5f6678;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+        }
+        .qk-header-search-clear.qk-visible { display: inline-flex; }
         .qk-header-map {
             height: 220px;
             border-radius: 12px;
@@ -432,13 +530,7 @@
             font-weight: 600;
         }
         @media (max-width: 480px) {
-            .qk-header-location-actions {
-                grid-template-columns: 1fr;
-            }
-            .qk-header-location-action-btn {
-                min-height: 42px;
-                font-size: 13px;
-            }
+            .qk-header-current-location-title { font-size: 15px; }
         }
         @media (max-width: 767.98px) {
             .feature_section,
@@ -1021,14 +1113,45 @@
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">Change delivery location</h5>
+                                <button type="button" class="qk-location-switch-close" data-bs-dismiss="modal" aria-label="Close popup">&times;</button>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="qk-location-switch-body">
                                 <div class="qk-header-location-actions">
-                                    <button type="button" class="btn btn-outline-primary btn-sm qk-header-location-action-btn qk-header-current-location-btn">Fetch current location</button>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm qk-header-location-action-btn qk-header-manual-location-btn">Enter manually on map</button>
+                                    <button type="button" class="qk-header-current-location-card qk-header-current-location-btn">
+                                        <span class="qk-header-current-location-left">
+                                            <span class="qk-header-current-location-icon" aria-hidden="true">
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9 3h-2.07A7.01 7.01 0 0 0 13 5.07V3h-2v2.07A7.01 7.01 0 0 0 5.07 11H3v2h2.07A7.01 7.01 0 0 0 11 18.93V21h2v-2.07A7.01 7.01 0 0 0 18.93 13H21v-2Zm-9 6a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z" fill="currentColor"/>
+                                                </svg>
+                                            </span>
+                                            <span>
+                                                <span class="qk-header-current-location-title">Use current location</span>
+                                                <span class="qk-header-current-location-sub">Get your exact location automatically</span>
+                                            </span>
+                                        </span>
+                                        <span class="qk-header-current-location-arrow" aria-hidden="true">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </span>
+                                    </button>
                                 </div>
-                                <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
+                                <a href="{{ url('/add-address?screen_name=add-address') }}" class="qk-header-add-address-btn">
+                                    <span class="qk-header-add-address-left">
+                                        <span class="qk-header-add-address-plus">+</span>
+                                        <span class="qk-header-add-address-text">Add address</span>
+                                    </span>
+                                    <span class="qk-header-current-location-arrow" aria-hidden="true">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </span>
+                                </a>
+                                <div class="qk-header-location-search-wrap">
+                                    <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
+                                    <button type="button" class="qk-header-search-clear" aria-label="Clear search">&times;</button>
+                                </div>
                                 <div id="qk-header-location-map" class="qk-header-map"></div>
                                 <div class="qk-header-selected-source">
                                     Selected source: <span class="qk-header-selected-source-value">Not selected</span>
@@ -2335,17 +2458,28 @@
                 });
             });
 
-            $('.qk-header-manual-location-btn').on('click', function () {
-                var mapEl = document.getElementById('qk-header-location-map');
-                var searchEl = document.querySelector('.qk-header-location-search');
-                if (mapEl && typeof mapEl.scrollIntoView === 'function') {
-                    mapEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (function initHeaderLocationSearchClear() {
+                var searchInput = document.querySelector('.qk-header-location-search');
+                var clearBtn = document.querySelector('.qk-header-search-clear');
+                if (!searchInput || !clearBtn) return;
+
+                function toggleClearBtn() {
+                    if ((searchInput.value || '').trim() !== '') {
+                        clearBtn.classList.add('qk-visible');
+                    } else {
+                        clearBtn.classList.remove('qk-visible');
+                    }
                 }
-                if (searchEl) {
-                    setTimeout(function () { searchEl.focus(); }, 220);
-                }
-                setHeaderSelectedSourceLabel('Map selection', '');
-            });
+
+                searchInput.addEventListener('input', toggleClearBtn);
+                searchInput.addEventListener('focus', toggleClearBtn);
+                clearBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    clearBtn.classList.remove('qk-visible');
+                    searchInput.focus();
+                });
+                $('#headerLocationSwitchModal').on('shown.bs.modal', toggleClearBtn);
+            })();
 
             $('.qk-header-location-apply-btn').on('click', function () {
                 if (selectedHeaderLat === null || selectedHeaderLng === null) {
