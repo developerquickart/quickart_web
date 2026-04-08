@@ -469,6 +469,7 @@
         .qk-header-add-address-text { font-size: 16px; font-weight: 700; color: #2e317e; }
         .qk-header-location-search-wrap {
             position: relative;
+            z-index: 2;
         }
         .qk-header-location-search {
             padding-right: 34px;
@@ -493,11 +494,26 @@
             cursor: pointer;
         }
         .qk-header-search-clear.qk-visible { display: inline-flex; }
+        .qk-header-map-wrap {
+            position: relative;
+            margin-top: 8px;
+        }
+        .qk-header-map-wrap .qk-header-location-search-wrap {
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            top: 10px;
+        }
+        .qk-header-map-wrap .qk-header-location-search {
+            background: #fff;
+            border: 1px solid #e4e8ef;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
         .qk-header-map {
             height: 220px;
             border-radius: 12px;
             border: 1px solid #e3e6ef;
-            margin-top: 8px;
+            margin-top: 0;
         }
         .qk-header-address-list {
             margin-top: 12px;
@@ -1148,11 +1164,13 @@
                                         </svg>
                                     </span>
                                 </a>
-                                <div class="qk-header-location-search-wrap">
-                                    <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
-                                    <button type="button" class="qk-header-search-clear" aria-label="Clear search">&times;</button>
+                                <div class="qk-header-map-wrap">
+                                    <div class="qk-header-location-search-wrap">
+                                        <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
+                                        <button type="button" class="qk-header-search-clear" aria-label="Clear search">&times;</button>
+                                    </div>
+                                    <div id="qk-header-location-map" class="qk-header-map"></div>
                                 </div>
-                                <div id="qk-header-location-map" class="qk-header-map"></div>
                                 <div class="qk-header-selected-source">
                                     Selected source: <span class="qk-header-selected-source-value">Not selected</span>
                                 </div>
