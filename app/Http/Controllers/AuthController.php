@@ -531,11 +531,11 @@ class AuthController extends Controller
                 "SELECT
                     id,
                     name,
-                    max_delivery_distance,
+                    del_range,
                     ST_DWithin(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                        COALESCE(max_delivery_distance, 10000)
+                        COALESCE(del_range, 5) * 1000
                     ) AS in_range,
                     ST_Distance(
                         location,
@@ -543,12 +543,11 @@ class AuthController extends Controller
                     ) AS distance_meters,
                     ST_Y(location::geometry)::float AS store_lat,
                     ST_X(location::geometry)::float AS store_lng
-                 FROM stores
-                 WHERE location IS NOT NULL
+                 FROM store
+                 WHERE id = 7
+                   AND location IS NOT NULL
                    AND ST_Y(location::geometry) IS NOT NULL
-                   AND ST_X(location::geometry) IS NOT NULL
-                 ORDER BY distance_meters ASC
-                 LIMIT 1",
+                   AND ST_X(location::geometry) IS NOT NULL",
                 [$lng, $lat, $lng, $lat]
             );
 
@@ -656,11 +655,11 @@ class AuthController extends Controller
                 "SELECT
                     id,
                     name,
-                    max_delivery_distance,
+                    del_range,
                     ST_DWithin(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                        COALESCE(max_delivery_distance, 10000)
+                        COALESCE(del_range, 5) * 1000
                     ) AS in_range,
                     ST_Distance(
                         location,
@@ -668,12 +667,11 @@ class AuthController extends Controller
                     ) AS distance_meters,
                     ST_Y(location::geometry)::float AS store_lat,
                     ST_X(location::geometry)::float AS store_lng
-                 FROM stores
-                 WHERE location IS NOT NULL
+                 FROM store
+                 WHERE id = 7
+                   AND location IS NOT NULL
                    AND ST_Y(location::geometry) IS NOT NULL
-                   AND ST_X(location::geometry) IS NOT NULL
-                 ORDER BY distance_meters ASC
-                 LIMIT 1",
+                   AND ST_X(location::geometry) IS NOT NULL",
                 [$lng, $lat, $lng, $lat]
             );
 
