@@ -530,7 +530,7 @@ class AuthController extends Controller
             $locationName = trim((string) $request->input('location_name', ''));
             $storeDistanceSql = "SELECT
                     id,
-                    name,
+                    store_name AS name,
                     del_range,
                     ST_DWithin(
                         location,
@@ -676,7 +676,7 @@ class AuthController extends Controller
             $locationName = trim((string) $request->input('location_name', ''));
             $storeDistanceSql = "SELECT
                     id,
-                    name,
+                    store_name AS name,
                     del_range,
                     ST_DWithin(
                         location,
