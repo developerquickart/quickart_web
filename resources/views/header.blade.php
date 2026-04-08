@@ -2364,19 +2364,29 @@
         
         document.addEventListener("DOMContentLoaded", function () {
             const loginModal = document.getElementById('login');
+            if (!loginModal) {
+                return;
+            }
             // Listen for modal close event
             loginModal.addEventListener('hidden.bs.modal', function () {
                 // Reset to login_step1
-                document.querySelector('.login_step1').classList.remove('d-none');
-                document.querySelector('.login_step2').classList.add('d-none');
-                document.querySelector('.login_step3').classList.add('d-none');
+                const step1 = document.querySelector('.login_step1');
+                const step2 = document.querySelector('.login_step2');
+                const step3 = document.querySelector('.login_step3');
+                if (step1) step1.classList.remove('d-none');
+                if (step2) step2.classList.add('d-none');
+                if (step3) step3.classList.add('d-none');
                 // Optionally clear form fields or error messages
-                document.querySelector('.login_form_step1').reset();
-                document.querySelector('.login_form_step2').reset();
+                const formStep1 = document.querySelector('.login_form_step1');
+                const formStep2 = document.querySelector('.login_form_step2');
+                if (formStep1 && typeof formStep1.reset === 'function') formStep1.reset();
+                if (formStep2 && typeof formStep2.reset === 'function') formStep2.reset();
                 resetLoginLocationStep();
                 // Optional: Reset timer or messages
-                document.getElementById('otpText').style.display = 'block';
-                document.getElementById('resendLink').style.display = 'none';
+                const otpTextEl = document.getElementById('otpText');
+                const resendLinkEl = document.getElementById('resendLink');
+                if (otpTextEl) otpTextEl.style.display = 'block';
+                if (resendLinkEl) resendLinkEl.style.display = 'none';
             });
         });
     </script>
@@ -2478,8 +2488,10 @@
             // console.log(window.location.href);
         }
         
-          document.getElementById('searchBtn').addEventListener('click', function () {
+          const searchBtnEl = document.getElementById('searchBtn');
+          if (searchBtnEl) searchBtnEl.addEventListener('click', function () {
             const input = document.getElementById('searchInput');
+            if (!input) return;
             const keyword = input.value.trim();
         
             if (keyword.length > 0) {
@@ -2500,12 +2512,18 @@
     const overlay = document.getElementById('search-overlay');
     const popup = document.getElementById('suggestionsModal');
     const popupClose = document.getElementById('suggestionsModal-close');
+    if (!searchInput || !overlay || !popup || !popupClose) {
+      return;
+    }
     
     const urlParams = new URLSearchParams(window.location.search);
     const name = urlParams.get('name');
     if (name) {
         if (window.location.href.includes('product-details')) {
-            document.getElementById('searchInput').value = document.getElementById('txt_product_name').value;
+            const txtProductNameEl = document.getElementById('txt_product_name');
+            if (txtProductNameEl) {
+                document.getElementById('searchInput').value = txtProductNameEl.value;
+            }
         }else{
             document.getElementById('searchInput').value = decodeURIComponent(name); //.replace(/-/g, ' '));
         }
