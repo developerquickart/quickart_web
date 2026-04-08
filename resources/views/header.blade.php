@@ -2353,6 +2353,58 @@
                 submitHeaderLocationCheck(selectedHeaderLat, selectedHeaderLng, selectedHeaderLocationName || 'Selected location');
             });
 
+            (function initHeaderSheetSwipeToClose() {
+                var modalEl = document.getElementById('headerLocationSwitchModal');
+                if (!modalEl) return;
+                var dialogEl = modalEl.querySelector('.modal-dialog');
+                if (!dialogEl) return;
+
+                var touchStartY = 0;
+                var touchCurrentY = 0;
+                var dragging = false;
+                var closeThreshold = 90;
+
+                function resetDialogPosition() {
+                    dialogEl.style.transition = 'transform .2s ease-out';
+                    dialogEl.style.transform = '';
+                    setTimeout(function () {
+                        dialogEl.style.transition = '';
+                    }, 220);
+                }
+
+                modalEl.addEventListener('touchstart', function (e) {
+                    if (!e.touches || !e.touches.length) return;
+                    touchStartY = e.touches[0].clientY;
+                    touchCurrentY = touchStartY;
+                    dragging = true;
+                }, { passive: true });
+
+                modalEl.addEventListener('touchmove', function (e) {
+                    if (!dragging || !e.touches || !e.touches.length) return;
+                    touchCurrentY = e.touches[0].clientY;
+                    var deltaY = touchCurrentY - touchStartY;
+                    if (deltaY > 0) {
+                        dialogEl.style.transform = 'translateY(' + deltaY + 'px)';
+                    }
+                }, { passive: true });
+
+                modalEl.addEventListener('touchend', function () {
+                    if (!dragging) return;
+                    dragging = false;
+                    var deltaY = touchCurrentY - touchStartY;
+                    if (deltaY > closeThreshold) {
+                        $('#headerLocationSwitchModal').modal('hide');
+                        resetDialogPosition();
+                        return;
+                    }
+                    resetDialogPosition();
+                });
+
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    resetDialogPosition();
+                });
+            })();
+
             $('.qk-location-switch-btn').on('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
