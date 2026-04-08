@@ -2362,7 +2362,6 @@
                 var touchStartY = 0;
                 var touchCurrentY = 0;
                 var dragging = false;
-                var closeThreshold = 90;
 
                 function resetDialogPosition() {
                     dialogEl.style.transition = 'transform .2s ease-out';
@@ -2392,7 +2391,9 @@
                     if (!dragging) return;
                     dragging = false;
                     var deltaY = touchCurrentY - touchStartY;
-                    if (deltaY > closeThreshold) {
+                    var dialogHeight = dialogEl.offsetHeight || 0;
+                    var nearBottomThreshold = dialogHeight > 0 ? (dialogHeight * 0.8) : 320;
+                    if (deltaY >= nearBottomThreshold) {
                         $('#headerLocationSwitchModal').modal('hide');
                         resetDialogPosition();
                         return;
