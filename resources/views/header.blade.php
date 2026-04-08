@@ -1791,7 +1791,7 @@
             });
         }
 
-        function setHeaderLocationMarker(lat, lng, locationName) {
+        function setHeaderLocationMarker(lat, lng, locationName, preserveSelectedAddressRadio) {
             selectedHeaderLat = lat;
             selectedHeaderLng = lng;
             selectedHeaderLocationName = (locationName || 'Selected location').trim();
@@ -1806,7 +1806,9 @@
                 map: headerSwitchMap
             });
             headerSwitchMap.setCenter({ lat: lat, lng: lng });
-            $('.qk-header-address-radio').prop('checked', false);
+            if (!preserveSelectedAddressRadio) {
+                $('.qk-header-address-radio').prop('checked', false);
+            }
         }
 
         function setHeaderSelectedSourceLabel(source, locationName) {
@@ -2264,7 +2266,7 @@
                 if (!isFinite(lat) || !isFinite(lng)) {
                     return;
                 }
-                setHeaderLocationMarker(lat, lng, name);
+                setHeaderLocationMarker(lat, lng, name, true);
                 setHeaderSelectedSourceLabel('Saved address', name);
             });
 
