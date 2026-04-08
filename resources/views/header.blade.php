@@ -1634,6 +1634,10 @@
                 },
                 success: function (response) {
                     console.log('[qk-login-location] check-login-location-range response', response);
+                    if (response && response.debug_sql) {
+                        console.log('[qk-login-location] SQL', response.debug_sql);
+                        console.log('[qk-login-location] SQL bindings', response.debug_bindings || []);
+                    }
                     if (response.success && response.in_range) {
                         handleSuccessfulLoginAfterLocation(response.message);
                     } else if (response.success && response.in_range === false) {
@@ -1669,6 +1673,10 @@
                         err: err,
                         responseJSON: xhr.responseJSON
                     });
+                    if (xhr.responseJSON && xhr.responseJSON.debug_sql) {
+                        console.log('[qk-login-location] SQL (error path)', xhr.responseJSON.debug_sql);
+                        console.log('[qk-login-location] SQL bindings (error path)', xhr.responseJSON.debug_bindings || []);
+                    }
                     let msg = 'Unable to validate location. Please try again.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
@@ -1829,6 +1837,10 @@
                     location_name: locationName || 'Selected location'
                 },
                 success: function (response) {
+                    if (response && response.debug_sql) {
+                        console.log('[qk-header-location] SQL', response.debug_sql);
+                        console.log('[qk-header-location] SQL bindings', response.debug_bindings || []);
+                    }
                     if (response.success && response.in_range === true) {
                         var label = response.location_name || locationName || 'Current location';
                         $('[data-delivery-eta-location]').text(label);
@@ -1856,6 +1868,10 @@
                     }
                 },
                 error: function (xhr) {
+                    if (xhr.responseJSON && xhr.responseJSON.debug_sql) {
+                        console.log('[qk-header-location] SQL (error path)', xhr.responseJSON.debug_sql);
+                        console.log('[qk-header-location] SQL bindings (error path)', xhr.responseJSON.debug_bindings || []);
+                    }
                     let msg = 'Unable to validate location. Please try again.';
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;

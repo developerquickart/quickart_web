@@ -1360,6 +1360,7 @@ function openSneakyBanner(bannerName) {
 <!-- OFFERS BANNER SLIDER START -->
 <script>
     const sliderBox = document.querySelector('.offer_sliderBox');
+    if (sliderBox) {
 
     // Arrow key scrolling
     window.addEventListener('keydown', function(event) {
@@ -1409,6 +1410,7 @@ function openSneakyBanner(bannerName) {
             window.location.href="{{url('trial-pack')}}";
         }
     });
+    }
 </script>
 <!-- OFFERS BANNER SLIDER END -->
 

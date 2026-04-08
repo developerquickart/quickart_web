@@ -528,16 +528,14 @@ class AuthController extends Controller
             $lat = (float) $validated['lat'];
             $lng = (float) $validated['lng'];
             $locationName = trim((string) $request->input('location_name', ''));
-
-            $nearestStore = DB::selectOne(
-                "SELECT
+            $storeDistanceSql = "SELECT
                     id,
                     name,
                     del_range,
                     ST_DWithin(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                        COALESCE(del_range, 5) * 1000
+                        COALESCE(NULLIF(TRIM(del_range::text), '')::double precision, 5) * 1000
                     ) AS in_range,
                     ST_Distance(
                         location,
@@ -549,8 +547,12 @@ class AuthController extends Controller
                  WHERE id = 7
                    AND location IS NOT NULL
                    AND ST_Y(location::geometry) IS NOT NULL
-                   AND ST_X(location::geometry) IS NOT NULL",
-                [$lng, $lat, $lng, $lat]
+                   AND ST_X(location::geometry) IS NOT NULL";
+            $storeDistanceBindings = [$lng, $lat, $lng, $lat];
+
+            $nearestStore = DB::selectOne(
+                $storeDistanceSql,
+                $storeDistanceBindings
             );
 
             if (!$nearestStore) {
@@ -577,7 +579,7 @@ class AuthController extends Controller
                     ]);
                 }
 
-                return response()->json([
+                $payload = [
                     'success' => true,
                     'in_range' => false,
                     'message' => 'You are out of range, please join wishlist',
@@ -585,7 +587,12 @@ class AuthController extends Controller
                     'waitlist_user_id' => $waitlistUserId,
                     'distance_meters' => (float) $nearestStore->distance_meters,
                     'store_name' => $nearestStore->name,
-                ]);
+                ];
+                if (config('app.debug')) {
+                    $payload['debug_sql'] = $storeDistanceSql;
+                    $payload['debug_bindings'] = $storeDistanceBindings;
+                }
+                return response()->json($payload);
             }
 
             // Finalize login only when OTP pending session exists; otherwise keep active login intact.
@@ -614,21 +621,32 @@ class AuthController extends Controller
             }
             $request->session()->save();
 
-            return response()->json([
+            $payload = [
                 'success' => true,
                 'in_range' => true,
                 'message' => 'Location verified. Login successful.',
                 'distance_meters' => (float) $nearestStore->distance_meters,
                 'store_name' => $nearestStore->name,
                 'location_name' => $locationName !== '' ? $locationName : 'Current location',
-            ]);
+            ];
+            if (config('app.debug')) {
+                $payload['debug_sql'] = $storeDistanceSql;
+                $payload['debug_bindings'] = $storeDistanceBindings;
+            }
+            return response()->json($payload);
         } catch (\Throwable $e) {
             \Log::error('checkLoginLocationRange failed', [
                 'message' => $e->getMessage(),
             ]);
+            $errorMessage = 'Unable to validate location right now. Please try again shortly.';
+            if (config('app.debug')) {
+                $errorMessage = $errorMessage . ' [' . $e->getMessage() . ']';
+            }
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to validate location right now. Please try again shortly.',
+                'message' => $errorMessage,
+                'debug_sql' => config('app.debug') ? ($storeDistanceSql ?? null) : null,
+                'debug_bindings' => config('app.debug') ? ($storeDistanceBindings ?? null) : null,
             ], 422);
         }
     }
@@ -656,16 +674,14 @@ class AuthController extends Controller
             $lat = (float) $validated['lat'];
             $lng = (float) $validated['lng'];
             $locationName = trim((string) $request->input('location_name', ''));
-
-            $nearestStore = DB::selectOne(
-                "SELECT
+            $storeDistanceSql = "SELECT
                     id,
                     name,
                     del_range,
                     ST_DWithin(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                        COALESCE(del_range, 5) * 1000
+                        COALESCE(NULLIF(TRIM(del_range::text), '')::double precision, 5) * 1000
                     ) AS in_range,
                     ST_Distance(
                         location,
@@ -677,8 +693,12 @@ class AuthController extends Controller
                  WHERE id = 7
                    AND location IS NOT NULL
                    AND ST_Y(location::geometry) IS NOT NULL
-                   AND ST_X(location::geometry) IS NOT NULL",
-                [$lng, $lat, $lng, $lat]
+                   AND ST_X(location::geometry) IS NOT NULL";
+            $storeDistanceBindings = [$lng, $lat, $lng, $lat];
+
+            $nearestStore = DB::selectOne(
+                $storeDistanceSql,
+                $storeDistanceBindings
             );
 
             if (!$nearestStore) {
@@ -691,13 +711,18 @@ class AuthController extends Controller
             $isInRange = in_array((string) $nearestStore->in_range, ['1', 't', 'true', 'TRUE'], true);
 
             if (!$isInRange) {
-                return response()->json([
+                $payload = [
                     'success' => true,
                     'in_range' => false,
                     'message' => 'please select a location in our servicable area',
                     'distance_meters' => (float) $nearestStore->distance_meters,
                     'store_name' => $nearestStore->name,
-                ]);
+                ];
+                if (config('app.debug')) {
+                    $payload['debug_sql'] = $storeDistanceSql;
+                    $payload['debug_bindings'] = $storeDistanceBindings;
+                }
+                return response()->json($payload);
             }
 
             // Update delivery session only (keep user login intact)
@@ -717,21 +742,32 @@ class AuthController extends Controller
             }
             $request->session()->save();
 
-            return response()->json([
+            $payload = [
                 'success' => true,
                 'in_range' => true,
                 'message' => 'Location updated successfully.',
                 'distance_meters' => (float) $nearestStore->distance_meters,
                 'store_name' => $nearestStore->name,
                 'location_name' => $locationName !== '' ? $locationName : 'Current location',
-            ]);
+            ];
+            if (config('app.debug')) {
+                $payload['debug_sql'] = $storeDistanceSql;
+                $payload['debug_bindings'] = $storeDistanceBindings;
+            }
+            return response()->json($payload);
         } catch (\Throwable $e) {
             \Log::error('checkAddressLocationRange failed', [
                 'message' => $e->getMessage(),
             ]);
+            $errorMessage = 'Unable to validate location right now. Please try again shortly.';
+            if (config('app.debug')) {
+                $errorMessage = $errorMessage . ' [' . $e->getMessage() . ']';
+            }
             return response()->json([
                 'success' => false,
-                'message' => 'Unable to validate location right now. Please try again shortly.',
+                'message' => $errorMessage,
+                'debug_sql' => config('app.debug') ? ($storeDistanceSql ?? null) : null,
+                'debug_bindings' => config('app.debug') ? ($storeDistanceBindings ?? null) : null,
             ], 422);
         }
     }
