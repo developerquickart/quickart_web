@@ -440,6 +440,12 @@
                 font-size: 13px;
             }
         }
+        @media (max-width: 767.98px) {
+            .feature_section,
+            .footer_box {
+                display: none !important;
+            }
+        }
         .qk-delivery-eta__link {
             color: inherit;
             text-decoration: none;
