@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use GuzzleHttp\Client;
@@ -126,7 +127,8 @@ class DailyOrderController extends Controller
         }
 
         $dailyOrderDetailsList = array();
-        
+        $deliveryBoyTracking = null;
+
             try {
                 $client = new Client();
                 $response = $client->post($nodeappUrl . 'orders_details', [
@@ -153,10 +155,84 @@ class DailyOrderController extends Controller
 
                 $errorMessage = $e->getMessage();
             }
-            return view('Orders/DailyOrders/daily-order-details', compact('title', 'data_arr', 'dailyOrderDetailsList'));
+
+            $deliveryBoyTracking = null;
+            if (! empty($dailyOrderDetailsList['data']) && is_array($dailyOrderDetailsList['data'])) {
+                $deliveryBoyTracking = $this->buildDeliveryBoyTrackingMeta(
+                    (string) $request->query('group_id', ''),
+                    $dailyOrderDetailsList['data']
+                );
+            }
+
+            return view('Orders/DailyOrders/daily-order-details', compact('title', 'data_arr', 'dailyOrderDetailsList', 'deliveryBoyTracking'));
         
     }
-    
+
+    /**
+     * When order is out for delivery, enable live rider strip if subscription_order has dboy_id and we can resolve home coordinates.
+     *
+     * @param  array<string, mixed>  $orderData
+     */
+    private function buildDeliveryBoyTrackingMeta(string $groupId, array $orderData): ?array
+    {
+        if ($groupId === '' || ($orderData['order_status'] ?? '') !== 'Out_For_Delivery') {
+            return null;
+        }
+
+        try {
+            $sub = DB::table('subscription_order')->where('group_id', $groupId)->first();
+            if (! $sub || empty($sub->dboy_id)) {
+                return null;
+            }
+            if (isset($sub->user_id) && (int) $sub->user_id !== (int) session('user_id')) {
+                return null;
+            }
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        $homeLat = null;
+        $homeLng = null;
+        foreach (['lat', 'user_lat', 'address_lat', 'delivery_lat'] as $k) {
+            if (isset($orderData[$k]) && is_numeric($orderData[$k])) {
+                $homeLat = (float) $orderData[$k];
+                break;
+            }
+        }
+        foreach (['lng', 'user_lng', 'address_lng', 'delivery_lng'] as $k) {
+            if (isset($orderData[$k]) && is_numeric($orderData[$k])) {
+                $homeLng = (float) $orderData[$k];
+                break;
+            }
+        }
+
+        if ($homeLat === null) {
+            foreach (['delivery_lat', 'user_lat', 'lat', 'address_lat'] as $k) {
+                if (isset($sub->{$k}) && $sub->{$k} !== '' && is_numeric($sub->{$k})) {
+                    $homeLat = (float) $sub->{$k};
+                    break;
+                }
+            }
+        }
+        if ($homeLng === null) {
+            foreach (['delivery_lng', 'user_lng', 'lng', 'address_lng'] as $k) {
+                if (isset($sub->{$k}) && $sub->{$k} !== '' && is_numeric($sub->{$k})) {
+                    $homeLng = (float) $sub->{$k};
+                    break;
+                }
+            }
+        }
+
+        if ($homeLat === null || $homeLng === null || ! is_finite($homeLat) || ! is_finite($homeLng)) {
+            return null;
+        }
+
+        return [
+            'group_id' => $groupId,
+            'home_lat' => $homeLat,
+            'home_lng' => $homeLng,
+        ];
+    }
    
 
 }

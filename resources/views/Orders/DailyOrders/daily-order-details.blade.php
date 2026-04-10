@@ -6,7 +6,87 @@
                 <div class="section-header">
                     <h5 class="heading-design-h5"> Order Details</h5>
                 </div>
-                
+
+                @if(!empty($deliveryBoyTracking))
+                <style>
+                    .qk-dboy-track {
+                        margin: 0 0 16px;
+                        padding: 14px 16px;
+                        border-radius: 14px;
+                        background: linear-gradient(135deg, #f4f6ff 0%, #eef2ff 100%);
+                        border: 1px solid #e0e5f5;
+                    }
+                    .qk-dboy-track__title {
+                        font-size: 13px;
+                        font-weight: 700;
+                        color: #1a237e;
+                        margin-bottom: 10px;
+                    }
+                    .qk-dboy-track__lane {
+                        position: relative;
+                        height: 56px;
+                        margin-top: 4px;
+                    }
+                    .qk-dboy-track__line {
+                        position: absolute;
+                        left: 28px;
+                        right: 28px;
+                        top: 50%;
+                        height: 4px;
+                        margin-top: -2px;
+                        border-radius: 4px;
+                        background: linear-gradient(90deg, #43a047 0%, #c8e6c9 50%, #e8eaf6 100%);
+                    }
+                    .qk-dboy-track__icon {
+                        position: absolute;
+                        top: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: #fff;
+                        box-shadow: 0 2px 10px rgba(0,0,0,.12);
+                        z-index: 2;
+                    }
+                    .qk-dboy-track__icon--home {
+                        left: 0;
+                        border: 2px solid #2e7d32;
+                        color: #2e7d32;
+                    }
+                    .qk-dboy-track__icon--rider {
+                        left: 100%;
+                        transition: left 0.6s ease-out;
+                        border: 2px solid #3949ab;
+                        color: #3949ab;
+                    }
+                    .qk-dboy-track__icon svg { display: block; }
+                    .qk-dboy-track__hint {
+                        font-size: 11px;
+                        color: #666;
+                        margin-top: 8px;
+                    }
+                </style>
+                <div class="qk-dboy-track" id="qkDboyTrack"
+                     data-poll-url="{{ url('/delivery-boy-position') }}"
+                     data-group-id="{{ e($deliveryBoyTracking['group_id']) }}"
+                     data-home-lat="{{ $deliveryBoyTracking['home_lat'] }}"
+                     data-home-lng="{{ $deliveryBoyTracking['home_lng'] }}">
+                    <div class="qk-dboy-track__title">Delivery partner on the way</div>
+                    <div class="qk-dboy-track__lane" aria-hidden="true">
+                        <div class="qk-dboy-track__line"></div>
+                        <div class="qk-dboy-track__icon qk-dboy-track__icon--home" title="Your address">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                        </div>
+                        <div class="qk-dboy-track__icon qk-dboy-track__icon--rider" id="qkDboyRiderIcon" title="Delivery partner">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 11.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5zM18 18.5c0-2.5-2.7-4.5-6-4.5s-6 2-6 4.5V20h12v-1.5z"/></svg>
+                        </div>
+                    </div>
+                    <div class="qk-dboy-track__hint">Approximate position — updates every 30 seconds.</div>
+                </div>
+                @endif
                 
                 <?php
                 // echo "<pre>";
@@ -487,6 +567,56 @@
     </script>
 </section>
 @include('footer')
+
+@if(!empty($deliveryBoyTracking))
+<script>
+(function () {
+    var box = document.getElementById('qkDboyTrack');
+    var rider = document.getElementById('qkDboyRiderIcon');
+    if (!box || !rider) return;
+
+    var pollUrl = box.getAttribute('data-poll-url');
+    var groupId = box.getAttribute('data-group-id');
+    var homeLat = parseFloat(box.getAttribute('data-home-lat'));
+    var homeLng = parseFloat(box.getAttribute('data-home-lng'));
+    if (!pollUrl || !groupId || !isFinite(homeLat) || !isFinite(homeLng)) return;
+
+    var d0 = null;
+
+    function qkHaversineM(lat1, lon1, lat2, lon2) {
+        var R = 6371000;
+        var p1 = lat1 * Math.PI / 180;
+        var p2 = lat2 * Math.PI / 180;
+        var dphi = (lat2 - lat1) * Math.PI / 180;
+        var dl = (lon2 - lon1) * Math.PI / 180;
+        var a = Math.sin(dphi / 2) * Math.sin(dphi / 2) +
+            Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
+        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+    }
+
+    function tick() {
+        fetch(pollUrl + '?group_id=' + encodeURIComponent(groupId), {
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' }
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || !data.ok || !isFinite(data.rider_lat) || !isFinite(data.rider_lng)) return;
+                var d = qkHaversineM(data.rider_lat, data.rider_lng, homeLat, homeLng);
+                if (d0 === null) {
+                    d0 = Math.max(d, 1);
+                }
+                var t = Math.min(1, Math.max(0, d / d0));
+                rider.style.left = (t * 100) + '%';
+            })
+            .catch(function () {});
+    }
+
+    tick();
+    setInterval(tick, 30000);
+})();
+</script>
+@endif
 
 <script>
     function openInvoice(data) {

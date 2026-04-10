@@ -54,11 +54,91 @@ class DeliveryEtaController extends Controller
             ]);
         }
 
-        $cacheKey = 'delivery_eta_rm_v4_' . session('user_id') . '_' . md5(implode('|', [
-            round((float) $storeLat, 5),
-            round((float) $storeLng, 5),
-            round((float) $userLat, 5),
-            round((float) $userLng, 5),
+        $cachePrefix = 'delivery_eta_rm_v4_' . session('user_id') . '_';
+
+        return $this->etaJsonResponseForStoreAndUser(
+            (float) $storeLat,
+            (float) $storeLng,
+            (float) $userLat,
+            (float) $userLng,
+            $request,
+            $key,
+            $cachePrefix
+        );
+    }
+
+    /**
+     * Cart checkout only: ETA from store → selected address coordinates (not session header location).
+     */
+    public function cartDeliveryEta(Request $request)
+    {
+        if (empty(session('user_id'))) {
+            return response()->json(['ok' => false, 'message' => 'unauthorized'], 401);
+        }
+
+        $userLat = $this->parseCoord($request->input('lat'));
+        $userLng = $this->parseCoord($request->input('lng'));
+        if ($userLat === null || $userLng === null) {
+            return response()->json(['ok' => false, 'message' => 'invalid_coords'], 422);
+        }
+
+        $storeLat = $this->sessionCoord('delivery_store_lat');
+        $storeLng = $this->sessionCoord('delivery_store_lng');
+        if ($storeLat === null || $storeLng === null) {
+            return response()->json([
+                'ok' => true,
+                'minutes' => self::FALLBACK_MINUTES,
+                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'distance_meters' => null,
+                'distance_label' => null,
+                'source' => 'fallback_no_store_coords',
+            ]);
+        }
+
+        $key = config('services.google.maps_server_key');
+        if (empty($key)) {
+            return response()->json([
+                'ok' => true,
+                'minutes' => self::FALLBACK_MINUTES,
+                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'distance_meters' => null,
+                'distance_label' => null,
+                'source' => 'fallback_no_api_key',
+            ]);
+        }
+
+        $cachePrefix = 'cart_delivery_eta_rm_v1_' . session('user_id') . '_';
+
+        return $this->etaJsonResponseForStoreAndUser(
+            (float) $storeLat,
+            (float) $storeLng,
+            $userLat,
+            $userLng,
+            $request,
+            $key,
+            $cachePrefix,
+            true
+        );
+    }
+
+    /**
+     * @param  bool  $cartOk  include ok: true on success paths for cart JSON
+     */
+    private function etaJsonResponseForStoreAndUser(
+        float $storeLat,
+        float $storeLng,
+        float $userLat,
+        float $userLng,
+        Request $request,
+        string $apiKey,
+        string $cacheKeyPrefix,
+        bool $cartOk = false
+    ): \Illuminate\Http\JsonResponse {
+        $cacheKey = $cacheKeyPrefix . md5(implode('|', [
+            round($storeLat, 5),
+            round($storeLng, 5),
+            round($userLat, 5),
+            round($userLng, 5),
         ]));
 
         $exposeMatrix = config('app.debug') || (bool) config('services.google.log_route_matrix_response');
@@ -71,11 +151,11 @@ class DeliveryEtaController extends Controller
 
         if (! is_array($payload)) {
             $fetchOutcome = $this->fetchRouteMatrixWithAttempts(
-                (float) $storeLat,
-                (float) $storeLng,
-                (float) $userLat,
-                (float) $userLng,
-                $key
+                $storeLat,
+                $storeLng,
+                $userLat,
+                $userLng,
+                $apiKey
             );
             $routeMatrixDebugAttempts = $fetchOutcome['attempts'];
 
@@ -113,7 +193,6 @@ class DeliveryEtaController extends Controller
                 'distance_label' => null,
                 'source' => 'fallback_api',
                 'eta_coords_used' => $this->etaCoordsPayload($storeLat, $storeLng, $userLat, $userLng),
-                /** Full request JSON + previews (no API key) for browser console debugging */
                 'route_matrix_debug' => [
                     'url' => self::ROUTE_MATRIX_URL,
                     'field_mask_header' => self::ROUTE_MATRIX_FIELD_MASK,
@@ -121,6 +200,9 @@ class DeliveryEtaController extends Controller
                     'attempts' => $routeMatrixDebugAttempts,
                 ],
             ];
+            if ($cartOk) {
+                $body['ok'] = true;
+            }
 
             return response()->json($body);
         }
@@ -136,6 +218,9 @@ class DeliveryEtaController extends Controller
             'distance_label' => $this->formatDistanceLabel($distanceMeters),
             'source' => 'google_route_matrix',
         ];
+        if ($cartOk) {
+            $body['ok'] = true;
+        }
 
         if ($exposeMatrix) {
             $body['route_matrix_response'] = $routeMatrixParsed;
@@ -147,6 +232,20 @@ class DeliveryEtaController extends Controller
         }
 
         return response()->json($body);
+    }
+
+    private function parseCoord($value): ?float
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        if (is_numeric($value)) {
+            $f = (float) $value;
+
+            return is_finite($f) ? $f : null;
+        }
+
+        return null;
     }
 
     /**

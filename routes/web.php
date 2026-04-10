@@ -20,6 +20,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\DailyOrderController;
 use App\Http\Controllers\DeliveryEtaController;
+use App\Http\Controllers\OrderTrackingController;
 use App\Http\Controllers\RepeatOrderController;
 use App\Http\Controllers\RateReviewController;
 use App\Http\Controllers\SitemapController;
@@ -263,6 +264,8 @@ Route::post('/loginotpsubmit', [AuthController::class, 'loginotpsubmit'])->name(
 Route::post('/check-login-location-range', [AuthController::class, 'checkLoginLocationRange'])->name('checkLoginLocationRange');
 Route::post('/check-address-location-range', [AuthController::class, 'checkAddressLocationRange'])->name('checkAddressLocationRange');
 Route::get('/delivery-eta', [DeliveryEtaController::class, 'show'])->name('deliveryEta');
+Route::post('/cart-delivery-eta', [DeliveryEtaController::class, 'cartDeliveryEta'])->name('cartDeliveryEta');
+Route::get('/delivery-boy-position', [OrderTrackingController::class, 'deliveryBoyPosition'])->name('deliveryBoyPosition');
 Route::post('/join-waitlist', [AuthController::class, 'joinWaitlist'])->name('joinWaitlist');
 Route::post('/resend-otp', [AuthController::class, 'resend_otp']);
 Route::post('/logout', [AuthController::class,'userLogout'])->name('userLogout');

@@ -22,6 +22,18 @@ if (isset($showCartProductList['data'])) {
     pointer-events: none;
     max-height:40px;
   }
+.qk-cart-checkout-eta-badge {
+    margin: 10px 0 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
+    border: 1px solid #c8e6c9;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a237e;
+    line-height: 1.35;
+}
+.qk-cart-checkout-eta-badge strong { color: #2e7d32; }
 </style>
 <!-- cart section start -->
 <section class="cart_section section-padding position-relative">
@@ -49,6 +61,11 @@ if (isset($showCartProductList['data'])) {
                                                                 DELIVERY</strong>
                                                             - Shop now & Save!</span>
                                                     </div>
+                                                    @if(!empty(session('user_id')) && !empty($showCartProductList['data']['lastadd'][0]))
+                                                    <div id="cartCheckoutEtaBadge" class="qk-cart-checkout-eta-badge" style="display:none;" role="status">
+                                                        <span class="qk-cart-checkout-eta-badge__text">Order will arrive in <strong id="cartCheckoutEtaMinutes">—</strong> min for selected address</span>
+                                                    </div>
+                                                    @endif
                                                     <div class="car_product_list_mainBox">
                                                         @foreach($showCartProductList['data']['data'] as $index =>
                                                         $productCat)
@@ -519,6 +536,10 @@ if (isset($showCartProductList['data'])) {
                                                                     <input type="hidden" id="addressId"
                                                                         name="address_id"
                                                                         value="{{ $showCartProductList['data']['lastadd'][0]['address_id'] ?? ''}}">
+                                                                    <input type="hidden" id="cartSelectedLat"
+                                                                        value="{{ $showCartProductList['data']['lastadd'][0]['lat'] ?? '' }}">
+                                                                    <input type="hidden" id="cartSelectedLng"
+                                                                        value="{{ $showCartProductList['data']['lastadd'][0]['lng'] ?? '' }}">
                                                                 </div>
                                                             </div>
                                                             <div class="change_btn btn_addresslist"
@@ -2283,11 +2304,22 @@ function saveSelectedAddress(storedAddresses) {
     if (showAddress) showAddress.textContent = storedAddresses.house_no;
     if (addressIdField) addressIdField.value = storedAddresses.address_id;
     if (addressTypeField && storedAddresses.type) addressTypeField.textContent = storedAddresses.type;
+    var cartLat = document.getElementById('cartSelectedLat');
+    var cartLng = document.getElementById('cartSelectedLng');
+    if (cartLat && storedAddresses.lat != null && storedAddresses.lat !== '') {
+        cartLat.value = storedAddresses.lat;
+    }
+    if (cartLng && storedAddresses.lng != null && storedAddresses.lng !== '') {
+        cartLng.value = storedAddresses.lng;
+    }
     localStorage.setItem("selectedAddress", JSON.stringify(storedAddresses));
 
     $('.change_addressbox').removeClass('d-none');
     $('.btn_addresslist span').html('Change Address');
     $('#addressModal').modal('hide');
+    if (typeof window.refreshCartCheckoutEta === 'function') {
+        window.refreshCartCheckoutEta();
+    }
     
 }
 </script>
@@ -3774,6 +3806,60 @@ function checkOutDailyCartPaymentApiCall(btnType) {
     });
 }
 
+(function () {
+    window.refreshCartCheckoutEta = function () {
+        var badge = document.getElementById('cartCheckoutEtaBadge');
+        var latEl = document.getElementById('cartSelectedLat');
+        var lngEl = document.getElementById('cartSelectedLng');
+        var minEl = document.getElementById('cartCheckoutEtaMinutes');
+        if (!badge || !latEl || !lngEl || !minEl) {
+            return;
+        }
+        var la = parseFloat(latEl.value);
+        var ln = parseFloat(lngEl.value);
+        if (!isFinite(la) || !isFinite(ln)) {
+            badge.style.display = 'none';
+            return;
+        }
+        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        var tokenVal = tokenMeta ? tokenMeta.getAttribute('content') : '';
+        fetch('{{ url('/cart-delivery-eta') }}', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': tokenVal,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ lat: la, lng: ln, _token: tokenVal })
+        })
+            .then(function (r) {
+                if (!r.ok) throw new Error('eta');
+                return r.json();
+            })
+            .then(function (data) {
+                if (data && data.minutes != null && isFinite(Number(data.minutes))) {
+                    badge.style.display = '';
+                    minEl.textContent = String(data.minutes);
+                    return;
+                }
+                if (data && data.label) {
+                    var m = parseInt(String(data.label).replace(/\D/g, ''), 10);
+                    if (isFinite(m) && m > 0) {
+                        badge.style.display = '';
+                        minEl.textContent = String(m);
+                        return;
+                    }
+                }
+                badge.style.display = 'none';
+            })
+            .catch(function () {
+                if (badge) badge.style.display = 'none';
+            });
+    };
+})();
+
 document.addEventListener("DOMContentLoaded", function() {
     var myModal = document.getElementById("couponModal");
 
@@ -3821,6 +3907,8 @@ document.addEventListener("DOMContentLoaded", function() {
             selected_address1.house_no = address.house_no;
             selected_address1.address_id = address.address_id;
             selected_address1.type = address.type;
+            if (address.lat != null) selected_address1.lat = address.lat;
+            if (address.lng != null) selected_address1.lng = address.lng;
 
             localStorage.setItem("selectedAddress", JSON.stringify(selected_address1));
         } else {
@@ -3856,6 +3944,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
          const checked = document.querySelector('input[name="toggle"]:checked');
          if (checked) toggleCODCharges(checked.value);
+
+        if (typeof window.refreshCartCheckoutEta === 'function') {
+            window.refreshCartCheckoutEta();
+        }
         
 });
 </script>
@@ -3865,7 +3957,6 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 
 @include('footer')
 
