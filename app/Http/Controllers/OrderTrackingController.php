@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\OrderHomeCoords;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -54,20 +55,10 @@ class OrderTrackingController extends Controller
                 return response()->json(['ok' => false, 'message' => 'invalid_coordinates']);
             }
 
-            $homeLat = null;
-            $homeLng = null;
-            foreach (['delivery_lat', 'user_lat', 'lat', 'address_lat'] as $k) {
-                if (isset($sub->{$k}) && $sub->{$k} !== '' && is_numeric($sub->{$k})) {
-                    $homeLat = (float) $sub->{$k};
-                    break;
-                }
-            }
-            foreach (['delivery_lng', 'user_lng', 'lng', 'address_lng'] as $k) {
-                if (isset($sub->{$k}) && $sub->{$k} !== '' && is_numeric($sub->{$k})) {
-                    $homeLng = (float) $sub->{$k};
-                    break;
-                }
-            }
+            $sessionUid = (int) session('user_id');
+            $home = OrderHomeCoords::forGroupId((string) $groupId, $sessionUid);
+            $homeLat = $home['home_lat'] ?? null;
+            $homeLng = $home['home_lng'] ?? null;
 
             return response()->json([
                 'ok' => true,

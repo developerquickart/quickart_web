@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Support\OrderHomeCoords;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
@@ -169,7 +170,8 @@ class DailyOrderController extends Controller
     }
 
     /**
-     * When order is out for delivery, enable live rider strip if subscription_order has dboy_id and we can resolve home coordinates.
+     * When order is out for delivery, enable live rider strip if subscription_order has dboy_id
+     * and home coordinates resolve via orders.address_id → address.lat/lng.
      *
      * @param  array<string, mixed>  $orderData
      */
@@ -191,46 +193,17 @@ class DailyOrderController extends Controller
             return null;
         }
 
-        $homeLat = null;
-        $homeLng = null;
-        foreach (['lat', 'user_lat', 'address_lat', 'delivery_lat'] as $k) {
-            if (isset($orderData[$k]) && is_numeric($orderData[$k])) {
-                $homeLat = (float) $orderData[$k];
-                break;
-            }
-        }
-        foreach (['lng', 'user_lng', 'address_lng', 'delivery_lng'] as $k) {
-            if (isset($orderData[$k]) && is_numeric($orderData[$k])) {
-                $homeLng = (float) $orderData[$k];
-                break;
-            }
-        }
-
-        if ($homeLat === null) {
-            foreach (['delivery_lat', 'user_lat', 'lat', 'address_lat'] as $k) {
-                if (isset($sub->{$k}) && $sub->{$k} !== '' && is_numeric($sub->{$k})) {
-                    $homeLat = (float) $sub->{$k};
-                    break;
-                }
-            }
-        }
-        if ($homeLng === null) {
-            foreach (['delivery_lng', 'user_lng', 'lng', 'address_lng'] as $k) {
-                if (isset($sub->{$k}) && $sub->{$k} !== '' && is_numeric($sub->{$k})) {
-                    $homeLng = (float) $sub->{$k};
-                    break;
-                }
-            }
-        }
-
-        if ($homeLat === null || $homeLng === null || ! is_finite($homeLat) || ! is_finite($homeLng)) {
+        $uid = session('user_id');
+        $sessionUserId = $uid !== null && $uid !== '' ? (int) $uid : null;
+        $home = OrderHomeCoords::forGroupId($groupId, $sessionUserId);
+        if ($home === null) {
             return null;
         }
 
         return [
             'group_id' => $groupId,
-            'home_lat' => $homeLat,
-            'home_lng' => $homeLng,
+            'home_lat' => $home['home_lat'],
+            'home_lng' => $home['home_lng'],
         ];
     }
    
