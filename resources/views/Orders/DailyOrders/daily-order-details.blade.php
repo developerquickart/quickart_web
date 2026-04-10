@@ -8,10 +8,7 @@
                 </div>
 
                 @php
-                    $qkMapsJsKey = trim((string) config('services.google.maps_js_key', ''));
-                    if ($qkMapsJsKey === '') {
-                        $qkMapsJsKey = 'AIzaSyDjGU6WbSwLK9d7_CAVYQ1Br0DpFhx3Rt0';
-                    }
+                    $qkMapsJsKey = trim((string) (config('services.google.maps_server_key') ?: ''));
                 @endphp
                 @if(!empty($deliveryBoyTracking))
                 <style>
