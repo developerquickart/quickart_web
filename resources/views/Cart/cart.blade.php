@@ -23,17 +23,21 @@ if (isset($showCartProductList['data'])) {
     max-height:40px;
   }
 .qk-cart-checkout-eta-badge {
-    margin: 10px 0 12px;
-    padding: 10px 14px;
+    margin: 0 0 14px;
+    padding: 16px 18px;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
     border-radius: 12px;
     background: linear-gradient(135deg, #e8f5e9 0%, #e3f2fd 100%);
     border: 1px solid #c8e6c9;
-    font-size: 13px;
+    font-size: 16px;
     font-weight: 600;
     color: #1a237e;
-    line-height: 1.35;
+    line-height: 1.4;
 }
-.qk-cart-checkout-eta-badge strong { color: #2e7d32; }
+.qk-cart-checkout-eta-badge strong { color: #2e7d32; font-size: 1.05em; }
 </style>
 <!-- cart section start -->
 <section class="cart_section section-padding position-relative">
@@ -54,6 +58,7 @@ if (isset($showCartProductList['data'])) {
                                         <div class="row">
                                             <div class="col-lg-6">
                                                 <div class="cart_left_mainbox position__sticky1">
+                                                    {{-- FREE DELIVERY strip hidden per product request — keep markup for easy restore
                                                     <div class="free_deliveryBox">
                                                         <img src="{{asset('assets/images/freeDelivery.png')}}"
                                                             alt="lock" style="max-width:30px">
@@ -61,6 +66,7 @@ if (isset($showCartProductList['data'])) {
                                                                 DELIVERY</strong>
                                                             - Shop now & Save!</span>
                                                     </div>
+                                                    --}}
                                                     @if(!empty(session('user_id')) && !empty($showCartProductList['data']['lastadd'][0]))
                                                     <div id="cartCheckoutEtaBadge" class="qk-cart-checkout-eta-badge" style="display:none;" role="status">
                                                         <span class="qk-cart-checkout-eta-badge__text">Order will arrive in <strong id="cartCheckoutEtaMinutes">—</strong> min for selected address</span>
