@@ -60,6 +60,9 @@
     function checkStickyCondition() {
         var header = document.querySelector("header");
         var main = document.querySelector("main");
+        if (!header || !main) {
+            return;
+        }
         var mainHeight = main.getBoundingClientRect().height;
         console.log("Main height:", mainHeight);
         if (mainHeight > 1000) {
@@ -597,7 +600,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 1250;
+            z-index: 1050;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -642,6 +645,94 @@
             0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.55); }
             70% { box-shadow: 0 0 0 9px rgba(76, 175, 80, 0); }
             100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+        /* Mobile app-style bottom tab bar (hidden on lg+) */
+        @media (max-width: 991.98px) {
+            :root {
+                --qk-tabbar-h: 56px;
+            }
+            body {
+                padding-bottom: calc(var(--qk-tabbar-h) + env(safe-area-inset-bottom, 0px));
+            }
+            .qk-on-the-way-tag {
+                bottom: calc(var(--qk-tabbar-h) + env(safe-area-inset-bottom, 0px));
+                z-index: 1050;
+            }
+        }
+        @media (min-width: 992px) {
+            body {
+                padding-bottom: 0 !important;
+            }
+        }
+        .qk-mobile-tabbar {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1040;
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            min-height: var(--qk-tabbar-h, 56px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: #fff;
+            border-top: 1px solid #e8e8ed;
+            border-radius: 14px 14px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+        }
+        .qk-mobile-tab {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 0;
+            padding: 8px 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.15;
+            letter-spacing: 0.02em;
+            color: #8b8b98;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .qk-mobile-tab:hover,
+        .qk-mobile-tab:focus-visible {
+            color: #5c5c6b;
+            text-decoration: none;
+        }
+        .qk-mobile-tab.is-active {
+            color: #1a237e;
+        }
+        .qk-mobile-tab__icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+        }
+        .qk-mobile-tab__icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: currentColor;
+            fill: none;
+            stroke-width: 1.75;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .qk-mobile-tab.is-active .qk-mobile-tab__icon svg {
+            stroke-width: 2.1;
+        }
+        @media (min-width: 992px) {
+            .qk-mobile-tabbar {
+                display: none !important;
+            }
+        }
+        @media print {
+            .qk-mobile-tabbar {
+                display: none !important;
+            }
         }
         /* Sticky cart shortcut (all pages except /cart; same target as side menu My Cart) */
         .qk-sticky-cart-fab {
@@ -1486,22 +1577,6 @@
         </span>
         <span class="qk-on-the-way-tag__text">Order zapping soon!</span>
     </a>
-    <script>
-        (function () {
-            var banner = document.querySelector('.qk-on-the-way-tag');
-            if (!banner) return;
-            function adjustAtTop() {
-                var scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
-                if (scrollTop <= 0) {
-                    banner.style.bottom = '40px';
-                } else {
-                    banner.style.bottom = '0px';
-                }
-            }
-            adjustAtTop();
-            window.addEventListener('scroll', adjustAtTop);
-        })();
-    </script>
     @endif
     <main>
         @if(!empty(session('user_id')))

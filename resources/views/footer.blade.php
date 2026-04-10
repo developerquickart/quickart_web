@@ -250,6 +250,9 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         var scrollToTopBtn = document.getElementById("scrollToTopBtn");
+        if (!scrollToTopBtn) {
+            return;
+        }
         window.addEventListener("scroll", function() {
             if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
                 scrollToTopBtn.classList.add("show");
@@ -1199,6 +1202,39 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+@php
+    $qkPath = trim(request()->path(), '/');
+    $qkNavHome = request()->routeIs('index') || $qkPath === '';
+    $qkNavCategories = request()->is('all-categories');
+    $qkNavOrders = request()->is('my-orders') || request()->is('my-orders/*');
+    $qkNavWallet = request()->is('wallet') || request()->is('wallet/*');
+@endphp
+<nav class="qk-mobile-tabbar d-lg-none" role="navigation" aria-label="Main navigation">
+    <a href="{{ url('/') }}" class="qk-mobile-tab {{ $qkNavHome ? 'is-active' : '' }}">
+        <span class="qk-mobile-tab__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 10.5L12 4l8 6.5V19a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-8.5z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></svg>
+        </span>
+        <span>Home</span>
+    </a>
+    <a href="{{ url('/all-categories') }}" class="qk-mobile-tab {{ $qkNavCategories ? 'is-active' : '' }}">
+        <span class="qk-mobile-tab__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h7v7H4V4zm9 0h7v7h-7V4zM4 13h7v7H4v-7zm9 0h7v7h-7v-7z" stroke="currentColor" stroke-width="1.75"/></svg>
+        </span>
+        <span>Categories</span>
+    </a>
+    <a href="{{ url('/my-orders?tab=1') }}" class="qk-mobile-tab {{ $qkNavOrders ? 'is-active' : '' }}">
+        <span class="qk-mobile-tab__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 6h13M8 12h13M8 18h13M4.5 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm0 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1zm0 6a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
+        </span>
+        <span>Orders</span>
+    </a>
+    <a href="{{ url('/wallet') }}" class="qk-mobile-tab {{ $qkNavWallet ? 'is-active' : '' }}">
+        <span class="qk-mobile-tab__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7zm16 0H5v10h14V7zm-2 4h2v2h-2v-2z" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/></svg>
+        </span>
+        <span>Wallet</span>
+    </a>
+</nav>
 
 </div>
 </body>
