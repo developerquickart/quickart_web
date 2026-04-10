@@ -25,47 +25,6 @@
                         color: #1a237e;
                         margin-bottom: 10px;
                     }
-                    .qk-dboy-track__lane {
-                        position: relative;
-                        height: 56px;
-                        margin-top: 4px;
-                    }
-                    .qk-dboy-track__line {
-                        position: absolute;
-                        left: 28px;
-                        right: 28px;
-                        top: 50%;
-                        height: 4px;
-                        margin-top: -2px;
-                        border-radius: 4px;
-                        background: linear-gradient(90deg, #43a047 0%, #c8e6c9 50%, #e8eaf6 100%);
-                    }
-                    .qk-dboy-track__icon {
-                        position: absolute;
-                        top: 50%;
-                        transform: translate(-50%, -50%);
-                        width: 36px;
-                        height: 36px;
-                        border-radius: 50%;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        background: #fff;
-                        box-shadow: 0 2px 10px rgba(0,0,0,.12);
-                        z-index: 2;
-                    }
-                    .qk-dboy-track__icon--home {
-                        left: 0;
-                        border: 2px solid #2e7d32;
-                        color: #2e7d32;
-                    }
-                    .qk-dboy-track__icon--rider {
-                        left: 100%;
-                        transition: left 0.6s ease-out;
-                        border: 2px solid #3949ab;
-                        color: #3949ab;
-                    }
-                    .qk-dboy-track__icon svg { display: block; }
                     .qk-dboy-track__hint {
                         font-size: 11px;
                         color: #666;
@@ -91,16 +50,7 @@
                      data-home-lng="{{ $deliveryBoyTracking['home_lng'] }}"
                      data-maps-key="{{ e($qkMapsJsKey) }}">
                     <div class="qk-dboy-track__title">Delivery partner on the way</div>
-                    <div class="qk-dboy-track__lane" aria-hidden="true">
-                        <div class="qk-dboy-track__line"></div>
-                        <div class="qk-dboy-track__icon qk-dboy-track__icon--home" title="Your address">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-                        </div>
-                        <div class="qk-dboy-track__icon qk-dboy-track__icon--rider" id="qkDboyRiderIcon" title="Delivery partner">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 11.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5zM18 18.5c0-2.5-2.7-4.5-6-4.5s-6 2-6 4.5V20h12v-1.5z"/></svg>
-                        </div>
-                    </div>
-                    <div class="qk-dboy-track__hint">Approximate position — updates every 30 seconds.</div>
+                    <div class="qk-dboy-track__hint">Live route on the map below — updates every 30 seconds.</div>
                     <div class="qk-dboy-track__map-wrap">
                         <div id="qkOrderTrackMap" class="qk-dboy-track__map" role="img" aria-label="Driving route from delivery partner to your address"></div>
                     </div>
@@ -591,9 +541,8 @@
 <script>
 (function () {
     var box = document.getElementById('qkDboyTrack');
-    var rider = document.getElementById('qkDboyRiderIcon');
     var mapEl = document.getElementById('qkOrderTrackMap');
-    if (!box || !rider) return;
+    if (!box) return;
 
     var pollUrl = box.getAttribute('data-poll-url');
     var groupId = box.getAttribute('data-group-id');
@@ -602,32 +551,41 @@
     var mapsKey = box.getAttribute('data-maps-key') || '';
     if (!pollUrl || !groupId || !isFinite(homeLat) || !isFinite(homeLng)) return;
 
-    var d0 = null;
     var map = null;
     var directionsService = null;
     var directionsRenderer = null;
     var homeMarker = null;
     var driverMarker = null;
 
+    function qkSvgMarkerUrl(svg) {
+        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+    }
+
+    /** @returns {google.maps.Icon} */
     function markerIconHome() {
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">' +
+            '<circle cx="22" cy="22" r="20" fill="#ffffff" stroke="#2e7d32" stroke-width="2.5"/>' +
+            '<g transform="translate(10 9)">' +
+            '<path fill="#2e7d32" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>' +
+            '</g></svg>';
         return {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 11,
-            fillColor: '#2e7d32',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 3
+            url: qkSvgMarkerUrl(svg),
+            scaledSize: new google.maps.Size(44, 44),
+            anchor: new google.maps.Point(22, 22)
         };
     }
 
+    /** @returns {google.maps.Icon} */
     function markerIconDriver() {
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">' +
+            '<circle cx="24" cy="24" r="21" fill="#ffffff" stroke="#3949ab" stroke-width="2.5"/>' +
+            '<g fill="#3949ab" transform="translate(6 10)">' +
+            '<path d="M15.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM5 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5zm5.8-10l2.4-2.4.8.8c1.3 1.3 3 2.1 5.1 2.1V9c-1.5 0-2.7-.6-3.6-1.5l-1.9-1.9c-.5-.4-1.2-.6-1.8-.6-.5 0-1 .2-1.4.6L7.8 8.4c-.4.4-.6.9-.6 1.4 0 .6.2 1.2.6 1.6l.9.9V22h3v-8h2v8h3v-8.5c0-.9-.4-1.7-1-2.3zM19 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z"/>' +
+            '</g></svg>';
         return {
-            path: google.maps.SymbolPath.CIRCLE,
-            scale: 13,
-            fillColor: '#3949ab',
-            fillOpacity: 1,
-            strokeColor: '#ffffff',
-            strokeWeight: 3
+            url: qkSvgMarkerUrl(svg),
+            scaledSize: new google.maps.Size(48, 48),
+            anchor: new google.maps.Point(24, 24)
         };
     }
 
@@ -646,17 +604,6 @@
         } else {
             driverMarker.setPosition(pos);
         }
-    }
-
-    function qkHaversineM(lat1, lon1, lat2, lon2) {
-        var R = 6371000;
-        var p1 = lat1 * Math.PI / 180;
-        var p2 = lat2 * Math.PI / 180;
-        var dphi = (lat2 - lat1) * Math.PI / 180;
-        var dl = (lon2 - lon1) * Math.PI / 180;
-        var a = Math.sin(dphi / 2) * Math.sin(dphi / 2) +
-            Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
-        return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
     }
 
     function initDirectionsMap() {
@@ -740,12 +687,6 @@
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 if (!data || !data.ok || !isFinite(data.rider_lat) || !isFinite(data.rider_lng)) return;
-                var d = qkHaversineM(data.rider_lat, data.rider_lng, homeLat, homeLng);
-                if (d0 === null) {
-                    d0 = Math.max(d, 1);
-                }
-                var t = Math.min(1, Math.max(0, d / d0));
-                rider.style.left = (t * 100) + '%';
                 if (map && directionsService) {
                     drawDrivingRoute(data.rider_lat, data.rider_lng);
                 } else if (map) {
