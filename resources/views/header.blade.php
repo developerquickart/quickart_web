@@ -272,6 +272,9 @@
             box-shadow: 0 12px 26px rgba(30, 33, 94, 0.4);
             color: #fff;
             font-family: inherit;
+            /* So address max-width can be exactly half of this strip */
+            container-type: inline-size;
+            container-name: qk-delivery-eta;
         }
         .qk-delivery-eta__glow {
             display: none;
@@ -332,26 +335,34 @@
             color: #f3f3f3;
             opacity: 0.92;
             min-width: 0;
+            gap: 8px;
         }
         .qk-delivery-eta__distance-text {
             display: none;
         }
         .qk-delivery-eta__location {
             display: block;
+            flex: 0 1 auto;
+            min-width: 0;
             color: #ffffff;
             opacity: 0.9;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 360px;
+            /* Half of the delivery strip width (see .qk-delivery-eta container) */
+            max-width: 50%;
         }
-        .qk-delivery-eta__meta { gap: 8px; }
+        @supports (max-width: 50cqw) {
+            .qk-delivery-eta__location {
+                max-width: 50cqw;
+            }
+        }
         .qk-location-switch-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 20px;
-            height: 20px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             border: 1px solid rgba(255, 255, 255, 0.55);
             background: rgba(255, 255, 255, 0.12);
@@ -360,7 +371,11 @@
             cursor: pointer;
             flex-shrink: 0;
         }
-        .qk-location-switch-btn svg { display: block; }
+        .qk-location-switch-btn svg {
+            display: block;
+            width: 16px;
+            height: 16px;
+        }
         .qk-location-switch-sheet .modal-dialog {
             position: fixed;
             left: 0;
@@ -1261,7 +1276,7 @@
                                         data-bs-toggle="modal"
                                         data-bs-target="#headerLocationSwitchModal"
                                         aria-label="Change delivery location">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </button>
