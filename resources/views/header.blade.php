@@ -378,6 +378,8 @@
             border-radius: 18px 18px 0 0;
             max-height: 85vh;
             overflow-y: auto;
+            overscroll-behavior: contain;
+            touch-action: pan-y;
         }
         .qk-location-switch-close {
             border: 0;
@@ -676,12 +678,16 @@
         @media (max-width: 991.98px) {
             :root {
                 /* Content row only (icons + labels); safe-area is added on the bar + in these calcs */
-                --qk-tabbar-content-h: 48px;
+                /* Must match rendered row height (padding + icon + gap + label) for body offset + zapping badge */
+                --qk-tabbar-content-h: 62px;
                 /* Air between tab bar top and the bottom edge of the zapping badge */
                 --qk-on-the-way-gap: 10px;
             }
             body {
                 padding-bottom: calc(var(--qk-tabbar-content-h) + env(safe-area-inset-bottom, 0px));
+            }
+            .qk-mobile-tabbar {
+                min-height: calc(var(--qk-tabbar-content-h) + env(safe-area-inset-bottom, 0px));
             }
             .qk-on-the-way-tag {
                 left: max(14px, env(safe-area-inset-left, 0px));
@@ -711,14 +717,14 @@
             z-index: 1040;
             display: flex;
             justify-content: space-around;
-            align-items: flex-end;
+            align-items: stretch;
             min-height: 0;
             height: auto;
             padding: 0;
             padding-bottom: env(safe-area-inset-bottom, 0px);
             background: #fff;
             border-top: 1px solid #e8e8ed;
-            border-radius: 14px 14px 0 0;
+            border-radius: 16px 16px 0 0;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
             box-sizing: border-box;
         }
@@ -727,11 +733,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-end;
-            gap: 2px;
+            justify-content: center;
+            gap: 3px;
             min-width: 0;
-            padding: 0 4px 8px;
-            font-size: 11px;
+            padding: 8px 6px 10px;
+            font-size: 12px;
             font-weight: 600;
             line-height: 1.15;
             letter-spacing: 0.02em;
@@ -751,12 +757,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
         }
         .qk-mobile-tab__icon svg {
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             stroke: currentColor;
             fill: none;
             stroke-width: 1.75;
@@ -1255,8 +1261,8 @@
                                         data-bs-toggle="modal"
                                         data-bs-target="#headerLocationSwitchModal"
                                         aria-label="Change delivery location">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M12 2a7 7 0 0 1 7 7c0 4.52-5.04 10.88-6.24 12.32a1 1 0 0 1-1.52 0C10.04 19.88 5 13.52 5 9a7 7 0 0 1 7-7zm0 9.5A2.5 2.5 0 1 0 12 6a2.5 2.5 0 0 0 0 5.5z" fill="currentColor"/>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
                                     </button>
                                 </div>
@@ -1284,13 +1290,17 @@
                     </div>
                 </div>
 
-                <div class="modal fade qk-location-switch-sheet" id="headerLocationSwitchModal" tabindex="-1" aria-hidden="true">
+                <div class="modal fade qk-location-switch-sheet"
+                     id="headerLocationSwitchModal"
+                     tabindex="-1"
+                     aria-hidden="true"
+                     data-bs-backdrop="static"
+                     data-bs-keyboard="false">
                     <div class="modal-dialog modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title">Change delivery location</h5>
                                 <button type="button" class="qk-location-switch-close" data-bs-dismiss="modal" aria-label="Close popup">&times;</button>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="qk-location-switch-body">
                                 <div class="qk-header-location-actions">
@@ -2715,59 +2725,6 @@
                 }
                 submitHeaderLocationCheck(selectedHeaderLat, selectedHeaderLng, selectedHeaderLocationName || 'Selected location');
             });
-
-            (function initHeaderSheetSwipeToClose() {
-                var modalEl = document.getElementById('headerLocationSwitchModal');
-                if (!modalEl) return;
-                var dialogEl = modalEl.querySelector('.modal-dialog');
-                if (!dialogEl) return;
-
-                var touchStartY = 0;
-                var touchCurrentY = 0;
-                var dragging = false;
-
-                function resetDialogPosition() {
-                    dialogEl.style.transition = 'transform .2s ease-out';
-                    dialogEl.style.transform = '';
-                    setTimeout(function () {
-                        dialogEl.style.transition = '';
-                    }, 220);
-                }
-
-                modalEl.addEventListener('touchstart', function (e) {
-                    if (!e.touches || !e.touches.length) return;
-                    touchStartY = e.touches[0].clientY;
-                    touchCurrentY = touchStartY;
-                    dragging = true;
-                }, { passive: true });
-
-                modalEl.addEventListener('touchmove', function (e) {
-                    if (!dragging || !e.touches || !e.touches.length) return;
-                    touchCurrentY = e.touches[0].clientY;
-                    var deltaY = touchCurrentY - touchStartY;
-                    if (deltaY > 0) {
-                        dialogEl.style.transform = 'translateY(' + deltaY + 'px)';
-                    }
-                }, { passive: true });
-
-                modalEl.addEventListener('touchend', function () {
-                    if (!dragging) return;
-                    dragging = false;
-                    var deltaY = touchCurrentY - touchStartY;
-                    var dialogHeight = dialogEl.offsetHeight || 0;
-                    var nearBottomThreshold = dialogHeight > 0 ? (dialogHeight * 0.8) : 320;
-                    if (deltaY >= nearBottomThreshold) {
-                        $('#headerLocationSwitchModal').modal('hide');
-                        resetDialogPosition();
-                        return;
-                    }
-                    resetDialogPosition();
-                });
-
-                modalEl.addEventListener('hidden.bs.modal', function () {
-                    resetDialogPosition();
-                });
-            })();
 
             $('.qk-location-switch-btn').on('click', function (e) {
                 e.preventDefault();
