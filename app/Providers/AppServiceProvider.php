@@ -36,71 +36,79 @@ class AppServiceProvider extends ServiceProvider
             ];
             $headerAddressList = [];
 
-            $userId = session()->get('user_id');
-            if (empty($userId)) {
+            $userId = (int) session()->get('user_id', 0);
+            $pendingUser = session()->get('pending_login_user');
+            $pendingUserId = is_array($pendingUser) && ! empty($pendingUser['id'])
+                ? (int) $pendingUser['id']
+                : 0;
+            /** Logged-in user, or user who passed OTP and is on the location gate (pending_login_user). */
+            $addressUserId = $userId > 0 ? $userId : $pendingUserId;
+
+            $nodeAppUrl = env('NODE_APP_URL');
+            if (empty($nodeAppUrl)) {
                 $view->with('onTheWayOrder', $onTheWayOrder);
                 $view->with('headerAddressList', $headerAddressList);
+
                 return;
             }
 
             try {
-                $nodeAppUrl = env('NODE_APP_URL');
-                if (empty($nodeAppUrl)) {
-                    $view->with('onTheWayOrder', $onTheWayOrder);
-                    $view->with('headerAddressList', $headerAddressList);
-                    return;
-                }
-
                 $client = new Client();
-                $response = $client->post($nodeAppUrl . 'my_dailyorders', [
-                    'json' => [
-                        'user_id' => $userId,
-                        'page' => 1,
-                        'perpage' => null,
-                        'platform' => 'web',
-                    ],
-                    'http_errors' => false,
-                    'timeout' => 8,
-                ]);
 
-                if ($response->getStatusCode() === 200) {
-                    $dailyOrderResponse = json_decode($response->getBody()->getContents(), true);
-                    $dailyOrders = $dailyOrderResponse['data'] ?? [];
+                if ($userId > 0) {
+                    $response = $client->post($nodeAppUrl . 'my_dailyorders', [
+                        'json' => [
+                            'user_id' => $userId,
+                            'page' => 1,
+                            'perpage' => null,
+                            'platform' => 'web',
+                        ],
+                        'http_errors' => false,
+                        'timeout' => 8,
+                    ]);
 
-                    if (is_array($dailyOrders) && !empty($dailyOrders)) {
-                        foreach ($dailyOrders as $order) {
-                            if (
-                                isset($order['order_status'], $order['group_id']) &&
-                                $order['order_status'] === 'Out_For_Delivery' &&
-                                !empty($order['group_id'])
-                            ) {
-                                $onTheWayOrder = [
-                                    'show' => true,
-                                    'group_id' => $order['group_id'],
-                                ];
-                                break;
+                    if ($response->getStatusCode() === 200) {
+                        $dailyOrderResponse = json_decode($response->getBody()->getContents(), true);
+                        $dailyOrders = $dailyOrderResponse['data'] ?? [];
+
+                        if (is_array($dailyOrders) && ! empty($dailyOrders)) {
+                            foreach ($dailyOrders as $order) {
+                                if (
+                                    isset($order['order_status'], $order['group_id']) &&
+                                    $order['order_status'] === 'Out_For_Delivery' &&
+                                    ! empty($order['group_id'])
+                                ) {
+                                    $onTheWayOrder = [
+                                        'show' => true,
+                                        'group_id' => $order['group_id'],
+                                    ];
+                                    break;
+                                }
                             }
                         }
                     }
                 }
 
-                $addressResp = $client->post($nodeAppUrl . 'show_address', [
-                    'json' => [
-                        'user_id' => $userId,
-                        'store_id' => env('STORE_ID'),
-                    ],
-                    'http_errors' => false,
-                    'timeout' => 8,
-                ]);
-                if ($addressResp->getStatusCode() === 200) {
-                    $addressPayload = json_decode($addressResp->getBody()->getContents(), true);
-                    if (is_array($addressPayload) && !empty($addressPayload['data']) && is_array($addressPayload['data'])) {
-                        $headerAddressList = $addressPayload['data'];
+                if ($addressUserId > 0) {
+                    $addressResp = $client->post($nodeAppUrl . 'show_address', [
+                        'json' => [
+                            'user_id' => $addressUserId,
+                            'store_id' => env('STORE_ID'),
+                        ],
+                        'http_errors' => false,
+                        'timeout' => 8,
+                    ]);
+                    if ($addressResp->getStatusCode() === 200) {
+                        $addressPayload = json_decode($addressResp->getBody()->getContents(), true);
+                        if (is_array($addressPayload) && ! empty($addressPayload['data']) && is_array($addressPayload['data'])) {
+                            $headerAddressList = $addressPayload['data'];
+                        }
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('Unable to fetch Arriving soon order for header', [
+                Log::warning('Unable to fetch header composer data (orders / addresses)', [
                     'user_id' => $userId,
+                    'address_user_id' => $addressUserId,
                     'error' => $e->getMessage(),
                 ]);
             }

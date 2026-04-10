@@ -95,11 +95,35 @@ class AuthController extends Controller
                         'name' => $verifyotp['data']['name'] ?? null,
                     ]);
 
+                    $savedAddresses = [];
+                    $verifiedUserId = $verifyotp['data']['id'] ?? null;
+                    if ($verifiedUserId && ! empty($nodeappUrl)) {
+                        try {
+                            $addrResp = $client->post($nodeappUrl . 'show_address', [
+                                'json' => [
+                                    'user_id' => $verifiedUserId,
+                                    'store_id' => env('STORE_ID'),
+                                ],
+                                'http_errors' => false,
+                                'timeout' => 8,
+                            ]);
+                            if ($addrResp->getStatusCode() === 200) {
+                                $addrPayload = json_decode($addrResp->getBody()->getContents(), true);
+                                if (is_array($addrPayload) && ! empty($addrPayload['data']) && is_array($addrPayload['data'])) {
+                                    $savedAddresses = $addrPayload['data'];
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                            // Saved addresses are optional for the location step UI.
+                        }
+                    }
+
                     return response()->json([
                         'success' => true,
                         'otp_verified' => true,
                         'requires_location_check' => true,
                         'message' => "OTP verified. Please confirm your location to continue.",
+                        'saved_addresses' => $savedAddresses,
                     ]);
                 } else {
                     return response()->json([

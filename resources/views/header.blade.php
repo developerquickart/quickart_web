@@ -538,6 +538,32 @@
         .qk-header-address-item input { margin-top: 4px; }
         .qk-header-address-item strong { display: block; font-size: 13px; color: #1a237e; }
         .qk-header-address-item span { display: block; font-size: 12px; color: #666; }
+        .login-saved-addresses-section {
+            margin-top: 1rem;
+        }
+        .login-saved-addresses-heading {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a237e;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .login-saved-address-list {
+            margin-top: 8px;
+        }
+        button.login-saved-address-btn.qk-header-address-item {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font: inherit;
+            font-family: inherit;
+            margin: 0;
+            text-align: left;
+        }
+        button.login-saved-address-btn.qk-header-address-item:focus-visible {
+            outline: 2px solid #1a237e;
+            outline-offset: 2px;
+        }
         .qk-header-selected-source {
             margin-top: 10px;
             margin-bottom: 2px;
@@ -649,13 +675,15 @@
         /* Mobile app-style bottom tab bar (hidden on lg+) */
         @media (max-width: 991.98px) {
             :root {
-                --qk-tabbar-h: 56px;
+                /* Content row only (icons + labels); safe-area is added on the bar + in these calcs */
+                --qk-tabbar-content-h: 48px;
             }
             body {
-                padding-bottom: calc(var(--qk-tabbar-h) + env(safe-area-inset-bottom, 0px));
+                padding-bottom: calc(var(--qk-tabbar-content-h) + env(safe-area-inset-bottom, 0px));
             }
             .qk-on-the-way-tag {
-                bottom: calc(var(--qk-tabbar-h) + env(safe-area-inset-bottom, 0px));
+                /* Sit flush above the tab bar (no phantom gap): offset = full bar height */
+                bottom: calc(var(--qk-tabbar-content-h) + env(safe-area-inset-bottom, 0px));
                 z-index: 1050;
             }
         }
@@ -672,23 +700,26 @@
             z-index: 1040;
             display: flex;
             justify-content: space-around;
-            align-items: stretch;
-            min-height: var(--qk-tabbar-h, 56px);
+            align-items: flex-end;
+            min-height: 0;
+            height: auto;
+            padding: 0;
             padding-bottom: env(safe-area-inset-bottom, 0px);
             background: #fff;
             border-top: 1px solid #e8e8ed;
             border-radius: 14px 14px 0 0;
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+            box-sizing: border-box;
         }
         .qk-mobile-tab {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 4px;
+            justify-content: flex-end;
+            gap: 2px;
             min-width: 0;
-            padding: 8px 4px 10px;
+            padding: 0 4px 8px;
             font-size: 11px;
             font-weight: 600;
             line-height: 1.15;
@@ -1037,6 +1068,31 @@
                                                             <span class="login-location-option-desc">Search or tap to drop a pin</span>
                                                         </span>
                                                     </button>
+                                                </div>
+                                                @php
+                                                    $loginStep3HasAddresses = ! empty($headerAddressList) && is_array($headerAddressList) && count($headerAddressList) > 0;
+                                                @endphp
+                                                <div class="login-saved-addresses-section {{ $loginStep3HasAddresses ? '' : 'd-none' }}" id="login-saved-addresses-root">
+                                                    <p class="login-saved-addresses-heading mb-0">Or use a saved address</p>
+                                                    <div class="qk-header-address-list login-saved-address-list" id="login-saved-address-list-inner">
+                                                        @if($loginStep3HasAddresses)
+                                                            @foreach($headerAddressList as $hAddress)
+                                                                @php
+                                                                    $loginAddrLabel = trim(($hAddress['house_no'] ?? '') . ', ' . ($hAddress['society_name'] ?? ''));
+                                                                @endphp
+                                                                <button type="button"
+                                                                    class="qk-header-address-item login-saved-address-btn"
+                                                                    data-lat="{{ $hAddress['lat'] ?? '' }}"
+                                                                    data-lng="{{ $hAddress['lng'] ?? '' }}"
+                                                                    data-name="{{ $loginAddrLabel }}">
+                                                                    <div>
+                                                                        <strong>{{ $hAddress['type'] ?? 'Address' }}</strong>
+                                                                        <span>{{ $loginAddrLabel }}</span>
+                                                                    </div>
+                                                                </button>
+                                                            @endforeach
+                                                        @endif
+                                                    </div>
                                                 </div>
                                                 <div class="location_picker_map_box login-location-map-panel d-none">
                                                     <label class="login-location-search-label" for="login-location-search">Search your address or landmark</label>
@@ -1746,11 +1802,52 @@
             }
         }
 
-        function showLocationGateStep() {
+        function renderLoginSavedAddresses(savedAddresses) {
+            var $root = $('#login-saved-addresses-root');
+            var $inner = $('#login-saved-address-list-inner');
+            if (!$root.length || !$inner.length) {
+                return;
+            }
+            var list = Array.isArray(savedAddresses) ? savedAddresses : [];
+            if (list.length === 0) {
+                $root.addClass('d-none');
+                $inner.empty();
+                return;
+            }
+            $root.removeClass('d-none');
+            $inner.empty();
+            list.forEach(function (h) {
+                var house = (h && h.house_no) ? String(h.house_no).trim() : '';
+                var society = (h && h.society_name) ? String(h.society_name).trim() : '';
+                var labelParts = [];
+                if (house) {
+                    labelParts.push(house);
+                }
+                if (society) {
+                    labelParts.push(society);
+                }
+                var label = labelParts.join(', ');
+                var typeLabel = (h && h.type) ? String(h.type) : 'Address';
+                var lat = h && h.lat !== undefined && h.lat !== null ? String(h.lat) : '';
+                var lng = h && h.lng !== undefined && h.lng !== null ? String(h.lng) : '';
+                var $btn = $('<button type="button" class="qk-header-address-item login-saved-address-btn"></button>');
+                $btn.attr('data-lat', lat).attr('data-lng', lng).attr('data-name', label || 'Saved address');
+                var $div = $('<div></div>');
+                $div.append($('<strong></strong>').text(typeLabel));
+                $div.append($('<span></span>').text(label));
+                $btn.append($div);
+                $inner.append($btn);
+            });
+        }
+
+        function showLocationGateStep(savedAddresses) {
             $('.login_step1').addClass('d-none');
             $('.login_step2').addClass('d-none');
             $('.login_step3').removeClass('d-none');
             resetLoginLocationStep();
+            if (arguments.length >= 1) {
+                renderLoginSavedAddresses(savedAddresses);
+            }
         }
 
         /** Let the browser apply Set-Cookie from the location-check XHR before navigating (avoids empty ETA session on fast redirects). */
@@ -2327,7 +2424,11 @@
                             });
                             $('.otp-value').val('');
                         }else{
-                            showLocationGateStep();
+                            if (Array.isArray(response.saved_addresses)) {
+                                showLocationGateStep(response.saved_addresses);
+                            } else {
+                                showLocationGateStep();
+                            }
                         }
                       },
                       error: function (xhr, status, error) {
@@ -2482,6 +2583,22 @@
                 }
                 const pickedLocationName = ($('#login-location-search').val() || '').trim() || 'Selected location';
                 submitLoginLocationCheck(selectedLoginLat, selectedLoginLng, pickedLocationName);
+            });
+
+            $(document).on('click', '.login-saved-address-btn', function () {
+                var $btn = $(this);
+                var lat = parseFloat($btn.data('lat'));
+                var lng = parseFloat($btn.data('lng'));
+                var name = ($btn.data('name') || '').toString().trim() || 'Saved address';
+                if (!isFinite(lat) || !isFinite(lng)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Address unavailable',
+                        text: 'This address has no coordinates. Please use map or current location.'
+                    });
+                    return;
+                }
+                submitLoginLocationCheck(lat, lng, name);
             });
 
             $('#headerLocationSwitchModal').on('shown.bs.modal', function () {
