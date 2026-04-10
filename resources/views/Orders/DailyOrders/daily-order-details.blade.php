@@ -606,6 +606,47 @@
     var map = null;
     var directionsService = null;
     var directionsRenderer = null;
+    var homeMarker = null;
+    var driverMarker = null;
+
+    function markerIconHome() {
+        return {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 11,
+            fillColor: '#2e7d32',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 3
+        };
+    }
+
+    function markerIconDriver() {
+        return {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 13,
+            fillColor: '#3949ab',
+            fillOpacity: 1,
+            strokeColor: '#ffffff',
+            strokeWeight: 3
+        };
+    }
+
+    function updateDriverMarker(riderLat, riderLng) {
+        if (!map || !isFinite(riderLat) || !isFinite(riderLng)) return;
+        var pos = { lat: riderLat, lng: riderLng };
+        if (!driverMarker) {
+            driverMarker = new google.maps.Marker({
+                position: pos,
+                map: map,
+                title: 'Delivery partner (live)',
+                icon: markerIconDriver(),
+                zIndex: 100,
+                optimized: false
+            });
+        } else {
+            driverMarker.setPosition(pos);
+        }
+    }
 
     function qkHaversineM(lat1, lon1, lat2, lon2) {
         var R = 6371000;
@@ -631,13 +672,26 @@
         directionsService = new google.maps.DirectionsService();
         directionsRenderer = new google.maps.DirectionsRenderer({
             map: map,
-            suppressMarkers: false,
-            preserveViewport: false
+            suppressMarkers: true,
+            preserveViewport: false,
+            polylineOptions: {
+                strokeColor: '#3949ab',
+                strokeWeight: 5,
+                strokeOpacity: 0.85
+            }
+        });
+        homeMarker = new google.maps.Marker({
+            position: { lat: homeLat, lng: homeLng },
+            map: map,
+            title: 'Your delivery address',
+            icon: markerIconHome(),
+            zIndex: 50
         });
     }
 
     function drawDrivingRoute(riderLat, riderLng) {
         if (!directionsService || !directionsRenderer || !isFinite(riderLat) || !isFinite(riderLng)) return;
+        updateDriverMarker(riderLat, riderLng);
         directionsService.route({
             origin: { lat: riderLat, lng: riderLng },
             destination: { lat: homeLat, lng: homeLng },
@@ -694,6 +748,8 @@
                 rider.style.left = (t * 100) + '%';
                 if (map && directionsService) {
                     drawDrivingRoute(data.rider_lat, data.rider_lng);
+                } else if (map) {
+                    updateDriverMarker(data.rider_lat, data.rider_lng);
                 }
             })
             .catch(function () {});
