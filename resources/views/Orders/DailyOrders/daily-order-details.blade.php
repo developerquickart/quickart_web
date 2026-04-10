@@ -7,6 +7,12 @@
                     <h5 class="heading-design-h5"> Order Details</h5>
                 </div>
 
+                @php
+                    $qkMapsJsKey = trim((string) config('services.google.maps_js_key', ''));
+                    if ($qkMapsJsKey === '') {
+                        $qkMapsJsKey = 'AIzaSyDjGU6WbSwLK9d7_CAVYQ1Br0DpFhx3Rt0';
+                    }
+                @endphp
                 @if(!empty($deliveryBoyTracking))
                 <style>
                     .qk-dboy-track {
@@ -68,12 +74,25 @@
                         color: #666;
                         margin-top: 8px;
                     }
+                    .qk-dboy-track__map-wrap {
+                        margin-top: 12px;
+                        border-radius: 12px;
+                        overflow: hidden;
+                        border: 1px solid #e0e5f5;
+                        background: #f5f7ff;
+                    }
+                    .qk-dboy-track__map {
+                        width: 100%;
+                        height: 220px;
+                        min-height: 200px;
+                    }
                 </style>
                 <div class="qk-dboy-track" id="qkDboyTrack"
                      data-poll-url="{{ url('/delivery-boy-position') }}"
                      data-group-id="{{ e($deliveryBoyTracking['group_id']) }}"
                      data-home-lat="{{ $deliveryBoyTracking['home_lat'] }}"
-                     data-home-lng="{{ $deliveryBoyTracking['home_lng'] }}">
+                     data-home-lng="{{ $deliveryBoyTracking['home_lng'] }}"
+                     data-maps-key="{{ e($qkMapsJsKey) }}">
                     <div class="qk-dboy-track__title">Delivery partner on the way</div>
                     <div class="qk-dboy-track__lane" aria-hidden="true">
                         <div class="qk-dboy-track__line"></div>
@@ -85,6 +104,9 @@
                         </div>
                     </div>
                     <div class="qk-dboy-track__hint">Approximate position — updates every 30 seconds.</div>
+                    <div class="qk-dboy-track__map-wrap">
+                        <div id="qkOrderTrackMap" class="qk-dboy-track__map" role="img" aria-label="Driving route from delivery partner to your address"></div>
+                    </div>
                 </div>
                 @endif
                 
@@ -573,15 +595,20 @@
 (function () {
     var box = document.getElementById('qkDboyTrack');
     var rider = document.getElementById('qkDboyRiderIcon');
+    var mapEl = document.getElementById('qkOrderTrackMap');
     if (!box || !rider) return;
 
     var pollUrl = box.getAttribute('data-poll-url');
     var groupId = box.getAttribute('data-group-id');
     var homeLat = parseFloat(box.getAttribute('data-home-lat'));
     var homeLng = parseFloat(box.getAttribute('data-home-lng'));
+    var mapsKey = box.getAttribute('data-maps-key') || '';
     if (!pollUrl || !groupId || !isFinite(homeLat) || !isFinite(homeLng)) return;
 
     var d0 = null;
+    var map = null;
+    var directionsService = null;
+    var directionsRenderer = null;
 
     function qkHaversineM(lat1, lon1, lat2, lon2) {
         var R = 6371000;
@@ -592,6 +619,66 @@
         var a = Math.sin(dphi / 2) * Math.sin(dphi / 2) +
             Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) * Math.sin(dl / 2);
         return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(Math.max(0, 1 - a)));
+    }
+
+    function initDirectionsMap() {
+        if (!mapEl || !window.google || !google.maps) return;
+        map = new google.maps.Map(mapEl, {
+            center: { lat: homeLat, lng: homeLng },
+            zoom: 13,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true,
+            gestureHandling: 'cooperative'
+        });
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer({
+            map: map,
+            suppressMarkers: false,
+            preserveViewport: false
+        });
+    }
+
+    function drawDrivingRoute(riderLat, riderLng) {
+        if (!directionsService || !directionsRenderer || !isFinite(riderLat) || !isFinite(riderLng)) return;
+        directionsService.route({
+            origin: { lat: riderLat, lng: riderLng },
+            destination: { lat: homeLat, lng: homeLng },
+            travelMode: google.maps.TravelMode.DRIVING
+        }, function (result, status) {
+            if (status === 'OK' && result) {
+                directionsRenderer.setDirections(result);
+                var b = new google.maps.LatLngBounds();
+                result.routes[0].bounds && b.union(result.routes[0].bounds);
+                if (b.getNorthEast && b.getSouthWest) {
+                    map.fitBounds(b);
+                }
+            }
+        });
+    }
+
+    function ensureMapsThen(run) {
+        if (window.google && google.maps) {
+            run();
+            return;
+        }
+        if (!mapsKey) {
+            return;
+        }
+        var cbName = '__qkOrderTrackMapInit_' + Date.now();
+        window[cbName] = function () {
+            try {
+                run();
+            } finally {
+                delete window[cbName];
+            }
+        };
+        var s = document.createElement('script');
+        s.async = true;
+        s.defer = true;
+        s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(mapsKey) +
+            '&callback=' + encodeURIComponent(cbName);
+        document.head.appendChild(s);
     }
 
     function tick() {
@@ -608,11 +695,21 @@
                 }
                 var t = Math.min(1, Math.max(0, d / d0));
                 rider.style.left = (t * 100) + '%';
+                if (map && directionsService) {
+                    drawDrivingRoute(data.rider_lat, data.rider_lng);
+                }
             })
             .catch(function () {});
     }
 
-    tick();
+    if (mapsKey && mapEl) {
+        ensureMapsThen(function () {
+            initDirectionsMap();
+            tick();
+        });
+    } else {
+        tick();
+    }
     setInterval(tick, 30000);
 })();
 </script>
