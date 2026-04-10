@@ -623,20 +623,19 @@
         .qk-delivery-eta__profile svg { display: block; }
         .qk-on-the-way-tag {
             position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
             z-index: 1050;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 14px 18px;
-            border-radius: 16px 16px 0 0;
+            gap: 10px;
+            box-sizing: border-box;
+            padding: 12px 16px;
+            /* Uniform cuboid (rounded rectangle), not a curved “sheet” edge */
+            border-radius: 12px;
             background: linear-gradient(135deg, #2e317e 0%, #3a3ea1 100%);
             color: #fff;
             text-decoration: none;
-            box-shadow: 0 -4px 18px rgba(15, 18, 64, 0.45);
+            box-shadow: 0 6px 20px rgba(15, 18, 64, 0.42);
             animation: qkOnTheWayFloat 1.8s ease-in-out infinite;
         }
         .qk-on-the-way-tag:hover {
@@ -647,7 +646,8 @@
             width: 14px;
             height: 14px;
             flex-shrink: 0;
-            border-radius: 50%;
+            border-radius: 4px;
+            overflow: hidden;
             background: #00e676;
             display: inline-flex;
             align-items: center;
@@ -664,7 +664,7 @@
         }
         @keyframes qkOnTheWayFloat {
             0% { transform: translateY(0); }
-            50% { transform: translateY(-2px); }
+            50% { transform: translateY(-1px); }
             100% { transform: translateY(0); }
         }
         @keyframes qkOnTheWayPulse {
@@ -677,13 +677,24 @@
             :root {
                 /* Content row only (icons + labels); safe-area is added on the bar + in these calcs */
                 --qk-tabbar-content-h: 48px;
+                /* Air between tab bar top and the bottom edge of the zapping badge */
+                --qk-on-the-way-gap: 10px;
             }
             body {
                 padding-bottom: calc(var(--qk-tabbar-content-h) + env(safe-area-inset-bottom, 0px));
             }
             .qk-on-the-way-tag {
-                /* Sit flush above the tab bar (no phantom gap): offset = full bar height */
-                bottom: calc(var(--qk-tabbar-content-h) + env(safe-area-inset-bottom, 0px));
+                left: max(14px, env(safe-area-inset-left, 0px));
+                right: max(14px, env(safe-area-inset-right, 0px));
+                width: auto;
+                margin: 0 auto;
+                max-width: 100%;
+                /* Tab bar height + safe area + visible gap so the badge reads as a separate cuboid block */
+                bottom: calc(
+                    var(--qk-tabbar-content-h) +
+                    env(safe-area-inset-bottom, 0px) +
+                    var(--qk-on-the-way-gap)
+                );
                 z-index: 1050;
             }
         }
@@ -828,11 +839,13 @@
         @media (min-width: 992px) {
             .qk-on-the-way-tag {
                 left: auto;
-                right: 22px;
-                bottom: 24px;
-                border-radius: 999px;
-                padding: 9px 12px;
-                box-shadow: 0 12px 28px rgba(30, 33, 94, 0.35);
+                right: max(22px, env(safe-area-inset-right, 0px));
+                bottom: max(24px, env(safe-area-inset-bottom, 0px));
+                width: max-content;
+                max-width: min(420px, calc(100vw - 44px));
+                border-radius: 12px;
+                padding: 10px 16px;
+                box-shadow: 0 8px 24px rgba(30, 33, 94, 0.38);
             }
             .qk-loggedin-menu .main-nav-right {
                 display: none !important;
