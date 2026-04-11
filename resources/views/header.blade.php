@@ -659,6 +659,9 @@
             color: #fff;
             text-decoration: none;
         }
+        .qk-on-the-way-tag.qk-on-the-way-tag--suppressed {
+            display: none !important;
+        }
         .qk-on-the-way-tag__icon {
             width: 14px;
             height: 14px;
@@ -1659,7 +1662,10 @@
     })();
     </script>
     @endif
-    @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']))
+    @php
+        $qkHideZappingBadgePage = request()->is('daily-order-details') || request()->is('rating-reviews');
+    @endphp
+    @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']) && !$qkHideZappingBadgePage)
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
        class="qk-on-the-way-tag"
        aria-label="Order zapping soon!">
@@ -1671,6 +1677,21 @@
         </span>
         <span class="qk-on-the-way-tag__text">Order zapping soon!</span>
     </a>
+    @endif
+    @if(!empty(session('user_id')) && !$qkHideZappingBadgePage)
+    <script>
+    (function () {
+        var modal = document.getElementById('headerLocationSwitchModal');
+        if (!modal) return;
+        function setZappingBadgeSuppressed(on) {
+            document.querySelectorAll('.qk-on-the-way-tag').forEach(function (el) {
+                el.classList.toggle('qk-on-the-way-tag--suppressed', !!on);
+            });
+        }
+        modal.addEventListener('show.bs.modal', function () { setZappingBadgeSuppressed(true); });
+        modal.addEventListener('hidden.bs.modal', function () { setZappingBadgeSuppressed(false); });
+    })();
+    </script>
     @endif
     <main>
         @if(!empty(session('user_id')))
