@@ -3604,6 +3604,15 @@ function checkOutDailyCartApiCallWithData() {
     }
     let orderInstruction = document.getElementById("orderInstruction").value;
     console.log("Selected orderInstruction:", orderInstruction);
+    var expEta = 0;
+    if (window.__cartCheckoutEtaMinutes != null && isFinite(Number(window.__cartCheckoutEtaMinutes))) {
+        expEta = parseInt(window.__cartCheckoutEtaMinutes, 10) || 0;
+    } else {
+        var etaEl = document.getElementById("cartCheckoutEtaMinutes");
+        if (etaEl) {
+            expEta = parseInt(String(etaEl.textContent || '').replace(/\D/g, ''), 10) || 0;
+        }
+    }
 
     var _token = jQuery('meta[name="csrf-token"]').attr('content');
     var url = "{{ENV('APP_URL')}}checkoutdailyorder";
@@ -3625,6 +3634,7 @@ function checkOutDailyCartApiCallWithData() {
             couponCode: couponCode,
             tip: selectedPartnerTip,
             orderInstruction: orderInstruction,
+            exp_eta: expEta,
             _token: _token,
         },
         success: function(result) {
@@ -3813,6 +3823,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
 }
 
 (function () {
+    window.__cartCheckoutEtaMinutes = null;
     window.refreshCartCheckoutEta = function () {
         var badge = document.getElementById('cartCheckoutEtaBadge');
         var latEl = document.getElementById('cartSelectedLat');
@@ -3825,6 +3836,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
         var ln = parseFloat(lngEl.value);
         if (!isFinite(la) || !isFinite(ln)) {
             badge.style.display = 'none';
+            window.__cartCheckoutEtaMinutes = null;
             return;
         }
         var tokenMeta = document.querySelector('meta[name="csrf-token"]');
@@ -3847,21 +3859,25 @@ function checkOutDailyCartPaymentApiCall(btnType) {
             .then(function (data) {
                 if (data && data.minutes != null && isFinite(Number(data.minutes))) {
                     badge.style.display = '';
-                    minEl.textContent = String(data.minutes);
+                    window.__cartCheckoutEtaMinutes = parseInt(data.minutes, 10) || 0;
+                    minEl.textContent = String(window.__cartCheckoutEtaMinutes);
                     return;
                 }
                 if (data && data.label) {
                     var m = parseInt(String(data.label).replace(/\D/g, ''), 10);
                     if (isFinite(m) && m > 0) {
                         badge.style.display = '';
+                        window.__cartCheckoutEtaMinutes = m;
                         minEl.textContent = String(m);
                         return;
                     }
                 }
                 badge.style.display = 'none';
+                window.__cartCheckoutEtaMinutes = null;
             })
             .catch(function () {
                 if (badge) badge.style.display = 'none';
+                window.__cartCheckoutEtaMinutes = null;
             });
     };
 })();

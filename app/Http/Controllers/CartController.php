@@ -662,6 +662,7 @@ class CartController extends Controller
         // die();
         $walletAmt = "0";
         $cashWalletAmt = "0";
+        $expEta = is_numeric($request->exp_eta) ? (int) $request->exp_eta : 0;
         $siNo = '';
         if ($request->totalwalletamt == "NaN" || $request->totalwalletamt == "" || $request->totalwalletamt == null) {
             $walletAmt = "0";
@@ -735,7 +736,8 @@ class CartController extends Controller
                     "browser" => $browser,
                     "delivery_date" => date('Y-m-d', strtotime('+2 day')),
                     "time_slot" => '06:00 am - 10:00 am',
-                    "order_instruction" => !empty($request->orderInstruction)?$request->orderInstruction:''
+                    "order_instruction" => !empty($request->orderInstruction)?$request->orderInstruction:'',
+                    "exp_eta" => $expEta
                 ]
             ]);
             $statusCode = $response->getStatusCode();
