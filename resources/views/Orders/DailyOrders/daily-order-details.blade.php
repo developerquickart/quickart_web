@@ -556,6 +556,7 @@
     var directionsRenderer = null;
     var homeMarker = null;
     var driverMarker = null;
+    var projectedRouteLine = null;
 
     function qkSvgMarkerUrl(svg) {
         return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
@@ -606,6 +607,35 @@
         }
     }
 
+    function updateProjectedRouteLine(riderLat, riderLng) {
+        if (!map || !isFinite(riderLat) || !isFinite(riderLng)) return;
+        var linePath = [
+            { lat: riderLat, lng: riderLng },
+            { lat: homeLat, lng: homeLng }
+        ];
+        if (!projectedRouteLine) {
+            projectedRouteLine = new google.maps.Polyline({
+                map: map,
+                path: linePath,
+                strokeOpacity: 0,
+                geodesic: true,
+                zIndex: 70,
+                icons: [{
+                    icon: {
+                        path: 'M 0,-1 0,1',
+                        strokeOpacity: 0.95,
+                        strokeColor: '#2e7d32',
+                        scale: 3
+                    },
+                    offset: '0',
+                    repeat: '12px'
+                }]
+            });
+            return;
+        }
+        projectedRouteLine.setPath(linePath);
+    }
+
     function initDirectionsMap() {
         if (!mapEl || !window.google || !google.maps) return;
         map = new google.maps.Map(mapEl, {
@@ -639,6 +669,7 @@
     function drawDrivingRoute(riderLat, riderLng) {
         if (!directionsService || !directionsRenderer || !isFinite(riderLat) || !isFinite(riderLng)) return;
         updateDriverMarker(riderLat, riderLng);
+        updateProjectedRouteLine(riderLat, riderLng);
         directionsService.route({
             origin: { lat: riderLat, lng: riderLng },
             destination: { lat: homeLat, lng: homeLng },
@@ -691,6 +722,7 @@
                     drawDrivingRoute(data.rider_lat, data.rider_lng);
                 } else if (map) {
                     updateDriverMarker(data.rider_lat, data.rider_lng);
+                    updateProjectedRouteLine(data.rider_lat, data.rider_lng);
                 }
             })
             .catch(function () {});
