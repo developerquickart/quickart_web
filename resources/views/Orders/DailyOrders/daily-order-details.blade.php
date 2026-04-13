@@ -679,8 +679,16 @@
                 directionsRenderer.setDirections(result);
                 var b = new google.maps.LatLngBounds();
                 result.routes[0].bounds && b.union(result.routes[0].bounds);
+                b.extend({ lat: riderLat, lng: riderLng });
+                b.extend({ lat: homeLat, lng: homeLng });
                 if (b.getNorthEast && b.getSouthWest) {
-                    map.fitBounds(b);
+                    map.fitBounds(b, 28);
+                    google.maps.event.addListenerOnce(map, 'idle', function () {
+                        var z = map.getZoom();
+                        if (isFinite(z) && z > 17) {
+                            map.setZoom(17);
+                        }
+                    });
                 }
             }
         });
