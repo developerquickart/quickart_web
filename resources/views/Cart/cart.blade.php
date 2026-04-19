@@ -2301,19 +2301,60 @@ function getAddressIcon(type) {
     }
 }
 
-/** Bootstrap 5 modal helpers — jQuery .modal() does not exist on BS5 (broken hide leaves backdrop / frozen UI). */
+/** Bootstrap 5 modal helpers — jQuery .modal() does not exist on BS5; also cart loads multiple Bootstrap bundles which can orphan instances and leave backdrops (frozen UI). */
 function qkHideBootstrapModal(modalId) {
     var el = document.getElementById(modalId);
-    if (!el || typeof bootstrap === 'undefined') return;
-    var inst = bootstrap.Modal.getInstance(el);
-    if (inst) inst.hide();
+    if (!el) return;
+
+    function forceCleanupModalUi() {
+        el.classList.remove('show');
+        el.setAttribute('aria-hidden', 'true');
+        el.removeAttribute('aria-modal');
+        el.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+        document.querySelectorAll('.modal-backdrop').forEach(function (node) {
+            node.remove();
+        });
+    }
+
+    if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+        try {
+            var Modal = bootstrap.Modal;
+            var inst =
+                typeof Modal.getOrCreateInstance === 'function'
+                    ? Modal.getOrCreateInstance(el)
+                    : Modal.getInstance(el) || new Modal(el);
+            inst.hide();
+        } catch (e) {
+            forceCleanupModalUi();
+            return;
+        }
+    }
+
+    setTimeout(function () {
+        var stuck =
+            el.classList.contains('show') ||
+            document.body.classList.contains('modal-open') ||
+            document.querySelectorAll('.modal-backdrop').length > 0;
+        if (stuck) {
+            forceCleanupModalUi();
+        }
+    }, 520);
 }
+
 function qkShowBootstrapModal(modalId) {
     var el = document.getElementById(modalId);
     if (!el || typeof bootstrap === 'undefined') return;
-    var inst = bootstrap.Modal.getInstance(el);
-    if (!inst) inst = new bootstrap.Modal(el);
-    inst.show();
+    try {
+        var Modal = bootstrap.Modal;
+        var inst =
+            typeof Modal.getOrCreateInstance === 'function'
+                ? Modal.getOrCreateInstance(el)
+                : Modal.getInstance(el) || new Modal(el);
+        inst.show();
+    } catch (e) {}
 }
 
 // Function to handle selected address
@@ -2452,8 +2493,14 @@ function saveSelectedCardDataN(element) {
 
     if (siNO) siNO.value = siSubRefNo;
     if (cardSpan) cardSpan.textContent = cardNo;
-    
-    qkHideBootstrapModal('cardModal');
+
+    if (typeof jQuery !== 'undefined') {
+        jQuery('#ajaxLoader').hide();
+    }
+
+    requestAnimationFrame(function () {
+        qkHideBootstrapModal('cardModal');
+    });
 }
 </script>
 
@@ -3990,12 +4037,6 @@ document.addEventListener("DOMContentLoaded", function() {
         
 });
 </script>
-
-<!-- jQuery (if needed) -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 @include('footer')
 
