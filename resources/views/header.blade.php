@@ -344,8 +344,8 @@
             min-width: 0;
             gap: 8px;
         }
-        /* Only the location *label* opens the modal — not the chevron, not the ETA time block. */
-        .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn {
+        /* Location row: label + chevron share one control — both open change-location modal (ETA block stays separate link to home). */
+        .qk-delivery-eta__meta .qk-delivery-eta__location-row-btn {
             appearance: none;
             -webkit-appearance: none;
             background: transparent;
@@ -356,28 +356,20 @@
             color: inherit;
             cursor: pointer;
             text-align: left;
-            display: block;
-            flex: 0 1 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
             min-width: 0;
-            max-width: 50%;
             outline: none;
         }
-        .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn:hover {
+        .qk-delivery-eta__meta .qk-delivery-eta__location-row-btn:hover .qk-delivery-eta__location {
             text-decoration: underline;
             text-underline-offset: 2px;
         }
-        .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn:focus-visible {
-            border-radius: 6px;
+        .qk-delivery-eta__meta .qk-delivery-eta__location-row-btn:focus-visible {
+            border-radius: 8px;
             box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
-        }
-        .qk-delivery-eta__meta .qk-location-switch-btn--decorative {
-            pointer-events: none;
-            cursor: default;
-        }
-        @supports (max-width: 50cqw) {
-            .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn {
-                max-width: 50cqw;
-            }
         }
         .qk-delivery-eta__distance-text {
             display: none;
@@ -398,6 +390,10 @@
             .qk-delivery-eta__location {
                 max-width: 50cqw;
             }
+        }
+        .qk-delivery-eta__location-row-btn .qk-delivery-eta__location {
+            flex: 1 1 auto;
+            min-width: 0;
         }
         .qk-location-switch-btn {
             display: inline-flex;
@@ -447,7 +443,11 @@
             padding: 0 2px;
             cursor: pointer;
         }
-        .qk-location-switch-body { padding: 14px; }
+        .qk-location-switch-body {
+            padding: 14px;
+            /* Extra room below primary CTA — avoids home indicator / rounded corners clipping the button */
+            padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+        }
         .qk-header-location-actions { margin-bottom: 10px; }
         .qk-header-current-location-card {
             width: 100%;
@@ -1320,17 +1320,17 @@
                                 </a>
                                 <div class="qk-delivery-eta__meta">
                                     <button type="button"
-                                        class="qk-delivery-eta__location-trigger-btn"
+                                        class="qk-delivery-eta__location-row-btn"
                                         data-bs-toggle="modal"
                                         data-bs-target="#headerLocationSwitchModal"
                                         aria-label="Change delivery location">
                                         <span class="qk-delivery-eta__location" data-delivery-eta-location>{{ session('delivery_location_name') ?: 'Current location' }}</span>
+                                        <span class="qk-location-switch-btn" aria-hidden="true">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </span>
                                     </button>
-                                    <span class="qk-location-switch-btn qk-location-switch-btn--decorative" aria-hidden="true">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </svg>
-                                    </span>
                                 </div>
                             </div>
                         </div>
