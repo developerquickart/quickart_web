@@ -1,4 +1,9 @@
 @include('header')
+@if (\Request::get('screen') == 'daily' && \Request::filled('group_id'))
+<script>
+window.__ORDER_COMPLETE_GROUP_ID__ = @json(\Request::get('group_id'));
+</script>
+@endif
 @if (\Request::get('screen') == 'daily')
 <style>
     /* Mobile: short confirmation copy makes the footer feel like main content; stretch this section so the footer sits lower. */
@@ -48,17 +53,23 @@
         localStorage.removeItem("selectedAddress");
         if (screenString == "daily") {
         localStorage.setItem("selectedOrderTab", "1");
-        navigateToNextPage(href = '{{ env('APP_URL ') }}my-orders?tab=1');
-        // navigateToNextPage(href = "{{ENV('APP_URL')}}daily-orders");
+        var gid = (typeof window.__ORDER_COMPLETE_GROUP_ID__ !== 'undefined' && window.__ORDER_COMPLETE_GROUP_ID__)
+            ? String(window.__ORDER_COMPLETE_GROUP_ID__).trim()
+            : '';
+        if (gid !== '') {
+            navigateToNextPage(href = "{{ url('/daily-order-details') }}?group_id=" + encodeURIComponent(gid));
+            return;
+        }
+        navigateToNextPage(href = "{{ url('/my-orders') }}?tab=1");
         } else if (screenString == "subscription") {
         // navigateToNextPage(href = "{{ENV('APP_URL')}}subscription-orders");
         localStorage.setItem("selectedOrderTab", "2");
-        navigateToNextPage(href = '{{ env('APP_URL ') }}my-orders?tab=2');
+        navigateToNextPage(href = "{{ url('/my-orders') }}?tab=2");
         } else if (screenString == "index") {
         navigateToNextPage(href="/");
         }else {
         localStorage.setItem("selectedOrderTab", "1");
-        navigateToNextPage(href = '{{ env('APP_URL ') }}my-orders?tab=1');
+        navigateToNextPage(href = "{{ url('/my-orders') }}?tab=1");
         }
     } 
 </script>

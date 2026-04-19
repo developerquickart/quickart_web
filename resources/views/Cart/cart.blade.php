@@ -3672,7 +3672,11 @@ function checkOutDailyCartApiCallWithData() {
                     page_location: window.location.href,
                     debug_mode: false // true for DebugView testing
                     });
-               navigateToNextPage(href = "{{ENV('APP_URL')}}order-complete?screen=daily");
+               var orderCompleteUrl = "{{ url('/order-complete') }}?screen=daily";
+               if (result.group_id) {
+                   orderCompleteUrl += "&group_id=" + encodeURIComponent(result.group_id);
+               }
+               navigateToNextPage(href = orderCompleteUrl);
             } else {
                 Swal.fire({
                     icon: "sucess",

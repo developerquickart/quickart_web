@@ -744,11 +744,19 @@ class CartController extends Controller
 
             if ($statusCode == 200) {
                 $productListT = json_decode($response->getBody()->getContents(), true);
-                return response()->json([
+                $groupId = data_get($productListT, 'data.group_id')
+                    ?? data_get($productListT, 'data.groupId')
+                    ?? data_get($productListT, 'group_id');
+                $payload = [
                     'success' => $productListT['status'],
                     'action' => $productListT['status'],
-                    'message' => $productListT['message'],
-                ]);
+                    'message' => $productListT['message'] ?? '',
+                ];
+                if ($groupId !== null && $groupId !== '') {
+                    $payload['group_id'] = $groupId;
+                }
+
+                return response()->json($payload);
             } else {
                 return response()->json([
                     'status' => 'error',
@@ -898,14 +906,18 @@ class CartController extends Controller
 
             if ($statusCode == 200) {
                 $productList = json_decode($response->getBody()->getContents(), true);
-                
-                if($request->platform == 'web'){
-                    if($request->screen == 'daily'){
-                         return redirect('/order-complete?screen=daily');
-                    }else{
-                        return redirect('/order-complete?screen=subscription');
-                    }     
-                }else{
+
+                $groupId = data_get($productList, 'data.group_id')
+                    ?? data_get($productList, 'group_id');
+
+                if ($request->platform == 'web') {
+                    $query = ['screen' => $request->screen == 'daily' ? 'daily' : 'subscription'];
+                    if ($groupId !== null && $groupId !== '') {
+                        $query['group_id'] = $groupId;
+                    }
+
+                    return redirect()->to('/order-complete?' . http_build_query($query));
+                } else {
                     return redirect('/loading');
                 }
                
