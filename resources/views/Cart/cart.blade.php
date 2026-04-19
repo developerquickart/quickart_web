@@ -3673,8 +3673,15 @@ function checkOutDailyCartApiCallWithData() {
                     debug_mode: false // true for DebugView testing
                     });
                var orderCompleteUrl = "{{ url('/order-complete') }}?screen=daily";
-               if (result.group_id) {
-                   orderCompleteUrl += "&group_id=" + encodeURIComponent(result.group_id);
+               var rawGid = (result && (result.group_id != null && result.group_id !== ''))
+                   ? result.group_id
+                   : (result && result.data && typeof result.data === 'object' && result.data.group_id != null
+                       ? result.data.group_id
+                       : (result && result.data && typeof result.data === 'object' && result.data.groupId != null
+                           ? result.data.groupId
+                           : ''));
+               if (rawGid !== '' && rawGid != null) {
+                   orderCompleteUrl += "&group_id=" + encodeURIComponent(String(rawGid));
                }
                navigateToNextPage(href = orderCompleteUrl);
             } else {

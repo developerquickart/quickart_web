@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use GuzzleHttp\Client;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -574,9 +575,36 @@ class CartController extends Controller
         if(!empty(session()->get('user_id'))){
             $this->updateproductdetails($data_arr['user_id']); 
         }
-        return view('/order-complete', compact('title', 'data_arr'))->with('CartCount', $this->CartCount);
 
+        $trackDailyGroupId = $request->query('group_id');
+        if ($trackDailyGroupId === null || $trackDailyGroupId === '') {
+            $sessGid = session('last_daily_checkout_group_id');
+            if ($sessGid !== null && $sessGid !== '') {
+                $trackDailyGroupId = $sessGid;
+            }
+        }
+        if (($trackDailyGroupId === null || $trackDailyGroupId === '')
+            && $request->get('screen') === 'daily'
+            && ! empty(session('user_id'))) {
+            try {
+                $row = DB::table('orders')
+                    ->where('user_id', session('user_id'))
+                    ->orderByDesc('id')
+                    ->first();
+                if ($row && ! empty($row->group_id)) {
+                    $trackDailyGroupId = $row->group_id;
+                }
+            } catch (\Throwable $e) {
+                //
+            }
+        }
+        if ($trackDailyGroupId !== null && $trackDailyGroupId !== '') {
+            $trackDailyGroupId = (string) $trackDailyGroupId;
+        }
 
+        return view('/order-complete', compact('title', 'data_arr'))
+            ->with('CartCount', $this->CartCount)
+            ->with('trackDailyGroupId', $trackDailyGroupId ?? null);
     }
     
     public function loaderPage(Request $request)
@@ -744,9 +772,7 @@ class CartController extends Controller
 
             if ($statusCode == 200) {
                 $productListT = json_decode($response->getBody()->getContents(), true);
-                $groupId = data_get($productListT, 'data.group_id')
-                    ?? data_get($productListT, 'data.groupId')
-                    ?? data_get($productListT, 'group_id');
+                $groupId = $this->extractGroupIdFromNodeResponse(is_array($productListT) ? $productListT : null);
                 $payload = [
                     'success' => $productListT['status'],
                     'action' => $productListT['status'],
@@ -754,6 +780,7 @@ class CartController extends Controller
                 ];
                 if ($groupId !== null && $groupId !== '') {
                     $payload['group_id'] = $groupId;
+                    session(['last_daily_checkout_group_id' => $groupId]);
                 }
 
                 return response()->json($payload);
@@ -907,8 +934,11 @@ class CartController extends Controller
             if ($statusCode == 200) {
                 $productList = json_decode($response->getBody()->getContents(), true);
 
-                $groupId = data_get($productList, 'data.group_id')
-                    ?? data_get($productList, 'group_id');
+                $groupId = $this->extractGroupIdFromNodeResponse(is_array($productList) ? $productList : null);
+
+                if ($groupId !== null && $groupId !== '') {
+                    session(['last_daily_checkout_group_id' => $groupId]);
+                }
 
                 if ($request->platform == 'web') {
                     $query = ['screen' => $request->screen == 'daily' ? 'daily' : 'subscription'];
@@ -974,6 +1004,78 @@ class CartController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
 
+    }
+
+    /**
+     * checkout_quickorder / payment callbacks often nest group_id differently — normalize extraction.
+     *
+     * @param  array<string,mixed>|null  $payload
+     */
+    private function extractGroupIdFromNodeResponse(?array $payload): ?string
+    {
+        if (empty($payload)) {
+            return null;
+        }
+
+        $paths = [
+            'data.group_id',
+            'data.groupId',
+            'data.order_group_id',
+            'data.order.group_id',
+            'data.quickOrder.group_id',
+            'data.quickorder.group_id',
+            'data.result.group_id',
+            'data.record.group_id',
+            'group_id',
+            'groupId',
+            'Group_Id',
+            'action.group_id',
+        ];
+
+        foreach ($paths as $path) {
+            $v = data_get($payload, $path);
+            if ($v !== null && $v !== '' && (is_string($v) || is_numeric($v))) {
+                return (string) $v;
+            }
+        }
+
+        $action = data_get($payload, 'action');
+        if (is_string($action) && $action !== '' && strpos($action, 'group_id') !== false) {
+            $q = [];
+            $qstr = parse_url($action, PHP_URL_QUERY);
+            if (is_string($qstr) && $qstr !== '') {
+                parse_str($qstr, $q);
+            }
+            if (! empty($q['group_id'])) {
+                return (string) $q['group_id'];
+            }
+        }
+
+        $rawData = data_get($payload, 'data');
+        if (is_string($rawData)) {
+            $decoded = json_decode($rawData, true);
+            if (is_array($decoded)) {
+                $nested = $this->extractGroupIdFromNodeResponse($decoded);
+                if ($nested !== null) {
+                    return $nested;
+                }
+            }
+        }
+
+        if (is_array($rawData)) {
+            foreach (['group_id', 'groupId', 'order_group_id'] as $key) {
+                if (! empty($rawData[$key])) {
+                    return (string) $rawData[$key];
+                }
+            }
+            foreach ($rawData as $item) {
+                if (is_array($item) && ! empty($item['group_id'])) {
+                    return (string) $item['group_id'];
+                }
+            }
+        }
+
+        return null;
     }
 
 }

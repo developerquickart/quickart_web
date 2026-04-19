@@ -1,7 +1,8 @@
 @include('header')
-@if (\Request::get('screen') == 'daily' && \Request::filled('group_id'))
+{{-- group_id: query string, session (set on checkout), or latest order in DB (see CartController::orderCompletedPage) --}}
+@if (\Request::get('screen') == 'daily' && !empty($trackDailyGroupId))
 <script>
-window.__ORDER_COMPLETE_GROUP_ID__ = @json(\Request::get('group_id'));
+window.__ORDER_COMPLETE_GROUP_ID__ = @json($trackDailyGroupId);
 </script>
 @endif
 @if (\Request::get('screen') == 'daily')
