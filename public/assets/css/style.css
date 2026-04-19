@@ -2552,6 +2552,23 @@ input[type="checkbox" i] {
     grid-template-columns: 1fr 1fr;
     gap: 20px;
 }
+
+/* Daily orders list cards (tab 1): keep ID/date column aligned with status/price on narrow screens */
+.qk-my-order-summary {
+    align-items: flex-start;
+}
+.qk-my-order-status-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: flex-start;
+}
+.qk-my-order-status-col .cancel_order_btn {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
 .sub_order_list.my-order-list {
     margin: 0;
 }
@@ -9632,6 +9649,29 @@ img.varient-down-arrow {
     }
     .my-order-mainList {
         grid-template-columns: 1fr;
+    }
+
+    /* Same horizontal band: left = Order ID + Order Date, right = status + amount */
+    .daily_order_infoBox .qk-my-order-id-date li {
+        font-size: 13px;
+        line-height: 1.35;
+        padding: 2px 0;
+    }
+    .daily_order_infoBox .qk-my-order-status-col .daily-order-status-btn {
+        font-size: 11px;
+        padding: 5px 10px;
+        line-height: 1.25;
+        margin-top: 0;
+        margin-bottom: 4px;
+        max-width: 100%;
+        word-break: break-word;
+        white-space: normal;
+        text-align: right;
+        display: inline-block;
+    }
+    .daily_order_infoBox .qk-my-order-price li {
+        font-size: 13px;
+        padding-top: 0;
     }
     .product_details_mainBox{
         display: block;

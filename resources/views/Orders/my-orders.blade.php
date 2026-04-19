@@ -20,9 +20,9 @@
                                                     <div class="daily_product">
                                                         <div class="order_info">
                                                             <div class="order_details">
-                                                                <div class="row">
-                                                                    <div class="col-lg-6 col-md-6">
-                                                                        <ul>
+                                                                <div class="row align-items-start g-2 qk-my-order-summary">
+                                                                    <div class="col-6 col-lg-6">
+                                                                        <ul class="qk-my-order-id-date mb-0">
                                                                             <li>Order ID:
                                                                                 <span>{{$orderList['group_id']}}</span>
                                                                             </li>
@@ -32,14 +32,14 @@
                                                                         </ul>
                                                                     </div>
                                                                     @if ($orderList['orderType'] !="trail")
-                                                                    <div class="col-lg-6 col-md-6 text-end">
+                                                                    <div class="col-6 col-lg-6 text-end qk-my-order-status-col">
                                                                         <div class="cancel_order_btn">
                                                                             <div class="daily-order-status-btn"
                                                                                 style="color: {{ getProdOrderStatusColor($orderList['order_status']) }};"> 
                                                                                 {{ $orderList['order_status'] == 'Out_For_Delivery' ? "Out For Delivery": getOrderStatus($orderList['order_status'])}}
                                                                             </div>
                                                                         </div>
-                                                                        <ul>
+                                                                        <ul class="qk-my-order-price mb-0">
                                                                             <li>AED
                                                                                 <span>{{number_format($orderList['price_without_delivery'], 2)}}</span>
                                                                             </li>
@@ -47,19 +47,19 @@
                                                                     </div>
                                                                     @endif
                                                                     @if ($orderList['orderType'] =="trail")
-                                                                    <div class="col-lg-6 col-md-6 text-end">
-                                                                        <p class="text-with-bg">Trial Pack</p>
-                                                                        <ul>
+                                                                    <div class="col-6 col-lg-6 text-end qk-my-order-status-col">
+                                                                        <p class="text-with-bg mb-1 mb-md-2">Trial Pack</p>
+                                                                        <ul class="qk-my-order-price mb-0">
                                                                             <li>AED
                                                                                 <span>{{number_format($orderList['price_without_delivery'], 2)}}</span>
                                                                             </li>
                                                                         </ul>
                                                                     </div>
                                                                     @endif
-                                                                    <div
+                                                                    <div class="col-12"
                                                                         style="border-bottom: 0.3px solid #dadbf0; margin-top: 5px; margin-bottom: 5px ">
                                                                     </div>
-                                                                    <div class="col-lg-12">
+                                                                    <div class="col-12">
                                                                         <ul>
                                                                             <li>{{$orderList['productname']}}</span>
                                                                             </li>
