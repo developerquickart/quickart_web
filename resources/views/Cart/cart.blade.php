@@ -358,7 +358,7 @@ if (isset($showCartProductList['data'])) {
                                                                         <td>AED <span id="couponDiscount"> 0.00</span>
                                                                         </td>
                                                                     </tr>
-                                                                    <tr class="small-text" id='codChargesRowD'>
+                                                                    <tr class="small-text d-none" id='codChargesRowD' aria-hidden="true">
                                                                         <td>COD Extra charges</td>
                                                                         <td id="codCharges">AED 0.00
                                                                         </td>
@@ -558,35 +558,11 @@ if (isset($showCartProductList['data'])) {
                                                         </div>
                                                     </div>
                                                     <div class="payment_mainBox new_payment_mainBox">
-                                                        <div class="trial_radio_btn_box">
-                                                            <div class="trial_radio_mainbox">
-                                                                <div class="trial_radio_btn">
-                                                                    <label for="daily_COD">COD</label>
-                                                                    <input type="radio" id="daily_COD" name="toggle"
-                                                                        value="COD" onclick="toggleCODCharges(this.value)">
-                                                                </div>
-                                                                <div class="trial_radio_btn">
-                                                                    <label for="daily_PayNow">Pay Now</label>
-                                                                    <input type="radio" id="daily_PayNow" name="toggle"
-                                                                        value="Pay Now" checked
-                                                                        onclick="toggleCODCharges(this.value)">
-                                                                </div>
-                                                            </div>
-                                                            <div id="COD" class="content-div">
-                                                                <div class="cod_icon_test_mainbox">
-                                                                    <div class="cod_icon_box">
-                                                                        <img src="assets/images/bank-account-icon.svg"
-                                                                            alt="COD Icon" class="img-fluid">
-                                                                    </div>
-                                                                    <div class="cod_content_box">
-                                                                        An additional charges of AED
-                                                                        {{number_format($showCartProductList['data']['codcharges'], 2)}}
-                                                                        is applicable
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div id="Pay Now" class="content-div">
+                                                        {{-- Pay Now only on daily cart: keep a single hidden radio so existing checkout JS (name="toggle") still works. --}}
+                                                        <input type="radio" name="toggle" id="daily_PayNow" value="Pay Now" checked
+                                                            class="visually-hidden" tabindex="-1" title="Pay Now" style="position:absolute;left:-9999px"
+                                                            aria-label="Pay Now" onchange="toggleCODCharges(this.value)">
+                                                        <div id="Pay Now" class="content-div" style="display: block;">
                                                             <div id="payNowQuick">
                                                                 <div class="pay_btnbox">
                                                                     <div class="pay_btn_listing"
@@ -1368,20 +1344,6 @@ updateTimeBox();
 </script>
 <!-- ON CHANGE SHOW SELECTED DATE AND TIME IN SCHEDULE DELIVERY SECTION START -->
 
-<script>
-document.querySelectorAll('input[name="toggle"]').forEach(radio => {
-    radio.addEventListener('change', function() {
-        // Hide all divs
-        document.querySelectorAll('.content-div').forEach(div => div.style.display = 'none');
-
-        // Show the selected div
-        const selectedDiv = document.getElementById(this.value);
-        if (selectedDiv) {
-            selectedDiv.style.display = 'block';
-        }
-    });
-});
-</script>
 <script>
 document.querySelectorAll('input[name="toggle-two"]').forEach(radio => {
     radio.addEventListener('change', function() {
@@ -2526,9 +2488,6 @@ document.addEventListener("DOMContentLoaded", toggleSubRadioBtnCharges);
 
 document.addEventListener("DOMContentLoaded", function() {
     toggleSubRadioBtnCharges();
-    document.querySelectorAll("input[name='toggle']").forEach(radio => {
-        radio.addEventListener("change", toggleSubRadioBtnCharges);
-    });
     document.querySelectorAll("input[name='tip']").forEach(tip => {
         tip.addEventListener("change", toggleSubRadioBtnCharges);
     });
@@ -3479,37 +3438,15 @@ function wallettotalCalculationPaymentCash() {
 
 function toggleCODCharges(value) {
   const codChargesInput = document.getElementById('cod_extra_charges');
-  const codCharges = parseFloat(document.getElementById('cod_charges').value) || 0;
-//   var totalPrice = parseFloat(document.getElementById("toPay").value) || 0;
-  let totalText = document.getElementById("toPay").innerText || "0";
-  let totalPrice = parseFloat(totalText.replace(/[^0-9.-]+/g,"")) || 0;
-
-  console.log("value:", value, "totalPrice:", totalPrice);
-
-  if (value && value.toUpperCase().trim() === 'COD' && totalPrice > 0) {
-    document.getElementById("codCharges").innerText = "AED " + codCharges.toFixed(2);
-    codChargesInput.value = codCharges;
-  } else {
-    document.getElementById("codCharges").innerText = "AED 0.00";
-    codChargesInput.value = 0;
+  document.getElementById("codCharges").innerText = "AED 0.00";
+  codChargesInput.value = 0;
+  const payNowDiv = document.getElementById('Pay Now');
+  if (payNowDiv) {
+    payNowDiv.style.display = 'block';
   }
-// G1 add code for hide and unhide option...
-  const codDiv = document.getElementById('COD');
-    const payNowDiv = document.getElementById('Pay Now');
-
-    if (value === 'COD') {
-        codDiv.style.display = 'block';
-        payNowDiv.style.display = 'none';
-    } else if (value === 'Pay Now') {
-        codDiv.style.display = 'none';
-        payNowDiv.style.display = 'block';
-    }
-
-
-// Recalculate final total
-wallettotalCalculationPayment();
-wallettotalCalculationPaymentCash(); 
-totalCalculationPayment();
+  wallettotalCalculationPayment();
+  wallettotalCalculationPaymentCash();
+  totalCalculationPayment();
 }
 
 function totalCalculationPayment() {
@@ -3580,7 +3517,7 @@ function checkOutDailyCartApiCall(type) {
         selectedMethod = selectedPayment.value;
         console.log("Selected Method:", selectedMethod);
     }
-    if (type === "payNow" && selectedMethod === "Pay Now") {
+    if (type === "payNow") {
         const siNOS = document.getElementById("siNo");
         if (siNOS && siNOS.value !== 'undefined' && siNOS.value !== null && siNOS.value.trim() !== '') {
             siNO = siNOS.value;
@@ -4028,8 +3965,7 @@ document.addEventListener("DOMContentLoaded", function() {
             $('.btn_addresslist span').html('Change');
         }
 
-         const checked = document.querySelector('input[name="toggle"]:checked');
-         if (checked) toggleCODCharges(checked.value);
+         toggleCODCharges('Pay Now');
 
         if (typeof window.refreshCartCheckoutEta === 'function') {
             window.refreshCartCheckoutEta();
