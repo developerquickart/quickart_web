@@ -1663,7 +1663,8 @@
     </script>
     @endif
     @php
-        $qkHideZappingBadgePage = request()->is('daily-order-details') || request()->is('rating-reviews');
+        $qkHideZappingBadgePage = request()->is('cart') || request()->is('cart/*')
+            || request()->is('daily-order-details') || request()->is('rating-reviews');
     @endphp
     @if(!empty(session('user_id')) && !empty($onTheWayOrder['show']) && !empty($onTheWayOrder['group_id']) && !$qkHideZappingBadgePage)
     <a href="{{ url('/daily-order-details?group_id=' . urlencode($onTheWayOrder['group_id'])) }}"
