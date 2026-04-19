@@ -1312,7 +1312,7 @@ function addCard() {
             // console.log(result.action);
             $("#ajaxLoader").hide();
             if (result.success == "1") {
-                $('#cardModal').modal('hide');
+                qkHideBootstrapModal('cardModal');
                 navigateToNextPage(href = result.action);
 
             } else {
@@ -2300,6 +2300,22 @@ function getAddressIcon(type) {
         return "{{asset('assets/images/other_location.png')}}";
     }
 }
+
+/** Bootstrap 5 modal helpers — jQuery .modal() does not exist on BS5 (broken hide leaves backdrop / frozen UI). */
+function qkHideBootstrapModal(modalId) {
+    var el = document.getElementById(modalId);
+    if (!el || typeof bootstrap === 'undefined') return;
+    var inst = bootstrap.Modal.getInstance(el);
+    if (inst) inst.hide();
+}
+function qkShowBootstrapModal(modalId) {
+    var el = document.getElementById(modalId);
+    if (!el || typeof bootstrap === 'undefined') return;
+    var inst = bootstrap.Modal.getInstance(el);
+    if (!inst) inst = new bootstrap.Modal(el);
+    inst.show();
+}
+
 // Function to handle selected address
 function saveSelectedAddress(storedAddresses) {
     // console.log("Selected Address:", storedAddresses);     
@@ -2322,7 +2338,7 @@ function saveSelectedAddress(storedAddresses) {
 
     $('.change_addressbox').removeClass('d-none');
     $('.btn_addresslist span').html('Change Address');
-    $('#addressModal').modal('hide');
+    qkHideBootstrapModal('addressModal');
     if (typeof window.refreshCartCheckoutEta === 'function') {
         window.refreshCartCheckoutEta();
     }
@@ -2335,7 +2351,8 @@ function saveSelectedAddress(storedAddresses) {
 function fetchCardList(selectedsi) {
    
     $("#ajaxLoader").show();
-    var siNO = document.getElementById("siNo")?.textContent || "";
+    var siEl = document.getElementById("siNo");
+    var siNO = siEl && typeof siEl.value !== 'undefined' ? String(siEl.value || '').trim() : '';
     var cartID = document.getElementById("cardType")?.textContent || "";
     // console.log("G1:---siNO---1>", siNO, cartID);
     // console.log("G1:---siNO---1>", siNO.length);
@@ -2411,7 +2428,7 @@ function fetchCardList(selectedsi) {
 
 
             } else {
-                alert("Error: " + result.message);
+                alert("Error: " + (response && response.message ? response.message : 'Unknown error'));
             }
         },
         error: function(xhr, status, error) {
@@ -2433,10 +2450,10 @@ function saveSelectedCardDataN(element) {
     let cardSpan = document.getElementById("cardType");
     let siNO = document.getElementById("siNo");
 
-    if (siNO) siNO.textContent = siSubRefNo;
+    if (siNO) siNO.value = siSubRefNo;
     if (cardSpan) cardSpan.textContent = cardNo;
     
-    $('#cardModal').modal('hide');
+    qkHideBootstrapModal('cardModal');
 }
 </script>
 
@@ -3115,7 +3132,7 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
             _token: $('meta[name="csrf-token"]').attr('content'),
         },
         success: function(result) {
-            $("#myModal").modal('hide');
+            qkHideBootstrapModal('myModal');
             $("#ajaxLoader").hide();
             // console.log("Response:", result);
             if (selectedBtn == "save") {
@@ -3135,7 +3152,7 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
             }
         },
         error: function(xhr) {
-            $("#myModal").modal('hide');
+            qkHideBootstrapModal('myModal');
             // console.error("Error:", xhr.responseText);
             alert("An error occurred: " + xhr.responseText);
         },
@@ -3278,7 +3295,7 @@ function applyCouponAPICall(couponCode) {
                 }); 
             }
             // console.log("Response:", result);
-            $('#couponModal').modal('hide');
+            qkHideBootstrapModal('couponModal');
 
             document.body.removeAttribute("style")
         },
@@ -3911,7 +3928,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
     
     if(addedFrom == 'cart'){
-        $('#addressModal').modal('show');
+        qkShowBootstrapModal('addressModal');
         $('.btn_addresslist').trigger('click');
     }
     
@@ -4183,7 +4200,7 @@ input1.addEventListener('countrychange', () => {
 
 function populateForm(addressId) {
     
-    $('#addressModal').modal('hide');
+    qkHideBootstrapModal('addressModal');
     let societyName = document.getElementById('society_name' + addressId).value;
     let house_no = document.getElementById('house_no' + addressId).value;
     let landmark = document.getElementById('landmark' + addressId).value;
@@ -4238,7 +4255,7 @@ function populateForm(addressId) {
         map: map,
       });
 
-    $('#editAddressModal').modal('show');
+    qkShowBootstrapModal('editAddressModal');
 
 }
 
@@ -4296,8 +4313,8 @@ $(document).ready(function() {
                         //     timer: 3000,
                         //     showConfirmButton: false
                         // });
-                        $('#editAddressModal').modal('hide');
-                         $('#addressModal').modal('show');
+                        qkHideBootstrapModal('editAddressModal');
+                         qkShowBootstrapModal('addressModal');
                          fetchAddressList();
                     }
                   },
