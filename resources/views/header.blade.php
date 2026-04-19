@@ -326,6 +326,13 @@
             white-space: nowrap;
             flex-shrink: 0;
         }
+        .qk-delivery-eta__body {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+            align-self: stretch;
+        }
         .qk-delivery-eta__meta {
             display: flex;
             align-items: center;
@@ -336,6 +343,41 @@
             opacity: 0.92;
             min-width: 0;
             gap: 8px;
+        }
+        /* Only the location *label* opens the modal — not the chevron, not the ETA time block. */
+        .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn {
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            color: inherit;
+            cursor: pointer;
+            text-align: left;
+            display: block;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 50%;
+            outline: none;
+        }
+        .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn:hover {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+        .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn:focus-visible {
+            border-radius: 6px;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+        }
+        .qk-delivery-eta__meta .qk-location-switch-btn--decorative {
+            pointer-events: none;
+            cursor: default;
+        }
+        @supports (max-width: 50cqw) {
+            .qk-delivery-eta__meta .qk-delivery-eta__location-trigger-btn {
+                max-width: 50cqw;
+            }
         }
         .qk-delivery-eta__distance-text {
             display: none;
@@ -606,6 +648,9 @@
             display: block;
             min-width: 0;
             cursor: pointer;
+            flex: 1 1 auto;
+            align-self: stretch;
+            min-height: 0;
         }
         .qk-delivery-eta__link:hover {
             color: inherit;
@@ -1265,27 +1310,29 @@
                     <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
                         <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
                         <div class="qk-delivery-eta__left">
-                            <a href="{{ route('index') }}" class="qk-delivery-eta__link">
                             <div class="qk-delivery-eta__body">
-                                <span class="qk-delivery-eta__label">Delivery in</span>
-                                <div class="qk-delivery-eta__headline">
-                                    <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
-                                    <span class="qk-delivery-eta__distance-tag" data-delivery-eta-distance>...</span>
-                                </div>
+                                <a href="{{ route('index') }}" class="qk-delivery-eta__link">
+                                    <span class="qk-delivery-eta__label">Delivery in</span>
+                                    <div class="qk-delivery-eta__headline">
+                                        <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
+                                        <span class="qk-delivery-eta__distance-tag" data-delivery-eta-distance>...</span>
+                                    </div>
+                                </a>
                                 <div class="qk-delivery-eta__meta">
-                                    <span class="qk-delivery-eta__location" data-delivery-eta-location>{{ session('delivery_location_name') ?: 'Current location' }}</span>
                                     <button type="button"
-                                        class="qk-location-switch-btn"
+                                        class="qk-delivery-eta__location-trigger-btn"
                                         data-bs-toggle="modal"
                                         data-bs-target="#headerLocationSwitchModal"
                                         aria-label="Change delivery location">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <span class="qk-delivery-eta__location" data-delivery-eta-location>{{ session('delivery_location_name') ?: 'Current location' }}</span>
+                                    </button>
+                                    <span class="qk-location-switch-btn qk-location-switch-btn--decorative" aria-hidden="true">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
-                                    </button>
+                                    </span>
                                 </div>
                             </div>
-                            </a>
                         </div>
                         <a href="javascript:void(0)"
                            onclick="menu()"
@@ -2761,12 +2808,6 @@
                     return;
                 }
                 submitHeaderLocationCheck(selectedHeaderLat, selectedHeaderLng, selectedHeaderLocationName || 'Selected location');
-            });
-
-            $('.qk-location-switch-btn').on('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
             });
 
             $('.join_waitlist_btn').on('click', function () {
