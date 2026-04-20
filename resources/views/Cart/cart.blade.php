@@ -3750,6 +3750,15 @@ function checkOutDailyCartPaymentApiCall(btnType) {
     }
     let orderInstruction = document.getElementById("orderInstruction").value;
     // console.log("Selected orderInstruction:", orderInstruction);
+    var expEta = 0;
+    if (window.__cartCheckoutEtaMinutes != null && isFinite(Number(window.__cartCheckoutEtaMinutes))) {
+        expEta = parseInt(window.__cartCheckoutEtaMinutes, 10) || 0;
+    } else {
+        var etaEl = document.getElementById("cartCheckoutEtaMinutes");
+        if (etaEl) {
+            expEta = parseInt(String(etaEl.textContent || '').replace(/\D/g, ''), 10) || 0;
+        }
+    }
     $("#ajaxLoader").show();
     var _token = jQuery('meta[name="csrf-token"]').attr('content');
     var url = "{{ENV('APP_URL')}}checkoutpaymentdailyorder";
@@ -3776,6 +3785,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
             totalcashwalletamt: selectedWalletCashAmount,
             tip: selectedPartnerTip,
             orderInstruction: orderInstruction,
+            exp_eta: expEta,
             _token: _token
 
         },

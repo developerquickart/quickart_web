@@ -823,6 +823,7 @@ class CartController extends Controller
         } else {
             $cashWalletAmt = $request->totalcashwalletamt;
         }
+        $expEta = is_numeric($request->exp_eta) ? (int) $request->exp_eta : 0;
         $productListT = [];
         $browser = detectBrowser($request);
     
@@ -856,6 +857,7 @@ class CartController extends Controller
                     "delivery_date" => date('Y-m-d', strtotime('+2 day')),
                     "time_slot" => '06:00 am - 10:00 am',
                     "order_instruction" => $request->orderInstruction,
+                    "exp_eta" => $expEta,
                     "successroutename" => 'success',
                     "cancelroutename" => 'failure'
                 ]
