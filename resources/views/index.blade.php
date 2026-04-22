@@ -390,7 +390,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 <!-- occasionalCategory END -->
 
 <!-- BEST SELLERS PRODUCT SECTION START Done-->
-@if(isset($oneAPIList['topselling']) && count($oneAPIList['topselling']) > 0)
+@if(false && isset($oneAPIList['topselling']) && count($oneAPIList['topselling']) > 0)
 <section class="product-items-slider section-padding">
     <div class="container">
         <div class="row">
