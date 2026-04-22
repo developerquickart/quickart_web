@@ -626,14 +626,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                     </div>
                     @endif
                     
-                    <div class="item popup_bannerBox">
-                        <div class="banner_img trialpackImg"
-                            >
-                            <a href="{{ENV('APP_URL')}}additional-categories/Fresh-Picks"><img class="img-fluid" src="{{ asset('assets/images/fresh-pick.jpg') }}"
-                                    alt="Fresh-Pick">
-                            </a>
-                        </div>
-                    </div>
+                    {{-- Fresh Picks banner hidden on homepage --}}
                 </div>
             </div>
         </div>
