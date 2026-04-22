@@ -118,7 +118,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
     }
     @endphp
 <!-- SECOND PRODUCT BANNER SECTION START -->
-@if(isset($oneAPIList['second_banner']) && count($oneAPIList['second_banner']) > 0)
+@if(false && isset($oneAPIList['second_banner']) && count($oneAPIList['second_banner']) > 0)
 <section class="offer-product section-padding">
     <div class="container">
         <div class="row">
@@ -191,7 +191,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 --}}
 
 <!-- FRESH DAIRY SECTION START Done-->
-@if(isset($oneAPIList['occasionalCategory']) && count($oneAPIList['occasionalCategory']) > 0)
+@if(false && isset($oneAPIList['occasionalCategory']) && count($oneAPIList['occasionalCategory']) > 0)
 <section class="product-items-slider section-padding">
     <div class="categories_wise_product_list">
         <div class="container">
@@ -650,7 +650,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 <!-- GET SNEAKY BANNER SECTION END -->
 
 <!-- FRESH DAIRY SECTION START -->
-@if(isset($oneAPIList['additional_category']) && count($oneAPIList['additional_category']) > 0)
+@if(false && isset($oneAPIList['additional_category']) && count($oneAPIList['additional_category']) > 0)
 <section class="product-items-slider section-padding">
     <div class="categories_wise_product_list">
         <div class="container">
@@ -1045,7 +1045,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 @endif
 <!-- TRENDING PRODUCTS SECTION END -->
 <!-- EXPLORE BY BRAND SECTION START Done -->
-@if(isset($oneAPIList['brand']) && count($oneAPIList['brand']) > 0)
+@if(false && isset($oneAPIList['brand']) && count($oneAPIList['brand']) > 0)
 <section class="top-category section-padding">
     <div class="container">
         <div class="row">
