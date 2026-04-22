@@ -615,15 +615,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
         <div class="row">
             <div class="col-lg-12">
                 <div class="offer_sliderBox">
-                    @if(isset($oneAPIList['sneaky_banner']))
-                    <div class="item sneaky_bannerBox">
-                        <div class="banner_img trialpackImg" onclick="openSneakyBanner('{{$oneAPIList['sneaky_banner']['banner_name']}}')">
-                            <a><img class="img-fluid" src="{{$oneAPIList['sneaky_banner']['banner_image']}}"
-                                    alt="Sneaky">
-                            </a>
-                        </div>
-                    </div>
-                    @endif
+                    {{-- Sneaky banner hidden on homepage --}}
                     @if(isset($oneAPIList['trailpackimage']))
                     <div class="item trialpack_bannerBox">
                         <div class="banner_img trialpackImg">
