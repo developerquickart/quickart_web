@@ -55,6 +55,19 @@ body.qk-checkout-loading {
     height: 84px;
     object-fit: contain;
 }
+@media (max-width: 991.98px) {
+    #couponModal .modal-content {
+        position: relative;
+    }
+    #couponModal .btn-close {
+        top: 10px !important;
+        right: 10px !important;
+        width: 28px !important;
+        height: 28px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+    }
+}
 </style>
 <!-- cart section start -->
 <section class="cart_section section-padding position-relative">
