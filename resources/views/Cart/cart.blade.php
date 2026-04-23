@@ -59,6 +59,9 @@ body.qk-checkout-loading {
     #couponModal .modal-content {
         position: relative;
     }
+    #couponModal .modal-header {
+        padding-right: 48px !important;
+    }
     #couponModal .btn-close {
         top: 10px !important;
         right: 10px !important;
