@@ -38,6 +38,23 @@ if (isset($showCartProductList['data'])) {
     line-height: 1.4;
 }
 .qk-cart-checkout-eta-badge strong { color: #2e7d32; font-size: 1.05em; }
+body.qk-checkout-loading {
+    overflow: hidden;
+}
+#checkoutFullLoader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #ffffff;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+#checkoutFullLoader img {
+    width: 84px;
+    height: 84px;
+    object-fit: contain;
+}
 </style>
 <!-- cart section start -->
 <section class="cart_section section-padding position-relative">
@@ -1094,6 +1111,9 @@ if (isset($showCartProductList['data'])) {
 
     <!-- Loader (Initially Hidden) -->
     <div id="ajaxLoader" style="display: none;">
+        <img src="{{asset('assets/images/loader.gif')}}" alt="Loading...">
+    </div>
+    <div id="checkoutFullLoader" aria-live="polite" aria-busy="true">
         <img src="{{asset('assets/images/loader.gif')}}" alt="Loading...">
     </div>
 </section>
@@ -3159,6 +3179,9 @@ function saveSelectedDateTimeApiCall(selectedBtn, type) {
         },
         error: function(xhr) {
             qkHideBootstrapModal('myModal');
+            if (selectedBtn !== "save" && type) {
+                hideCheckoutFullLoader();
+            }
             // console.error("Error:", xhr.responseText);
             alert("An error occurred: " + xhr.responseText);
         },
@@ -3483,8 +3506,24 @@ function totalCalculationPayment() {
 
 
 let showCartData = @json($showCartProductList['data'] ?? []);
+
+function showCheckoutFullLoader() {
+    const loader = document.getElementById('checkoutFullLoader');
+    if (!loader) return;
+    loader.style.display = 'flex';
+    document.body.classList.add('qk-checkout-loading');
+}
+
+function hideCheckoutFullLoader() {
+    const loader = document.getElementById('checkoutFullLoader');
+    if (!loader) return;
+    loader.style.display = 'none';
+    document.body.classList.remove('qk-checkout-loading');
+}
+
 // < !--checkout subcart api call...G1-- >
 function checkOutDailyCartApiCall(type) {
+    showCheckoutFullLoader();
     let selectedMethod = "";
     let addressID = '';
     const addressInput = document.getElementById('addressId');
@@ -3494,6 +3533,7 @@ function checkOutDailyCartApiCall(type) {
 
     // console.log("G1---totalPrice---> ", totalPrice);
     if (totalPrice <= 0 && type != "payNow") {
+        hideCheckoutFullLoader();
         Swal.fire({
             title: "Your wallet balance is sufficient to cover the entire order amount, so other payment options are not available",
             icon: "warning"
@@ -3506,6 +3546,7 @@ function checkOutDailyCartApiCall(type) {
       const addressID = addressInput.value;
       console.log('AddressID:', addressID);
     } else {
+     hideCheckoutFullLoader();
      return Swal.fire({
         title: "Please select a delivery address.",
         icon: "warning"
@@ -3523,6 +3564,7 @@ function checkOutDailyCartApiCall(type) {
             siNO = siNOS.value;
             console.log("SI Number:", siNO);
         } else {
+             hideCheckoutFullLoader();
              return Swal.fire({
                 title: "{{ENV('SELECTCARD')}}",
                 icon: "warning"
@@ -3550,6 +3592,7 @@ function checkOutDailyCartApiCall(type) {
 
 // < !--checkout daily quickpay api call...G1-- >
 function checkOutDailyCartApiCallWithData() {
+    showCheckoutFullLoader();
     console.log("G1----> ", checkOutDailyCartApiCallWithData);
     // console.log("Added to cart: ", varientId);
     var selectedPartnerInstruction = '',
@@ -3685,6 +3728,7 @@ function checkOutDailyCartApiCallWithData() {
                }
                navigateToNextPage(href = orderCompleteUrl);
             } else {
+                hideCheckoutFullLoader();
                 Swal.fire({
                     icon: "sucess",
                     title: result.message,
@@ -3698,6 +3742,7 @@ function checkOutDailyCartApiCallWithData() {
             }
         },
         error: function(xhr, status, error) {
+            hideCheckoutFullLoader();
             $("#ajaxLoader").hide();
             alert("An error occurred: j" + xhr.responseText);
         },
@@ -3707,6 +3752,7 @@ function checkOutDailyCartApiCallWithData() {
 
 
 function checkOutDailyCartPaymentApiCall(btnType) {
+    showCheckoutFullLoader();
     console.log("G1----> ", checkOutDailyCartPaymentApiCall);
     var selectedPartnerInstruction = '',
         selectedMethod = "";
@@ -3825,6 +3871,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
                 navigateToNextPage(href = result.action);
 
             } else {
+                hideCheckoutFullLoader();
                 Swal.fire({
                     icon: "sucess",
                     title: result.message,
@@ -3838,6 +3885,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
             }
         },
         error: function(xhr, status, error) {
+            hideCheckoutFullLoader();
             $("#ajaxLoader").hide();
             alert("An error occurred: " + xhr.responseText);
         },
