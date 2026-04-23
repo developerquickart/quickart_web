@@ -847,7 +847,14 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 
 <!-- TRENDING PRODUCTS SECTION START Done -->
 @if(isset($oneAPIList['recentselling']) && count($oneAPIList['recentselling']) > 0)
-<section class="product-items-slider section-padding">
+<style>
+@media (max-width: 767.98px) {
+    .trending-products-section {
+        padding-bottom: 110px !important;
+    }
+}
+</style>
+<section class="product-items-slider section-padding trending-products-section">
     <div class="container">
         <div class="row">
             <div class="col-lg-12">
