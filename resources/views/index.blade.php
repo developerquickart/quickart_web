@@ -846,7 +846,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
 <!-- FRESH DAIRY SECTION END-->
 
 <!-- TRENDING PRODUCTS SECTION START Done -->
-@if(isset($oneAPIList['recentselling']) && count($oneAPIList['recentselling']) > 0)
+@if(false && isset($oneAPIList['recentselling']) && count($oneAPIList['recentselling']) > 0)
 <style>
 @media (max-width: 767.98px) {
     .trending-products-section {
