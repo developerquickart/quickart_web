@@ -961,7 +961,7 @@ body.qk-checkout-loading {
 
     <!-- Selected coupon list modal...G1 -->
     <div class="modal fade" id="couponModal" tabindex="-1" aria-labelledby="couponModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 <div class="modal-header">
