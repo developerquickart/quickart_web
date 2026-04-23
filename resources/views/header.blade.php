@@ -59,21 +59,18 @@
     <script>
     function checkStickyCondition() {
         var header = document.querySelector("header");
-        var main = document.querySelector("main");
-        if (!header || !main) {
+        if (!header) {
             return;
         }
-        var mainHeight = main.getBoundingClientRect().height;
-        console.log("Main height:", mainHeight);
-        if (mainHeight > 1000) {
-            // Only check scroll if main is tall enough
-            if (window.pageYOffset > 0) {
-                header.classList.add("sticky");
-            } else {
-                header.classList.remove("sticky");
-            }
+        var isMobile = window.matchMedia("(max-width: 991px)").matches;
+        if (isMobile) {
+            // Keep header stable on mobile across all pages.
+            header.classList.add("sticky");
+            return;
+        }
+        if (window.pageYOffset > 0) {
+            header.classList.add("sticky");
         } else {
-            // Always remove sticky if main is too short
             header.classList.remove("sticky");
         }
     }
@@ -1019,6 +1016,16 @@
             }
         }
         @media (max-width: 991px) {
+            header,
+            header.sticky {
+                position: sticky !important;
+                top: 0;
+                width: 100%;
+                z-index: 999;
+                animation: none !important;
+                transition: none !important;
+                transform: none !important;
+            }
             .qk-delivery-topstrip {
                 margin: 0 -12px 6px;
                 padding: 7px 10px 12px;
