@@ -1723,7 +1723,7 @@
                       fill="#00e676"/>
             </svg>
         </span>
-        <span class="qk-on-the-way-tag__text">Order zapping soon!</span>
+        <span class="qk-on-the-way-tag__text">GO mode on: Order almost there!</span>
     </a>
     @endif
     @if(!empty(session('user_id')) && !$qkHideZappingBadgePage)
