@@ -12,7 +12,7 @@
                 Verify your details
             </h1>
             <p class="otp_para">
-                Your OTP has been sent to <span>{{$country_code}} {{$number}}</span> through SMS & WhatsApp.
+                Your OTP has been sent to <span>{{$country_code}} {{$number}}</span> through SMS or WhatsApp.
             </p>
             <form action="{{ route('loginotpsubmit') }}" method="POST">
                 @csrf

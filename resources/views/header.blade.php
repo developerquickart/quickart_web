@@ -100,6 +100,44 @@
     //     }
     // });
     </script>
+    <script>
+    (function () {
+        if (typeof window === 'undefined') return;
+
+        function getCsrfToken() {
+            var meta = document.querySelector('meta[name="csrf-token"]');
+            return meta ? meta.getAttribute('content') : '';
+        }
+
+        function handleCsrfMismatch() {
+            var key = 'qk_csrf_reload_once';
+            if (sessionStorage.getItem(key) === '1') {
+                sessionStorage.removeItem(key);
+                return;
+            }
+            sessionStorage.setItem(key, '1');
+            window.location.reload();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof jQuery === 'undefined') return;
+
+            // Always attach current CSRF token header for all jQuery AJAX requests.
+            jQuery.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken()
+                }
+            });
+
+            // Auto-recover stale-token AJAX requests after idle/restore.
+            jQuery(document).ajaxError(function (_event, xhr) {
+                if (xhr && xhr.status === 419) {
+                    handleCsrfMismatch();
+                }
+            });
+        });
+    })();
+    </script>
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-256458028-1"></script>

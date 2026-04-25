@@ -301,7 +301,7 @@ $referralText = $getUserProfile['data']['referral_message'] ?? '';
                 <div class="col-lg-12">
                     <div class="loginBox text-center">
                         <div class="order-subheading">Verify your details</div>
-                        <p class="text-center mobile-otp-text">Your OTP has been sent to <span class="entered_mobile"> </span> through SMS &  WhatsApp</p>
+                        <p class="text-center mobile-otp-text">Your OTP has been sent to <span class="entered_mobile"> </span> through SMS or  WhatsApp</p>
                         <p class="text-center email-otp-text">Your OTP has been sent to <span class="entered_email"> </span> via email</p>
                         <form action="" class="update-verify-otp-form">
                             @csrf

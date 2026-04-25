@@ -91,7 +91,7 @@
                                                     class="img-fluid">
                                             </div>
                                             <div class="heading-design-h5 my-4">Verify your details</div>
-                                            <p class="text-center">Your OTP has been sent to <span class="entered_mobile">921 541234566 </span> through SMS &  WhatsApp</p>
+                                            <p class="text-center">Your OTP has been sent to <span class="entered_mobile">921 541234566 </span> through SMS or  WhatsApp</p>
 
                                             <div class="alert alert-danger error-msg d-none"></div>
                                             <div class="alert alert-success success-msg d-none"></div>
