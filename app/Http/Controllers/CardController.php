@@ -364,6 +364,9 @@ class CardController extends Controller
             $statusCode = $response->getStatusCode();
             if ($statusCode == 200) {
                 $appInfo = json_decode($response->getBody()->getContents(), true);
+                if (isset($appInfo['data']['userwallet'])) {
+                    $appInfo['data']['userwallet'] = max(0, (float) $appInfo['data']['userwallet']);
+                }
             } else {
                 $errorMessage = "Unexpected status code: " . $statusCode;
                 return response()->json(['error' => $errorMessage], $statusCode);
@@ -411,6 +414,7 @@ class CardController extends Controller
             $statusCode = $response->getStatusCode();
             if ($statusCode == 200) {
                 $walletHIstoryList = json_decode($response->getBody()->getContents(), true);
+                $walletHIstoryList = $this->aggregateWalletHistoryByGroup($walletHIstoryList);
             } else {
                 $errorMessage = "Unexpected status code: " . $statusCode;
                 return response()->json(['error' => $errorMessage], $statusCode);
@@ -426,6 +430,74 @@ class CardController extends Controller
         // print_r(count($walletHIstoryList));
         // exit;
         return view('BankCard/wallet', compact('title', 'data_arr', 'appInfo', 'walletHIstoryList'));
+    }
+
+    private function aggregateWalletHistoryByGroup($walletHistoryList)
+    {
+        if (empty($walletHistoryList['data']) || !is_array($walletHistoryList['data'])) {
+            return $walletHistoryList;
+        }
+
+        foreach ($walletHistoryList['data'] as $yearIndex => $yearData) {
+            if (empty($yearData['items']) || !is_array($yearData['items'])) {
+                continue;
+            }
+
+            $groupedIndexes = [];
+            $items = [];
+
+            foreach ($yearData['items'] as $item) {
+                $type = strtolower($item['type'] ?? '');
+                $groupId = trim((string) ($item['group_id'] ?? ''));
+
+                if ($groupId === '' || !in_array($type, ['add', 'deduction'], true)) {
+                    $items[] = $item;
+                    continue;
+                }
+
+                $key = $groupId . '|' . $type;
+
+                if (!isset($groupedIndexes[$key])) {
+                    $item['amount'] = (float) ($item['amount'] ?? 0);
+                    $item['cart_id'] = '';
+                    $item['wallet_entry_count'] = 1;
+
+                    $items[] = $item;
+                    $groupedIndexes[$key] = count($items) - 1;
+                    continue;
+                }
+
+                $itemIndex = $groupedIndexes[$key];
+                $items[$itemIndex]['amount'] = (float) ($items[$itemIndex]['amount'] ?? 0) + (float) ($item['amount'] ?? 0);
+                $items[$itemIndex]['wallet_entry_count'] = (int) ($items[$itemIndex]['wallet_entry_count'] ?? 1) + 1;
+                $items[$itemIndex]['created_at'] = $this->latestWalletDate($items[$itemIndex]['created_at'] ?? null, $item['created_at'] ?? null);
+                $items[$itemIndex]['expiry_date'] = $this->latestWalletDate($items[$itemIndex]['expiry_date'] ?? null, $item['expiry_date'] ?? null);
+            }
+
+            $walletHistoryList['data'][$yearIndex]['items'] = $items;
+        }
+
+        return $walletHistoryList;
+    }
+
+    private function latestWalletDate($currentDate, $newDate)
+    {
+        if (empty($currentDate)) {
+            return $newDate;
+        }
+
+        if (empty($newDate)) {
+            return $currentDate;
+        }
+
+        $currentTimestamp = strtotime($currentDate);
+        $newTimestamp = strtotime($newDate);
+
+        if ($currentTimestamp === false || $newTimestamp === false) {
+            return $currentDate;
+        }
+
+        return $newTimestamp > $currentTimestamp ? $newDate : $currentDate;
     }
     
 
