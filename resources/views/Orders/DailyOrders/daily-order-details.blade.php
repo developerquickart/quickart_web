@@ -564,6 +564,7 @@
     var rotatedDriverIconUrl = '';
     var fitBoundsPadding = 56;
     var fitBoundsMaxZoom = 16;
+    var cssMapRotationDeg = 0;
 
     /** @returns {google.maps.Icon} */
     function markerIconHome() {
@@ -648,14 +649,42 @@
         return ((value % 360) + 360) % 360;
     }
 
+    function shortestAngleDiff(a, b) {
+        var d = normalizeDegrees(a - b);
+        return d > 180 ? 360 - d : d;
+    }
+
+    function applyCssMapRotation(deg) {
+        if (!mapEl) return;
+        cssMapRotationDeg = deg;
+        // Fallback path when native heading is not supported: rotate rendered map visually.
+        mapEl.style.transformOrigin = '50% 50%';
+        mapEl.style.transform = 'rotate(' + deg + 'deg) scale(1.35)';
+    }
+
+    function clearCssMapRotation() {
+        if (!mapEl) return;
+        cssMapRotationDeg = 0;
+        mapEl.style.transformOrigin = '';
+        mapEl.style.transform = '';
+    }
+
     function setAutoHorizontalHeading(riderLat, riderLng) {
         if (!map || !isFinite(riderLat) || !isFinite(riderLng) || !google.maps.geometry || !google.maps.geometry.spherical) return;
         var from = new google.maps.LatLng(riderLat, riderLng);
         var to = new google.maps.LatLng(homeLat, homeLng);
         var bearing = google.maps.geometry.spherical.computeHeading(from, to);
         var targetHeading = normalizeDegrees(bearing - 90);
-        map.setHeading(targetHeading);
-        map.setTilt(0);
+        if (typeof map.setHeading === 'function') {
+            map.setHeading(targetHeading);
+            map.setTilt(0);
+        }
+        var appliedHeading = (typeof map.getHeading === 'function') ? map.getHeading() : null;
+        if (isFinite(appliedHeading) && shortestAngleDiff(appliedHeading, targetHeading) <= 2) {
+            clearCssMapRotation();
+            return;
+        }
+        applyCssMapRotation(targetHeading);
     }
 
     function updateProjectedRouteLine(riderLat, riderLng) {
