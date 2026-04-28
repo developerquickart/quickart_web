@@ -561,6 +561,9 @@
     var homeMarker = null;
     var driverMarker = null;
     var projectedRouteLine = null;
+    var rotatedDriverIconUrl = '';
+    var fitBoundsPadding = 56;
+    var fitBoundsMaxZoom = 16;
 
     /** @returns {google.maps.Icon} */
     function markerIconHome() {
@@ -574,10 +577,40 @@
     /** @returns {google.maps.Icon} */
     function markerIconDriver() {
         return {
-            url: driverIconUrl,
+            url: rotatedDriverIconUrl || driverIconUrl,
             scaledSize: new google.maps.Size(48, 48),
             anchor: new google.maps.Point(24, 24)
         };
+    }
+
+    function buildRotatedDriverIcon(url, degrees, onDone) {
+        if (!url) {
+            onDone('');
+            return;
+        }
+        var img = new Image();
+        img.onload = function () {
+            try {
+                var w = img.naturalWidth || img.width || 48;
+                var h = img.naturalHeight || img.height || 48;
+                var canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                var ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    onDone('');
+                    return;
+                }
+                ctx.translate(w / 2, h / 2);
+                ctx.rotate((degrees * Math.PI) / 180);
+                ctx.drawImage(img, -w / 2, -h / 2);
+                onDone(canvas.toDataURL('image/png'));
+            } catch (e) {
+                onDone('');
+            }
+        };
+        img.onerror = function () { onDone(''); };
+        img.src = url;
     }
 
     function updateDriverMarker(riderLat, riderLng) {
@@ -595,6 +628,34 @@
         } else {
             driverMarker.setPosition(pos);
         }
+    }
+
+    function fitMapToHomeAndDriver(riderLat, riderLng) {
+        if (!map || !isFinite(riderLat) || !isFinite(riderLng)) return;
+        var b = new google.maps.LatLngBounds();
+        b.extend({ lat: riderLat, lng: riderLng });
+        b.extend({ lat: homeLat, lng: homeLng });
+        map.fitBounds(b, fitBoundsPadding);
+        google.maps.event.addListenerOnce(map, 'idle', function () {
+            var z = map.getZoom();
+            if (isFinite(z) && z > fitBoundsMaxZoom) {
+                map.setZoom(fitBoundsMaxZoom);
+            }
+        });
+    }
+
+    function normalizeDegrees(value) {
+        return ((value % 360) + 360) % 360;
+    }
+
+    function setAutoHorizontalHeading(riderLat, riderLng) {
+        if (!map || !isFinite(riderLat) || !isFinite(riderLng) || !google.maps.geometry || !google.maps.geometry.spherical) return;
+        var from = new google.maps.LatLng(riderLat, riderLng);
+        var to = new google.maps.LatLng(homeLat, homeLng);
+        var bearing = google.maps.geometry.spherical.computeHeading(from, to);
+        var targetHeading = normalizeDegrees(bearing - 90);
+        map.setHeading(targetHeading);
+        map.setTilt(0);
     }
 
     function updateProjectedRouteLine(riderLat, riderLng) {
@@ -621,9 +682,13 @@
                     repeat: '12px'
                 }]
             });
+            fitMapToHomeAndDriver(riderLat, riderLng);
+            setAutoHorizontalHeading(riderLat, riderLng);
             return;
         }
         projectedRouteLine.setPath(linePath);
+        fitMapToHomeAndDriver(riderLat, riderLng);
+        setAutoHorizontalHeading(riderLat, riderLng);
     }
 
     function initDirectionsMap() {
@@ -634,6 +699,7 @@
             mapTypeControl: false,
             streetViewControl: false,
             fullscreenControl: true,
+            rotateControl: false,
             gestureHandling: 'cooperative'
         });
         directionsService = new google.maps.DirectionsService();
@@ -672,15 +738,19 @@
                 b.extend({ lat: riderLat, lng: riderLng });
                 b.extend({ lat: homeLat, lng: homeLng });
                 if (b.getNorthEast && b.getSouthWest) {
-                    map.fitBounds(b, 28);
+                    map.fitBounds(b, fitBoundsPadding);
                     google.maps.event.addListenerOnce(map, 'idle', function () {
                         var z = map.getZoom();
-                        if (isFinite(z) && z > 17) {
-                            map.setZoom(17);
+                        if (isFinite(z) && z > fitBoundsMaxZoom) {
+                            map.setZoom(fitBoundsMaxZoom);
                         }
+                        setAutoHorizontalHeading(riderLat, riderLng);
                     });
                 }
+                return;
             }
+            fitMapToHomeAndDriver(riderLat, riderLng);
+            setAutoHorizontalHeading(riderLat, riderLng);
         });
     }
 
@@ -704,7 +774,7 @@
         s.async = true;
         s.defer = true;
         s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(mapsKey) +
-            '&callback=' + encodeURIComponent(cbName);
+            '&libraries=geometry&callback=' + encodeURIComponent(cbName);
         document.head.appendChild(s);
     }
 
@@ -727,6 +797,13 @@
     }
 
     if (mapsKey && mapEl) {
+        buildRotatedDriverIcon(driverIconUrl, 180, function (rotatedUrl) {
+            if (!rotatedUrl) return;
+            rotatedDriverIconUrl = rotatedUrl;
+            if (driverMarker) {
+                driverMarker.setIcon(markerIconDriver());
+            }
+        });
         ensureMapsThen(function () {
             initDirectionsMap();
             tick();
