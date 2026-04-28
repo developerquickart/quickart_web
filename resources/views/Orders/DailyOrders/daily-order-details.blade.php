@@ -48,6 +48,8 @@
                      data-group-id="{{ e($deliveryBoyTracking['group_id']) }}"
                      data-home-lat="{{ $deliveryBoyTracking['home_lat'] }}"
                      data-home-lng="{{ $deliveryBoyTracking['home_lng'] }}"
+                     data-home-icon="{{ asset('assets/images/user_home.png') }}"
+                     data-driver-icon="{{ asset('assets/images/delivery_boy.png') }}"
                      data-maps-key="{{ e($qkMapsJsKey) }}">
                     <div class="qk-dboy-track__title">Delivery partner on the way</div>
                     <div class="qk-dboy-track__hint">Live route on the map below — updates every 30 seconds.</div>
@@ -548,6 +550,8 @@
     var groupId = box.getAttribute('data-group-id');
     var homeLat = parseFloat(box.getAttribute('data-home-lat'));
     var homeLng = parseFloat(box.getAttribute('data-home-lng'));
+    var homeIconUrl = box.getAttribute('data-home-icon') || '';
+    var driverIconUrl = box.getAttribute('data-driver-icon') || '';
     var mapsKey = box.getAttribute('data-maps-key') || '';
     if (!pollUrl || !groupId || !isFinite(homeLat) || !isFinite(homeLng)) return;
 
@@ -558,19 +562,10 @@
     var driverMarker = null;
     var projectedRouteLine = null;
 
-    function qkSvgMarkerUrl(svg) {
-        return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-    }
-
     /** @returns {google.maps.Icon} */
     function markerIconHome() {
-        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 44 44">' +
-            '<circle cx="22" cy="22" r="20" fill="#ffffff" stroke="#2e7d32" stroke-width="2.5"/>' +
-            '<g transform="translate(10 9)">' +
-            '<path fill="#2e7d32" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>' +
-            '</g></svg>';
         return {
-            url: qkSvgMarkerUrl(svg),
+            url: homeIconUrl,
             scaledSize: new google.maps.Size(44, 44),
             anchor: new google.maps.Point(22, 22)
         };
@@ -578,13 +573,8 @@
 
     /** @returns {google.maps.Icon} */
     function markerIconDriver() {
-        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">' +
-            '<circle cx="24" cy="24" r="21" fill="#ffffff" stroke="#3949ab" stroke-width="2.5"/>' +
-            '<g fill="#3949ab" transform="translate(6 10)">' +
-            '<path d="M15.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM5 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5zm5.8-10l2.4-2.4.8.8c1.3 1.3 3 2.1 5.1 2.1V9c-1.5 0-2.7-.6-3.6-1.5l-1.9-1.9c-.5-.4-1.2-.6-1.8-.6-.5 0-1 .2-1.4.6L7.8 8.4c-.4.4-.6.9-.6 1.4 0 .6.2 1.2.6 1.6l.9.9V22h3v-8h2v8h3v-8.5c0-.9-.4-1.7-1-2.3zM19 12c-2.8 0-5 2.2-5 5s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 8.5c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5-1.6 3.5-3.5 3.5z"/>' +
-            '</g></svg>';
         return {
-            url: qkSvgMarkerUrl(svg),
+            url: driverIconUrl,
             scaledSize: new google.maps.Size(48, 48),
             anchor: new google.maps.Point(24, 24)
         };
