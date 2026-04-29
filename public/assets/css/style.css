@@ -60,6 +60,12 @@ body {
     color: #0A0A0A;
     height: 100%;
 }
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
 :root {
   --indigo-color: #2e317e;
   --yellow-color: #FEDF31;
@@ -4196,7 +4202,7 @@ input.btn.submitAddress_btn:hover {
 }
 
 .login_background_img {
-    width: 100vw;
+    width: 100%;
     height: 100vh;
 }
 
