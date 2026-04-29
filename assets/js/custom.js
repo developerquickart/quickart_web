@@ -621,5 +621,18 @@ function startOTPTimer(timerId,resendId,otptextId) {
     }, 1000);
 }
 
+// Hide country flag if image URL is invalid/unreachable.
+document.addEventListener('error', function (event) {
+    var target = event.target;
+    if (!(target instanceof HTMLImageElement)) {
+        return;
+    }
+
+    var flagWrapper = target.closest('.country_flag');
+    if (flagWrapper) {
+        flagWrapper.remove();
+    }
+}, true);
+
 
     

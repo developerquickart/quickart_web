@@ -1451,7 +1451,7 @@ class ProductController extends Controller
                         $isFavourite = $product['isFavourite'] == "true";
                         $isNotified = $product['notify_me'] == "true";
                         $discountText = $product['discountper'] > 0 ? "<div class='discount_text'>" . number_format($product['discountper'], 0) . "%<span>Off</span></div>" : "";
-                        $countryFlag = !empty($product['country_icon']) ? "<div class='country_flag'><img src='{$product['country_icon']}' alt='flag'></div>" : "";
+                        $countryFlag = ($product['discountper'] <= 0 && !empty($product['country_icon'])) ? "<div class='country_flag'><img src='{$product['country_icon']}' alt='flag'></div>" : "";
                         $wishlistImage = asset('assets/images/' . ($isFavourite ? 'wishlisted.png' : 'wishlist.png'));
                         $notificationImage = asset('assets/images/notification.png');
                         $varientID = $product['varient_id'];

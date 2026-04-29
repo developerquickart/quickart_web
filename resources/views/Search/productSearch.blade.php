@@ -510,7 +510,7 @@
                                     @if($product['discountper'] > 0)
                                     <div class="discount_text">{{number_format($product['discountper'], 2)}}<span>Off</span></div>
                                     @endif
-                                    @if($product['country_icon'] != null || $product['country_icon'] != "")
+                                    @if($product['discountper'] <= 0 && !empty($product['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$product['country_icon']}}" alt="flag">
                                     </div>
@@ -571,7 +571,7 @@
                                     @if($product['discountper'] > 0)
                                     <div class="discount_text">{{number_format($product['discountper'], 2)}}<span>Off</span></div>
                                     @endif
-                                    @if($product['country_icon'] != null || $product['country_icon'] != "")
+                                    @if($product['discountper'] <= 0 && !empty($product['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$product['country_icon']}}" alt="flag">
                                     </div>
@@ -634,7 +634,7 @@
                                     <div class="discount_text">
                                         {{number_format($product['discountper'], 2)}}<span>Off</span></div>
                                     @endif
-                                    @if($product['country_icon'] != null || $product['country_icon'] != "")
+                                    @if($product['discountper'] <= 0 && !empty($product['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$product['country_icon']}}" alt="flag">
                                     </div>
@@ -698,7 +698,7 @@
                                     <div class="discount_text">
                                         {{number_format($product['discountper'], 2)}}<span>Off</span></div>
                                     @endif
-                                    @if($product['country_icon'] != null || $product['country_icon'] != "")
+                                    @if($product['discountper'] <= 0 && !empty($product['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$product['country_icon']}}" alt="flag">
                                     </div>
