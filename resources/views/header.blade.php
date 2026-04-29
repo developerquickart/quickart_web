@@ -1068,7 +1068,7 @@
                 transform: none !important;
             }
             .qk-delivery-topstrip {
-                margin: 0 -12px 6px;
+                margin: 0 -12px 0;
                 padding: 7px 10px 12px;
             }
             .qk-delivery-search {
