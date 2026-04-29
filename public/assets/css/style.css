@@ -9797,9 +9797,14 @@ img.varient-down-arrow {
     .shop-detail-left,
     .shop-detail-slider,
     .main_sliderBox {
-        width: min(76vw, 300px);
+        width: 80vw;
+        max-width: 80vw;
         margin-left: auto;
         margin-right: auto;
+    }
+    .shop-detail-slider #sync1,
+    .main_sliderBox #sync1 a {
+        aspect-ratio: 2 / 1;
     }
 
     .desktop-logo {
