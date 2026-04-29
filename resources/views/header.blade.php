@@ -1071,6 +1071,21 @@
                 margin: 0 -12px 0;
                 padding: 7px 10px 12px;
             }
+            /* Logged-in mobile header uses top strip; collapse legacy header row to remove white gap. */
+            .qk-loggedin-menu .headerBox {
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: 0 !important;
+                height: 0 !important;
+                overflow: visible !important;
+            }
+            .qk-loggedin-menu .header_icons_box {
+                min-height: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
             .qk-delivery-search {
                 margin-top: 8px;
                 padding: 0 6px;
