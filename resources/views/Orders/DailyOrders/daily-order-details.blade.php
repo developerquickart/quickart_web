@@ -561,7 +561,6 @@
     var homeMarker = null;
     var driverMarker = null;
     var projectedRouteLine = null;
-    var rotatedHomeIconUrl = '';
     var rotatedDriverIconUrl = '';
     var fitBoundsPadding = 56;
     var fitBoundsMaxZoom = 16;
@@ -570,7 +569,7 @@
     /** @returns {google.maps.Icon} */
     function markerIconHome() {
         return {
-            url: rotatedHomeIconUrl || homeIconUrl,
+            url: homeIconUrl,
             scaledSize: new google.maps.Size(44, 44),
             anchor: new google.maps.Point(22, 22)
         };
@@ -827,13 +826,6 @@
     }
 
     if (mapsKey && mapEl) {
-        buildRotatedDriverIcon(homeIconUrl, 90, function (rotatedUrl) {
-            if (!rotatedUrl) return;
-            rotatedHomeIconUrl = rotatedUrl;
-            if (homeMarker) {
-                homeMarker.setIcon(markerIconHome());
-            }
-        });
         buildRotatedDriverIcon(driverIconUrl, 90, function (rotatedUrl) {
             if (!rotatedUrl) return;
             rotatedDriverIconUrl = rotatedUrl;
