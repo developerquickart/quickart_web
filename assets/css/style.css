@@ -9723,6 +9723,10 @@ img.varient-down-arrow {
     .product_details_mainBox{
         display: block;
     }
+    .main_sliderBox {
+        width: min(78vw, 320px);
+        margin: 0 auto 12px;
+    }
     .main_sliderBox #sync1 a {
         display: grid;
         place-items: center;
