@@ -5,6 +5,38 @@ $countries = explode(',', $strToArr);
 if (isset($showCartProductList['data'])) {
     $minOrderAmount = $showCartProductList['data']['oneday_min_order_amount'];
 }
+$qkCartStoreIsOnlineForEta = true;
+try {
+    $qkStoreId = trim((string) env('GO_STORE_ID', ''));
+    if ($qkStoreId !== '') {
+        $qkStoreRow = \Illuminate\Support\Facades\DB::table('store')
+            ->where('id', $qkStoreId)
+            ->first(['store_opening_time', 'store_closing_time']);
+        if ($qkStoreRow) {
+            $qkDubaiNow = \Carbon\Carbon::now('Asia/Dubai');
+            $qkOpenText = trim((string) ($qkStoreRow->store_opening_time ?? ''));
+            $qkCloseText = trim((string) ($qkStoreRow->store_closing_time ?? ''));
+            $qkOpen = null;
+            $qkClose = null;
+            if ($qkOpenText !== '') {
+                $qkOpen = \Carbon\Carbon::createFromFormat('H:i', $qkOpenText, 'Asia/Dubai');
+            }
+            if ($qkCloseText !== '') {
+                $qkClose = \Carbon\Carbon::createFromFormat('H:i', $qkCloseText, 'Asia/Dubai');
+            }
+            if ($qkOpen && $qkClose) {
+                $qkOpen = $qkOpen->setDate($qkDubaiNow->year, $qkDubaiNow->month, $qkDubaiNow->day);
+                $qkClose = $qkClose->setDate($qkDubaiNow->year, $qkDubaiNow->month, $qkDubaiNow->day);
+                if ($qkClose->lessThanOrEqualTo($qkOpen)) {
+                    $qkClose->addDay();
+                }
+                $qkCartStoreIsOnlineForEta = $qkDubaiNow->betweenIncluded($qkOpen, $qkClose);
+            }
+        }
+    }
+} catch (\Throwable $e) {
+    $qkCartStoreIsOnlineForEta = true;
+}
 ?>
 <style>
 /* Pac-container inside modal */
@@ -110,7 +142,7 @@ body.qk-checkout-loading {
                                                             - Shop now & Save!</span>
                                                     </div>
                                                     --}}
-                                                    @if(!empty(session('user_id')))
+                                                    @if(!empty(session('user_id')) && $qkCartStoreIsOnlineForEta)
                                                     <div id="cartCheckoutEtaBadge" class="qk-cart-checkout-eta-badge" style="display:none;" role="status">
                                                         <span class="qk-cart-checkout-eta-badge__text">Order will arrive in <strong id="cartCheckoutEtaMinutes">—</strong> min for selected address</span>
                                                     </div>
@@ -3978,12 +4010,18 @@ function checkOutDailyCartPaymentApiCall(btnType) {
 
 (function () {
     window.__cartCheckoutEtaMinutes = null;
+    window.__qkCartStoreOnlineForEta = @json($qkCartStoreIsOnlineForEta);
     window.refreshCartCheckoutEta = function () {
         var badge = document.getElementById('cartCheckoutEtaBadge');
         var addressIdEl = document.getElementById('addressId');
         var latEl = document.getElementById('cartSelectedLat');
         var lngEl = document.getElementById('cartSelectedLng');
         var minEl = document.getElementById('cartCheckoutEtaMinutes');
+        if (window.__qkCartStoreOnlineForEta === false) {
+            if (badge) badge.style.display = 'none';
+            window.__cartCheckoutEtaMinutes = null;
+            return;
+        }
         if (!badge || !minEl) {
             return;
         }

@@ -1507,7 +1507,7 @@
                         </span>
                         @else
                         <div class="qk-delivery-eta__offline-msg">
-                            <span class="qk-delivery-eta__offline-title">Currently unavailable due to high demand</span>
+                            <span class="qk-delivery-eta__offline-title">Store is currently closed</span>
                             <span class="qk-delivery-eta__offline-sub">Apologies for the inconvenience caused. We'll be back soon</span>
                         </div>
                         @endif
