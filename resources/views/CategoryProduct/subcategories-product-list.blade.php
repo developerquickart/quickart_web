@@ -106,8 +106,11 @@ $defaultSubCatId = (!empty($Sub_cat_id)) ? $Sub_cat_id : $subCatList['data'][0][
 let page = 2;
 let isLoading = false;
 let hasMorePages = true;
+let totalPagesState = 1;
 $(document).ready(function () {
     $('.ploader, .sloader').hide();
+    var totalPagesEl = document.getElementById("totalPages");
+    totalPagesState = parseInt(totalPagesEl ? totalPagesEl.value : 1, 10) || 1;
     
     var sub_cat_id = document.getElementById("subcategory_id").value;
     var subcatValue = document.getElementById('selectedSubCatID').innerText.trim();
@@ -127,13 +130,12 @@ $(document).ready(function () {
     SubCategoryList(catId, finalSubCatId, finalSubCatName, banner,0 );
   //  SubCategoryList('{{ $cat_id }}', '{{ $subCatList['data'][0]['cat_id'] }}', '{{ $subCatList['data'][0]['title'] }}', '{{ $subCatList['data'][0]['banner'] }}');
     $(window).scroll(function() {
-        let totalPages = document.getElementById("totalPages").value;
         let $lastRow = getLastRowItems();
 
         if ($lastRow.length && isRowInView($lastRow)) {    
             if (!isLoading && hasMorePages) {
-                console.log(page,totalPages);
-                if(page <= totalPages){
+                console.log(page,totalPagesState);
+                if(page <= totalPagesState){
                     loadMoreData(page,false);
                     page++;
                 } else {
@@ -173,6 +175,11 @@ $(document).ready(function () {
                     });
                 var $parsed = $('<div>').html(data);
                 var newItemsCount = $parsed.find('.all_product_list').length;
+                var latestTotalPages = parseInt($parsed.find('#totalPages').first().val(), 10);
+                if (isFinite(latestTotalPages) && latestTotalPages > 0) {
+                    totalPagesState = latestTotalPages;
+                }
+                $parsed.find('#totalPages').remove();
                 if (data.trim().length === 0 || newItemsCount === 0) {
                     hasMorePages = false;
                     $('.ploader,.sloader').hide();
@@ -187,7 +194,10 @@ $(document).ready(function () {
                     bindCartButtons();
                     $('.ploader,.sloader').hide();
                     
-                    hasMorePages = true;
+                    hasMorePages = page < totalPagesState;
+                    if (!hasMorePages) {
+                        $('.ploader,.sloader').hide();
+                    }
                     isLoading = false;
                 }
                 
@@ -271,6 +281,7 @@ function SubCategoryList(cat_id, sub_cat_id, title, banner, btnTag) {
       page = 2;
       isLoading = false;
       hasMorePages = true;
+      totalPagesState = 1;
     
     loadMoreData(1,loadSubcategory);
 }
