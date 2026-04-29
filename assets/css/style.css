@@ -1001,6 +1001,18 @@ label.control-label {
     display: block;
 }
 
+@media (max-width: 767.98px) {
+    .product-img {
+        padding: 6px;
+    }
+
+    .product-img img {
+        width: 94%;
+        height: 94%;
+        margin: 0 auto;
+    }
+}
+
 /* 
 .product-img:hover img {
     transform: scale(1);

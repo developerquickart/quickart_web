@@ -2365,21 +2365,34 @@ function saveSelectedAddress(storedAddresses) {
     if (showAddress) showAddress.textContent = storedAddresses.house_no;
     if (addressIdField) addressIdField.value = storedAddresses.address_id;
     if (addressTypeField && storedAddresses.type) addressTypeField.textContent = storedAddresses.type;
+    var normalizedLat = (storedAddresses && storedAddresses.lat != null && storedAddresses.lat !== '')
+        ? storedAddresses.lat
+        : (storedAddresses ? storedAddresses.latitude : '');
+    var normalizedLng = (storedAddresses && storedAddresses.lng != null && storedAddresses.lng !== '')
+        ? storedAddresses.lng
+        : (storedAddresses ? storedAddresses.longitude : '');
     var cartLat = document.getElementById('cartSelectedLat');
     var cartLng = document.getElementById('cartSelectedLng');
-    if (cartLat && storedAddresses.lat != null && storedAddresses.lat !== '') {
-        cartLat.value = storedAddresses.lat;
+    if (cartLat && normalizedLat != null && normalizedLat !== '') {
+        cartLat.value = normalizedLat;
     }
-    if (cartLng && storedAddresses.lng != null && storedAddresses.lng !== '') {
-        cartLng.value = storedAddresses.lng;
+    if (cartLng && normalizedLng != null && normalizedLng !== '') {
+        cartLng.value = normalizedLng;
     }
+    storedAddresses.lat = normalizedLat;
+    storedAddresses.lng = normalizedLng;
     localStorage.setItem("selectedAddress", JSON.stringify(storedAddresses));
 
     $('.change_addressbox').removeClass('d-none');
     $('.btn_addresslist span').html('Change Address');
+    // Prevent addedFrom=cart hidden handler from forcing a reload and reverting selection.
+    window.__qkCartAddressSelected = true;
     qkHideBootstrapModal('addressModal');
     if (typeof window.refreshCartCheckoutEta === 'function') {
         window.refreshCartCheckoutEta();
+        setTimeout(function () {
+            window.refreshCartCheckoutEta();
+        }, 250);
     }
     
 }
@@ -3969,6 +3982,7 @@ function checkOutDailyCartPaymentApiCall(btnType) {
 })();
 
 document.addEventListener("DOMContentLoaded", function() {
+    window.__qkCartAddressSelected = false;
     var myModal = document.getElementById("couponModal");
 
     myModal.addEventListener("show.bs.modal", function() {
@@ -3990,7 +4004,7 @@ document.addEventListener("DOMContentLoaded", function() {
     var addedFrom = "{{\Request::get('addedFrom')}}";
     addressModal.addEventListener("hidden.bs.modal", function() {
         document.body.style.overflow = "";
-        if(addedFrom == 'cart'){
+        if(addedFrom == 'cart' && !window.__qkCartAddressSelected){
             window.location.href="{{url('cart?tab='.\Request::get('tab'))}}"
         }
     });
