@@ -9726,14 +9726,14 @@ img.varient-down-arrow {
     .main_sliderBox #sync1 a {
         display: grid;
         place-items: center;
-        width: auto;
-        aspect-ratio: auto;
+        width: 100%;
+        aspect-ratio: 1/1;
     }
     .main_sliderBox #sync1 a img {
         transition-duration: 0.4s;
-        padding: 0px;
-        height: auto;
-        width: auto;
+        padding: 4px;
+        height: 100%;
+        width: 100%;
         object-fit: contain;
         object-position: center;
     }

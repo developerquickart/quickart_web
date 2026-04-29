@@ -3925,15 +3925,18 @@ function checkOutDailyCartPaymentApiCall(btnType) {
     window.__cartCheckoutEtaMinutes = null;
     window.refreshCartCheckoutEta = function () {
         var badge = document.getElementById('cartCheckoutEtaBadge');
+        var addressIdEl = document.getElementById('addressId');
         var latEl = document.getElementById('cartSelectedLat');
         var lngEl = document.getElementById('cartSelectedLng');
         var minEl = document.getElementById('cartCheckoutEtaMinutes');
-        if (!badge || !latEl || !lngEl || !minEl) {
+        if (!badge || !minEl) {
             return;
         }
+        var addressId = addressIdEl ? String(addressIdEl.value || '').trim() : '';
         var la = parseFloat(latEl.value);
         var ln = parseFloat(lngEl.value);
-        if (!isFinite(la) || !isFinite(ln)) {
+        var hasCoords = isFinite(la) && isFinite(ln);
+        if (!hasCoords && !addressId) {
             badge.style.display = 'none';
             window.__cartCheckoutEtaMinutes = null;
             return;
@@ -3949,7 +3952,12 @@ function checkOutDailyCartPaymentApiCall(btnType) {
                 'X-CSRF-TOKEN': tokenVal,
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ lat: la, lng: ln, _token: tokenVal })
+            body: JSON.stringify({
+                lat: hasCoords ? la : null,
+                lng: hasCoords ? ln : null,
+                address_id: addressId,
+                _token: tokenVal
+            })
         })
             .then(function (r) {
                 if (!r.ok) throw new Error('eta');

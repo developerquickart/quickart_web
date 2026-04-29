@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -79,7 +80,27 @@ class DeliveryEtaController extends Controller
         $userLat = $this->parseCoord($request->input('lat'));
         $userLng = $this->parseCoord($request->input('lng'));
         if ($userLat === null || $userLng === null) {
-            return response()->json(['ok' => false, 'message' => 'invalid_coords'], 422);
+            $addressId = $request->input('address_id');
+            if ($addressId !== null && $addressId !== '') {
+                $row = DB::table('address')
+                    ->where('address_id', $addressId)
+                    ->where('user_id', session('user_id'))
+                    ->first(['lat', 'lng']);
+                if ($row) {
+                    $userLat = $this->parseCoord($row->lat ?? null);
+                    $userLng = $this->parseCoord($row->lng ?? null);
+                }
+            }
+        }
+        if ($userLat === null || $userLng === null) {
+            return response()->json([
+                'ok' => true,
+                'minutes' => self::FALLBACK_MINUTES,
+                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'distance_meters' => null,
+                'distance_label' => null,
+                'source' => 'fallback_invalid_coords',
+            ]);
         }
 
         $storeLat = $this->sessionCoord('delivery_store_lat');
