@@ -1059,7 +1059,7 @@
         @media (max-width: 991px) {
             header,
             header.sticky {
-                position: sticky !important;
+                position: fixed !important;
                 top: 0;
                 width: 100%;
                 z-index: 999;
