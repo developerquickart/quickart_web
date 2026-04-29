@@ -100,7 +100,7 @@ body.qk-checkout-loading {
                                                             - Shop now & Save!</span>
                                                     </div>
                                                     --}}
-                                                    @if(!empty(session('user_id')) && !empty($showCartProductList['data']['lastadd'][0]))
+                                                    @if(!empty(session('user_id')))
                                                     <div id="cartCheckoutEtaBadge" class="qk-cart-checkout-eta-badge" style="display:none;" role="status">
                                                         <span class="qk-cart-checkout-eta-badge__text">Order will arrive in <strong id="cartCheckoutEtaMinutes">—</strong> min for selected address</span>
                                                     </div>
