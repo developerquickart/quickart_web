@@ -289,8 +289,11 @@
             padding-left: 0 !important;
             padding-right: 0 !important;
         }
+        .osahan-menu.qk-loggedin-menu {
+            margin-bottom: 0 !important;
+        }
         .qk-delivery-topstrip {
-            margin: 0 0 10px;
+            margin: 0;
             padding: 10px 12px 18px;
             background: #2E317E;
             box-shadow: 0 10px 26px rgba(46, 49, 126, 0.35);

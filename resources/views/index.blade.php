@@ -218,7 +218,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                                 {{ number_format(trim($productDetail['discountper']), 0) }}%<span>Off</span>
                                             </div>
                                             @endif
-                                            @if(!empty($productDetail['country_icon']))
+                                            @if($productDetail['discountper'] <= 0 && !empty($productDetail['country_icon']))
                                             <div class="country_flag">
                                                 <img src="{{ trim($productDetail['country_icon']) }}" alt="flag">
                                             </div>
@@ -308,7 +308,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                     <div class="discount_text">
                                         {{number_format($productDetail['discountper'], 0)}}%<span>Off</span></div>
                                     @endif
-                                    @if($productDetail['country_icon'] != null || $productDetail['country_icon'] != "")
+                                    @if($productDetail['discountper'] <= 0 && !empty($productDetail['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$productDetail['country_icon']}}" alt="flag">
                                     </div>
@@ -411,7 +411,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                     <div class="discount_text">
                                         {{number_format($topselling['discountper'], 0)}}%<span>Off</span></div>
                                     @endif
-                                    @if($topselling['country_icon'] != null || $topselling['country_icon'] != "")
+                                    @if($topselling['discountper'] <= 0 && !empty($topselling['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$topselling['country_icon']}}" alt="flag">
                                     </div>
@@ -497,7 +497,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                     <div class="discount_text">
                                         {{number_format($topselling['discountper'], 0)}}%<span>Off</span></div>
                                     @endif
-                                    @if($topselling['country_icon'] != null || $topselling['country_icon'] != "")
+                                    @if($topselling['discountper'] <= 0 && !empty($topselling['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$topselling['country_icon']}}" alt="flag">
                                     </div>
@@ -662,8 +662,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                                 {{number_format($productDetail['discountper'], 0)}}%<span>Off</span>
                                             </div>
                                             @endif
-                                            @if($productDetail['country_icon'] != null || $productDetail['country_icon']
-                                            != "")
+                                            @if($productDetail['discountper'] <= 0 && !empty($productDetail['country_icon']))
                                             <div class="country_flag">
                                                 <img src="{{$productDetail['country_icon']}}" alt="flag">
                                             </div>
@@ -752,8 +751,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                                 {{number_format($productDetail['discountper'], 0)}}%<span>Off</span>
                                             </div>
                                             @endif
-                                            @if($productDetail['country_icon'] != null || $productDetail['country_icon']
-                                            != "")
+                                            @if($productDetail['discountper'] <= 0 && !empty($productDetail['country_icon']))
                                             <div class="country_flag">
                                                 <img src="{{$productDetail['country_icon']}}" alt="flag">
                                             </div>
@@ -874,7 +872,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                     <div class="discount_text">
                                         {{number_format($recentselling['discountper'], 0)}}%<span>Off</span></div>
                                     @endif
-                                    @if($recentselling['country_icon'] != null || $recentselling['country_icon'] != "")
+                                    @if($recentselling['discountper'] <= 0 && !empty($recentselling['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$recentselling['country_icon']}}" alt="flag">
                                     </div>
@@ -962,7 +960,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                                     <div class="discount_text">
                                         {{number_format($recentselling['discountper'], 0)}}%<span>Off</span></div>
                                     @endif
-                                    @if($recentselling['country_icon'] != null || $recentselling['country_icon'] != "")
+                                    @if($recentselling['discountper'] <= 0 && !empty($recentselling['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$recentselling['country_icon']}}" alt="flag">
                                     </div>
