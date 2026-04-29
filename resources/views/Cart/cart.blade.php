@@ -38,6 +38,16 @@ if (isset($showCartProductList['data'])) {
     line-height: 1.4;
 }
 .qk-cart-checkout-eta-badge strong { color: #2e7d32; font-size: 1.05em; }
+.qk-store-offline-note {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid #f3c2c2;
+    background: linear-gradient(180deg, #fff6f6 0%, #fff 100%);
+    color: #b23b3b;
+    font-size: 13px;
+    font-weight: 600;
+}
 body.qk-checkout-loading {
     overflow: hidden;
 }
@@ -590,11 +600,50 @@ body.qk-checkout-loading {
                                                             
                                                         </div>
                                                     </div>
+                                                    @php
+                                                        $qkCartStoreIsOnline = true;
+                                                        try {
+                                                            $qkStoreId = trim((string) env('GO_STORE_ID', ''));
+                                                            if ($qkStoreId !== '') {
+                                                                $qkStoreRow = \Illuminate\Support\Facades\DB::table('store')
+                                                                    ->where('id', $qkStoreId)
+                                                                    ->first(['store_opening_time', 'store_closing_time']);
+                                                                if ($qkStoreRow) {
+                                                                    $qkDubaiNow = \Carbon\Carbon::now('Asia/Dubai');
+                                                                    $qkOpenText = trim((string) ($qkStoreRow->store_opening_time ?? ''));
+                                                                    $qkCloseText = trim((string) ($qkStoreRow->store_closing_time ?? ''));
+                                                                    $qkOpen = null;
+                                                                    $qkClose = null;
+                                                                    if ($qkOpenText !== '') {
+                                                                        $qkOpen = \Carbon\Carbon::createFromFormat('H:i', $qkOpenText, 'Asia/Dubai');
+                                                                    }
+                                                                    if ($qkCloseText !== '') {
+                                                                        $qkClose = \Carbon\Carbon::createFromFormat('H:i', $qkCloseText, 'Asia/Dubai');
+                                                                    }
+                                                                    if ($qkOpen && $qkClose) {
+                                                                        $qkOpen = $qkOpen->setDate($qkDubaiNow->year, $qkDubaiNow->month, $qkDubaiNow->day);
+                                                                        $qkClose = $qkClose->setDate($qkDubaiNow->year, $qkDubaiNow->month, $qkDubaiNow->day);
+                                                                        if ($qkClose->lessThanOrEqualTo($qkOpen)) {
+                                                                            $qkClose->addDay();
+                                                                        }
+                                                                        $qkCartStoreIsOnline = $qkDubaiNow->betweenIncluded($qkOpen, $qkClose);
+                                                                    }
+                                                                }
+                                                            }
+                                                        } catch (\Throwable $e) {
+                                                            $qkCartStoreIsOnline = true;
+                                                        }
+                                                    @endphp
                                                     <div class="payment_mainBox new_payment_mainBox">
                                                         {{-- Pay Now only on daily cart: keep a single hidden radio so existing checkout JS (name="toggle") still works. --}}
                                                         <input type="radio" name="toggle" id="daily_PayNow" value="Pay Now" checked
                                                             class="visually-hidden" tabindex="-1" title="Pay Now" style="position:absolute;left:-9999px"
                                                             aria-label="Pay Now" onchange="toggleCODCharges(this.value)">
+                                                        @if(!$qkCartStoreIsOnline)
+                                                        <div class="qk-store-offline-note">
+                                                            Sorry, the store is currently offline.
+                                                        </div>
+                                                        @else
                                                         <div id="Pay Now" class="content-div" style="display: block;">
                                                             <div id="payNowQuick">
                                                                 <div class="pay_btnbox">
@@ -680,6 +729,7 @@ body.qk-checkout-loading {
                                                                 <span>Place Order</span>
                                                             </div>
                                                         </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </div>
