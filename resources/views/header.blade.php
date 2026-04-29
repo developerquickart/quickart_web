@@ -1062,6 +1062,9 @@
             .main-wrapper {
                 padding-top: var(--qk-mobile-header-height, 0px);
             }
+            body.qk-home-page .main-wrapper {
+                padding-top: calc(var(--qk-mobile-header-height, 0px) + 8px);
+            }
             header,
             header.sticky {
                 position: fixed !important;
@@ -1100,7 +1103,7 @@
     </style>
 </head>
 
-<body>
+<body class="{{ request()->routeIs('index') ? 'qk-home-page' : '' }}">
       <!--<script src="https://chat.bot247.live/api/chatbot-script" data-chatbot-id="cb_1749551624924"></script>-->
     <div class="main-wrapper">
     <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginLabel">
