@@ -66,8 +66,10 @@
         if (isMobile) {
             // Keep header stable on mobile across all pages.
             header.classList.add("sticky");
+            document.documentElement.style.setProperty('--qk-mobile-header-height', header.offsetHeight + 'px');
             return;
         }
+        document.documentElement.style.setProperty('--qk-mobile-header-height', '0px');
         if (window.pageYOffset > 0) {
             header.classList.add("sticky");
         } else {
@@ -1057,6 +1059,9 @@
             }
         }
         @media (max-width: 991px) {
+            .main-wrapper {
+                padding-top: var(--qk-mobile-header-height, 0px);
+            }
             header,
             header.sticky {
                 position: fixed !important;
