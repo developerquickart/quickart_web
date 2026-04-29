@@ -1668,7 +1668,9 @@ function handleSelectedWeekClickCart(element) {
     const dd = String(today.getDate()).padStart(2, '0');
 
     const minDate = `${yyyy}-${mm}-${dd}`;
-    dateInput.min = minDate;
+    if (dateInput) {
+        dateInput.min = minDate;
+    }
 </script>
 <!-- Handle date click...G1 -->
 <script>
@@ -2357,6 +2359,9 @@ function qkShowBootstrapModal(modalId) {
 
 // Function to handle selected address
 function saveSelectedAddress(storedAddresses) {
+    if (!storedAddresses || typeof storedAddresses !== 'object') {
+        return;
+    }
     // console.log("Selected Address:", storedAddresses);     
     // console.log("Retrieved lastAddress:", lastAddress);
     let showAddress = document.getElementById("showAddress");
@@ -3933,8 +3938,8 @@ function checkOutDailyCartPaymentApiCall(btnType) {
             return;
         }
         var addressId = addressIdEl ? String(addressIdEl.value || '').trim() : '';
-        var la = parseFloat(latEl.value);
-        var ln = parseFloat(lngEl.value);
+        var la = latEl ? parseFloat(latEl.value) : NaN;
+        var ln = lngEl ? parseFloat(lngEl.value) : NaN;
         var hasCoords = isFinite(la) && isFinite(ln);
         if (!hasCoords && !addressId) {
             badge.style.display = 'none';
@@ -4042,29 +4047,33 @@ document.addEventListener("DOMContentLoaded", function() {
 
             localStorage.setItem("selectedAddress", JSON.stringify(selected_address1));
         } else {
-              localStorage.removeItem("selectedAddress");
-            console.log("No last address found.");
+            // Keep any previously selected address (e.g. just selected via Add Address flow).
+            console.log("No last address found from API, preserving existing selectedAddress.");
         }
     }else {
          let subCartProductList = @json($subCartProductList);
         if (subCartProductList.data.lastadd && subCartProductList.data.lastadd.length > 0) {
             const address = subCartProductList.data.lastadd[0];
            
-            var selected_address1;
+            var selected_address1 = {};
             selected_address1.house_no = address.house_no
             selected_address1.address_id = address.address_id
             selected_address1.type = address.type
+            if (address.lat != null) selected_address1.lat = address.lat;
+            if (address.lng != null) selected_address1.lng = address.lng;
             localStorage.setItem("selectedAddress", JSON.stringify(selected_address1));
         } else {
-              localStorage.removeItem("selectedAddress");
-            console.log("No last address found.");
+            // Keep any previously selected address (e.g. just selected via Add Address flow).
+            console.log("No last address found from API, preserving existing selectedAddress.");
         }
     }
       
-        var selected_address =JSON.parse(localStorage.getItem("selectedAddress")) || "";
+        var selected_address = JSON.parse(localStorage.getItem("selectedAddress") || "null");
         console.log("G1----11-->selected_address",selected_address);
-        saveSelectedAddress(selected_address);
-         if(!selected_address){
+        if (selected_address && typeof selected_address === 'object' && selected_address.address_id) {
+            saveSelectedAddress(selected_address);
+        }
+         if(!selected_address || !selected_address.address_id){
         $('.change_addressbox').addClass('d-none');
         $('.btn_addresslist span').html('Add Address');
         }else{
@@ -4205,7 +4214,13 @@ input1.addEventListener('countrychange', () => {
     var geocoder;
 
      function initAutocomplete(lat,lng) {
-        const center = { lat: parseFloat(lat), lng: parseFloat(lng) };
+        var parsedLat = parseFloat(lat);
+        var parsedLng = parseFloat(lng);
+        if (!isFinite(parsedLat) || !isFinite(parsedLng)) {
+            parsedLat = 25.2048;
+            parsedLng = 55.2708;
+        }
+        const center = { lat: parsedLat, lng: parsedLng };
         const mapOptions = {
             center: center,
             zoom: 15,
@@ -4328,16 +4343,19 @@ function populateForm(addressId) {
     iti1.setCountry(flagcode); // Set the country based on the flag code
     
     // initAutocomplete(latitude,longitude);
-     if (latitude && longitude) {
-        const currentLocation = new google.maps.LatLng(parseFloat(latitude), parseFloat(longitude));
+     var parsedEditLat = parseFloat(latitude);
+     var parsedEditLng = parseFloat(longitude);
+     if (map && isFinite(parsedEditLat) && isFinite(parsedEditLng)) {
+        const currentLocation = new google.maps.LatLng(parsedEditLat, parsedEditLng);
         map.setCenter(currentLocation);
     }
-     
-    const myLatLng = { lat: parseFloat(latitude), lng:parseFloat(longitude)}; 
-    const marker = new google.maps.Marker({
-        position: myLatLng,
-        map: map,
-      });
+    if (map && isFinite(parsedEditLat) && isFinite(parsedEditLng)) {
+        const myLatLng = { lat: parsedEditLat, lng: parsedEditLng };
+        const marker = new google.maps.Marker({
+            position: myLatLng,
+            map: map,
+        });
+    }
 
     qkShowBootstrapModal('editAddressModal');
 
