@@ -752,6 +752,31 @@
             background: linear-gradient(135deg, #6c757d 0%, #8a94a1 100%);
             border-color: rgba(255, 255, 255, 0.18);
         }
+        .qk-delivery-eta--offline {
+            padding-top: 12px;
+            padding-bottom: 12px;
+        }
+        .qk-delivery-eta__offline-msg {
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            color: #fef7ff;
+            line-height: 1.2;
+        }
+        .qk-delivery-eta__offline-title {
+            display: block;
+            font-size: 17px;
+            font-weight: 800;
+            color: #ffd8ea;
+            letter-spacing: 0.2px;
+        }
+        .qk-delivery-eta__offline-sub {
+            display: block;
+            margin-top: 3px;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.92);
+        }
         .qk-on-the-way-tag {
             position: fixed;
             z-index: 1050;
@@ -1407,6 +1432,7 @@
             <div class="container-fluid">
                 @if(!empty(session('user_id')))
                 @php
+                    $qkStoreIsOnline = false;
                     $qkStoreStatusText = 'Store Offline';
                     $qkStoreStatusClass = 'qk-store-status-badge--offline';
                     try {
@@ -1435,6 +1461,7 @@
                                     }
                                     $qkIsOpen = $qkDubaiNow->betweenIncluded($qkOpen, $qkClose);
                                     if ($qkIsOpen) {
+                                        $qkStoreIsOnline = true;
                                         $qkStoreStatusText = 'Store Online';
                                         $qkStoreStatusClass = 'qk-store-status-badge--online';
                                     }
@@ -1446,7 +1473,8 @@
                     }
                 @endphp
                 <div class="qk-delivery-topstrip">
-                    <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
+                    <div class="qk-delivery-eta {{ $qkStoreIsOnline ? '' : 'qk-delivery-eta--offline' }}" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
+                        @if($qkStoreIsOnline)
                         <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
                         <div class="qk-delivery-eta__left">
                             <div class="qk-delivery-eta__body">
@@ -1477,6 +1505,12 @@
                             <span class="qk-store-status-badge__dot" aria-hidden="true"></span>
                             {{ $qkStoreStatusText }}
                         </span>
+                        @else
+                        <div class="qk-delivery-eta__offline-msg">
+                            <span class="qk-delivery-eta__offline-title">Currently unavailable due to high demand</span>
+                            <span class="qk-delivery-eta__offline-sub">Apologies for the inconvenience caused. We'll be back soon</span>
+                        </div>
+                        @endif
                         <a href="javascript:void(0)"
                            onclick="menu()"
                            class="qk-delivery-eta__profile qk-menu-toggle"
