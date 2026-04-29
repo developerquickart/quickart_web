@@ -723,6 +723,35 @@
             text-decoration: none;
         }
         .qk-delivery-eta__profile svg { display: block; }
+        .qk-store-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .qk-store-status-badge__dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+        }
+        .qk-store-status-badge--online {
+            background: linear-gradient(135deg, #1f9d55 0%, #2ecc71 100%);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+        .qk-store-status-badge--offline {
+            background: linear-gradient(135deg, #6c757d 0%, #8a94a1 100%);
+            border-color: rgba(255, 255, 255, 0.18);
+        }
         .qk-on-the-way-tag {
             position: fixed;
             z-index: 1050;
@@ -1377,6 +1406,45 @@
         <div class="osahan-menu {{ !empty(session('user_id')) ? 'qk-loggedin-menu' : '' }}">
             <div class="container-fluid">
                 @if(!empty(session('user_id')))
+                @php
+                    $qkStoreStatusText = 'Store Offline';
+                    $qkStoreStatusClass = 'qk-store-status-badge--offline';
+                    try {
+                        $qkStoreId = trim((string) env('GO_STORE_ID', ''));
+                        if ($qkStoreId !== '') {
+                            $qkStoreRow = \Illuminate\Support\Facades\DB::table('store')
+                                ->where('id', $qkStoreId)
+                                ->first(['store_opening_time', 'store_closing_time']);
+                            if ($qkStoreRow) {
+                                $qkDubaiNow = \Carbon\Carbon::now('Asia/Dubai');
+                                $qkOpenText = trim((string) ($qkStoreRow->store_opening_time ?? ''));
+                                $qkCloseText = trim((string) ($qkStoreRow->store_closing_time ?? ''));
+                                $qkOpen = null;
+                                $qkClose = null;
+                                if ($qkOpenText !== '') {
+                                    $qkOpen = \Carbon\Carbon::createFromFormat('H:i', $qkOpenText, 'Asia/Dubai');
+                                }
+                                if ($qkCloseText !== '') {
+                                    $qkClose = \Carbon\Carbon::createFromFormat('H:i', $qkCloseText, 'Asia/Dubai');
+                                }
+                                if ($qkOpen && $qkClose) {
+                                    $qkOpen = $qkOpen->setDate($qkDubaiNow->year, $qkDubaiNow->month, $qkDubaiNow->day);
+                                    $qkClose = $qkClose->setDate($qkDubaiNow->year, $qkDubaiNow->month, $qkDubaiNow->day);
+                                    if ($qkClose->lessThanOrEqualTo($qkOpen)) {
+                                        $qkClose->addDay();
+                                    }
+                                    $qkIsOpen = $qkDubaiNow->betweenIncluded($qkOpen, $qkClose);
+                                    if ($qkIsOpen) {
+                                        $qkStoreStatusText = 'Store Online';
+                                        $qkStoreStatusClass = 'qk-store-status-badge--online';
+                                    }
+                                }
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        // Keep default offline badge on query/parse error.
+                    }
+                @endphp
                 <div class="qk-delivery-topstrip">
                     <div class="qk-delivery-eta" role="status" aria-live="polite" title="Estimated delivery time" data-delivery-eta-root>
                         <span class="qk-delivery-eta__glow" aria-hidden="true"></span>
@@ -1405,6 +1473,10 @@
                                 </div>
                             </div>
                         </div>
+                        <span class="qk-store-status-badge {{ $qkStoreStatusClass }}" aria-label="Store status">
+                            <span class="qk-store-status-badge__dot" aria-hidden="true"></span>
+                            {{ $qkStoreStatusText }}
+                        </span>
                         <a href="javascript:void(0)"
                            onclick="menu()"
                            class="qk-delivery-eta__profile qk-menu-toggle"
