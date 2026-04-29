@@ -9835,6 +9835,15 @@ img.varient-down-arrow {
 }
 
 @media (max-width: 575.96px) {
+    .product_details_image,
+    .shop-detail-left,
+    .shop-detail-slider,
+    .main_sliderBox {
+        width: min(76vw, 300px);
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     .desktop-logo {
         display: none;
     }
