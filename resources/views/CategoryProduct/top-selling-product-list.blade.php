@@ -1,4 +1,11 @@
 @include('header')
+<style>
+@media (max-width: 991px) {
+    .shop-list.section-padding {
+        padding-bottom: 110px !important;
+    }
+}
+</style>
 
 <section class="shop-list section-padding">
     <div class="container-fluid">

@@ -5,6 +5,13 @@ $selectedMainCatBanner = !empty($banner)?$banner:'';
 $selectedSubcat = $Sub_cat_name;
 $defaultSubCatId = (!empty($Sub_cat_id)) ? $Sub_cat_id : $subCatList['data'][0]['cat_id'];
 ?>
+<style>
+@media (max-width: 991px) {
+    .subcate_section {
+        padding-bottom: 110px !important;
+    }
+}
+</style>
 <!-- cart section start -->
 
 <section class="cart_section subcate_section section-padding">
@@ -129,6 +136,10 @@ $(document).ready(function () {
                 if(page <= totalPages){
                     loadMoreData(page,false);
                     page++;
+                } else {
+                    hasMorePages = false;
+                    isLoading = false;
+                    $('.ploader,.sloader').hide();
                 }
                 
             }
@@ -160,16 +171,18 @@ $(document).ready(function () {
                     page_path: window.location.pathname,
                      debug_mode: false
                     });
-                if (data.trim().length === 0) {
+                var $parsed = $('<div>').html(data);
+                var newItemsCount = $parsed.find('.all_product_list').length;
+                if (data.trim().length === 0 || newItemsCount === 0) {
                     hasMorePages = false;
-                    $('.ploader,.sloader').html("");
-                    
+                    $('.ploader,.sloader').hide();
+                    isLoading = false;
                 } else {
                    // console.log(data);
                     if(loadSubcategory == true){
-                        $(".product_list_box").html(data);
+                        $(".product_list_box").html($parsed.html());
                     }else{
-                        $(".product_list_box").append(data);
+                        $(".product_list_box").append($parsed.html());
                     }
                     bindCartButtons();
                     $('.ploader,.sloader').hide();
@@ -182,6 +195,7 @@ $(document).ready(function () {
             error: function(xhr, status, error) {
                 console.log('Error:', error);
                 isLoading = false;
+                $('.ploader,.sloader').hide();
             }
         });
     }
