@@ -381,7 +381,7 @@
                                         {{number_format($productList['discountper'], 0)}}%<span>Off</span>
                                     </div>
                                     @endif
-                                    @if($productList['country_icon'] != null || $productList['country_icon'] != "")
+                                    @if($productList['discountper'] <= 0 && !empty($productList['country_icon']))
                                     <div class="country_flag">
                                         <img src="{{$productList['country_icon']}}" alt="flag">
                                     </div>
