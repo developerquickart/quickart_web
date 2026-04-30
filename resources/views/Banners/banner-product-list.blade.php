@@ -1,4 +1,11 @@
 @include('header')
+<style>
+@media (max-width: 991px) {
+    .shop-list.section-padding {
+        padding-bottom: 110px !important;
+    }
+}
+</style>
 @if(isset($productList['data']) && count($productList['data']) > 0)
 <section class="shop-list section-padding">
     <div class="container-fluid">
