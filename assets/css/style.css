@@ -6035,13 +6035,33 @@ fieldset a {
     height: 36px;
     border: 1px solid #d7d7d7;
     border-radius: 8px;
-    padding: 6px 10px;
+    padding: 6px 34px 6px 10px;
     font-size: 13px;
     outline: none;
 }
 
 .iti__country-search-input:focus {
     border-color: #2e317e;
+}
+
+.iti__country-close-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border: 0;
+    border-radius: 50%;
+    background: #eef1f6;
+    color: #5f6678;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: 16px;
+    padding: 0;
+    cursor: pointer;
 }
 
 @media (max-width: 767.98px) {
