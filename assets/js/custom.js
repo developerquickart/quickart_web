@@ -585,6 +585,15 @@ const inputl = document.querySelector("#mobile_code");
         searchItem.appendChild(wrap);
         countryList.insertBefore(searchItem, countryList.firstChild);
 
+        ['mousedown', 'click', 'touchstart', 'pointerdown'].forEach(function (evtName) {
+            wrap.addEventListener(evtName, function (e) {
+                e.stopPropagation();
+            });
+            searchInput.addEventListener(evtName, function (e) {
+                e.stopPropagation();
+            });
+        });
+
         searchInput.addEventListener('input', function () {
             var query = searchInput.value.trim().toLowerCase();
             var countries = countryList.querySelectorAll('.iti__country');
