@@ -6011,6 +6011,33 @@ fieldset a {
     background-color: transparent;
 }
 
+.iti__country-list {
+    max-height: 280px;
+}
+
+.iti__country-search-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #fff;
+    padding: 8px;
+    border-bottom: 1px solid #ececec;
+}
+
+.iti__country-search-input {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #d7d7d7;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+}
+
+.iti__country-search-input:focus {
+    border-color: #2e317e;
+}
+
 .numberBox .form-control {
     padding: 8px 20px !important;
     width: 67%;

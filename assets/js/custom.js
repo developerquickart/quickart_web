@@ -564,6 +564,64 @@ const inputl = document.querySelector("#mobile_code");
     inputr.setAttribute("placeholder", "Please enter Mobile No");
 
     updateCountryCoder();
+
+    function initCountrySearchForITI(inputEl) {
+        if (!inputEl) return;
+
+        var itiWrapper = inputEl.closest('.iti');
+        if (!itiWrapper) return;
+
+        var flagButton = itiWrapper.querySelector('.iti__selected-flag');
+        if (!flagButton) return;
+
+        function ensureCountrySearch() {
+            var countryList = itiWrapper.querySelector('.iti__country-list');
+            if (!countryList) return;
+
+            var existingSearch = countryList.querySelector('.iti__country-search-wrap');
+            if (!existingSearch) {
+                var wrap = document.createElement('div');
+                wrap.className = 'iti__country-search-wrap';
+
+                var searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.className = 'iti__country-search-input';
+                searchInput.placeholder = 'Search country or code';
+                searchInput.setAttribute('aria-label', 'Search country');
+
+                wrap.appendChild(searchInput);
+                countryList.insertBefore(wrap, countryList.firstChild);
+
+                searchInput.addEventListener('input', function () {
+                    var query = searchInput.value.trim().toLowerCase();
+                    var countries = countryList.querySelectorAll('.iti__country');
+                    countries.forEach(function (country) {
+                        var text = country.textContent.toLowerCase();
+                        country.style.display = text.indexOf(query) > -1 ? '' : 'none';
+                    });
+                });
+            }
+
+            var inputSearch = countryList.querySelector('.iti__country-search-input');
+            if (!inputSearch) return;
+
+            inputSearch.value = '';
+            var countries = countryList.querySelectorAll('.iti__country');
+            countries.forEach(function (country) {
+                country.style.display = '';
+            });
+            setTimeout(function () {
+                inputSearch.focus();
+            }, 0);
+        }
+
+        flagButton.addEventListener('click', function () {
+            setTimeout(ensureCountrySearch, 0);
+        });
+    }
+
+    initCountrySearchForITI(inputl);
+    initCountrySearchForITI(inputr);
     
 
 // MENU OPEN CLOSE SCRIPT

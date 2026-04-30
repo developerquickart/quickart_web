@@ -262,6 +262,27 @@
             padding: 12px 14px 12px 44px !important; border-radius: 12px !important;
             border: 1px solid #d8dbe6 !important; font-size: 14px; background: #fff !important;
         }
+        #login .login-location-search-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            border: 0;
+            border-radius: 50%;
+            background: #eef1f6;
+            color: #5f6678;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        #login .login-location-search-clear.qk-visible { display: inline-flex; }
         #login .login-location-map-canvas { height: 260px; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid #e0e3eb; margin-bottom: 14px; }
         #login .login-location-confirm-btn { width: 100%; padding: 12px 20px !important; font-size: 15px; border-radius: 12px !important; font-weight: 700; }
         #login .login-waitlist-card { margin-top: 1.25rem; border: none !important; background: transparent !important; padding: 0 !important; }
@@ -1309,6 +1330,7 @@
                                                         </span>
                                                         <input type="text" class="form-control login-location-search-input" id="login-location-search"
                                                             placeholder="e.g. Dubai Marina, building name, street" autocomplete="off">
+                                                        <button type="button" class="login-location-search-clear" aria-label="Clear search">&times;</button>
                                                     </div>
                                                     <div id="login-location-map" class="login-location-map-canvas"></div>
                                                     <button type="button" class="submit_btn login-location-confirm-btn confirm_map_location_btn" disabled>
@@ -2970,9 +2992,38 @@
                 clearBtn.addEventListener('click', function () {
                     searchInput.value = '';
                     clearBtn.classList.remove('qk-visible');
+                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
                     searchInput.focus();
                 });
                 $('#headerLocationSwitchModal').on('shown.bs.modal', toggleClearBtn);
+            })();
+
+            (function initLoginLocationSearchClear() {
+                var searchInput = document.getElementById('login-location-search');
+                var clearBtn = document.querySelector('.login-location-search-clear');
+                if (!searchInput || !clearBtn) return;
+
+                function toggleClearBtn() {
+                    if ((searchInput.value || '').trim() !== '') {
+                        clearBtn.classList.add('qk-visible');
+                    } else {
+                        clearBtn.classList.remove('qk-visible');
+                    }
+                }
+
+                searchInput.addEventListener('input', toggleClearBtn);
+                searchInput.addEventListener('focus', toggleClearBtn);
+                clearBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    clearBtn.classList.remove('qk-visible');
+                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    searchInput.focus();
+                });
+
+                $('#login').on('shown.bs.modal', toggleClearBtn);
+                $('.pick_map_location_btn').on('click', function () {
+                    setTimeout(toggleClearBtn, 0);
+                });
             })();
 
             $('.qk-header-location-apply-btn').on('click', function () {
