@@ -570,6 +570,7 @@ const inputl = document.querySelector("#mobile_code");
 
         var countryData = window.intlTelInputGlobals.getCountryData() || [];
         var dataList = document.getElementById('country-search-datalist');
+        var suggestionBox = document.getElementById(searchInput.id + '_suggestions');
         if (dataList && dataList.children.length === 0) {
             countryData.forEach(function (c) {
                 var opt = document.createElement('option');
@@ -595,9 +596,57 @@ const inputl = document.querySelector("#mobile_code");
             if (!match) return;
             itiInstance.setCountry(match.iso2);
             searchInput.value = match.name + ' (+' + match.dialCode + ')';
+            if (suggestionBox) suggestionBox.style.display = 'none';
+        }
+
+        function renderSuggestions() {
+            if (!suggestionBox) return;
+            var query = (searchInput.value || '').trim().toLowerCase();
+            if (!query) {
+                suggestionBox.style.display = 'none';
+                suggestionBox.innerHTML = '';
+                return;
+            }
+            var digits = query.replace(/[^0-9]/g, '');
+            var matches = countryData.filter(function (c) {
+                return c.name.toLowerCase().indexOf(query) > -1 ||
+                    c.iso2.toLowerCase().indexOf(query) === 0 ||
+                    (digits && c.dialCode.indexOf(digits) === 0);
+            }).slice(0, 8);
+
+            if (!matches.length) {
+                suggestionBox.style.display = 'none';
+                suggestionBox.innerHTML = '';
+                return;
+            }
+
+            suggestionBox.innerHTML = matches.map(function (c) {
+                return '<div class="country-search-suggestion-item" data-iso2="' + c.iso2 + '">' +
+                    c.name + ' (+' + c.dialCode + ')' +
+                    '</div>';
+            }).join('');
+            suggestionBox.style.display = 'block';
         }
 
         searchInput.addEventListener('change', applySearchSelection);
+        searchInput.addEventListener('input', renderSuggestions);
+        if (suggestionBox) {
+            suggestionBox.addEventListener('click', function (e) {
+                var item = e.target.closest('.country-search-suggestion-item');
+                if (!item) return;
+                var iso2 = item.getAttribute('data-iso2');
+                var match = countryData.find(function (c) { return c.iso2 === iso2; });
+                if (!match) return;
+                itiInstance.setCountry(match.iso2);
+                searchInput.value = match.name + ' (+' + match.dialCode + ')';
+                suggestionBox.style.display = 'none';
+            });
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.country-code-search-wrap')) {
+                    suggestionBox.style.display = 'none';
+                }
+            });
+        }
         searchInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault();

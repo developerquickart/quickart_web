@@ -1189,6 +1189,32 @@
             margin: 8px 0 10px;
             font-size: 13px;
         }
+        .country-code-search-wrap {
+            position: relative;
+        }
+        .country-search-suggestions {
+            position: absolute;
+            top: calc(100% - 8px);
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            max-height: 180px;
+            overflow-y: auto;
+            background: #fff;
+            border: 1px solid #d7d7d7;
+            border-radius: 8px;
+            box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+            display: none;
+        }
+        .country-search-suggestion-item {
+            padding: 8px 10px;
+            font-size: 13px;
+            line-height: 1.3;
+            cursor: pointer;
+        }
+        .country-search-suggestion-item:hover {
+            background: #f5f7ff;
+        }
             .qk-delivery-eta__time { font-size: 24px; }
         }
     </style>
@@ -1224,8 +1250,11 @@
                                                 <div class="form-group">
                                                     <label for="mobile_code">Mobile Number <span
                                                             class="required_icon">*</span></label>
-                                                    <input type="text" id="country_search_1" class="form-control country-code-search"
-                                                        placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
+                                                    <div class="country-code-search-wrap">
+                                                        <input type="text" id="country_search_1" class="form-control country-code-search"
+                                                            placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
+                                                        <div class="country-search-suggestions" id="country_search_1_suggestions"></div>
+                                                    </div>
                                                     <input type="text" id="mobile_code" class="form-control mobile_code"  name="number" data-index="1" required >
                                                     <input type="hidden" id="countryCode1" name="country_code" class="country_code">
                                                     <div id="error-msg" class="hide error-msg error"></div>
@@ -1417,8 +1446,11 @@
                                                     <fieldset class="form-group">
                                                         <label for="mobile_code">Mobile Number <span
                                                                 class="required_icon">*</span></label>
-                                                        <input type="text" id="country_search_2" class="form-control country-code-search"
-                                                            placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
+                                                        <div class="country-code-search-wrap">
+                                                            <input type="text" id="country_search_2" class="form-control country-code-search"
+                                                                placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
+                                                            <div class="country-search-suggestions" id="country_search_2_suggestions"></div>
+                                                        </div>
                                                         <input type="text" id="mobile_code2" class="form-control mobile_code" name="number" required data-index="2">
                                                         <input type="hidden" id="countryCode2" name="country_code" class="country_code">
                                                         <div id="error-msg1" class="hide error-msg error"></div>
