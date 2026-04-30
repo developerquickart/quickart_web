@@ -10077,6 +10077,9 @@ img.varient-down-arrow {
     .cart_section.subcate_section.section-padding{
         padding: 0;
     }
+    .subcate_section .mainCate_listingBox {
+        padding-top: 12px;
+    }
     .shop-detail-slider #sync2 img {
         margin: 0px 0 20px 0;
     }
