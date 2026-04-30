@@ -565,69 +565,67 @@ const inputl = document.querySelector("#mobile_code");
 
     updateCountryCoder();
 
-    function initCountrySearchForITI(inputEl) {
-        if (!inputEl) return;
+    function enhanceCountryList(countryList) {
+        if (!countryList || countryList.classList.contains('iti__country-list--enhanced')) return;
+        countryList.classList.add('iti__country-list--enhanced');
 
-        var itiWrapper = inputEl.closest('.iti');
-        if (!itiWrapper) return;
+        var searchItem = document.createElement('li');
+        searchItem.className = 'iti__country-search-item';
 
-        var flagButton = itiWrapper.querySelector('.iti__selected-flag');
-        if (!flagButton) return;
+        var wrap = document.createElement('div');
+        wrap.className = 'iti__country-search-wrap';
 
-        function ensureCountrySearch() {
-            var countryList = itiWrapper.querySelector('.iti__country-list');
-            if (!countryList) return;
+        var searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.className = 'iti__country-search-input';
+        searchInput.placeholder = 'Search country or code';
+        searchInput.setAttribute('aria-label', 'Search country');
 
-            var existingSearch = countryList.querySelector('.iti__country-search-item');
-            if (!existingSearch) {
-                var searchItem = document.createElement('li');
-                searchItem.className = 'iti__country-search-item';
+        wrap.appendChild(searchInput);
+        searchItem.appendChild(wrap);
+        countryList.insertBefore(searchItem, countryList.firstChild);
 
-                var wrap = document.createElement('div');
-                wrap.className = 'iti__country-search-wrap';
-
-                var searchInput = document.createElement('input');
-                searchInput.type = 'text';
-                searchInput.className = 'iti__country-search-input';
-                searchInput.placeholder = 'Search country or code';
-                searchInput.setAttribute('aria-label', 'Search country');
-
-                wrap.appendChild(searchInput);
-                searchItem.appendChild(wrap);
-                countryList.insertBefore(searchItem, countryList.firstChild);
-
-                searchInput.addEventListener('input', function () {
-                    var query = searchInput.value.trim().toLowerCase();
-                    var countries = countryList.querySelectorAll('.iti__country');
-                    countries.forEach(function (country) {
-                        var text = country.textContent.toLowerCase();
-                        country.style.display = text.indexOf(query) > -1 ? '' : 'none';
-                    });
-                });
-            }
-
-            var inputSearch = countryList.querySelector('.iti__country-search-input');
-            if (!inputSearch) return;
-
-            inputSearch.value = '';
+        searchInput.addEventListener('input', function () {
+            var query = searchInput.value.trim().toLowerCase();
             var countries = countryList.querySelectorAll('.iti__country');
             countries.forEach(function (country) {
-                country.style.display = '';
+                var text = country.textContent.toLowerCase();
+                country.style.display = text.indexOf(query) > -1 ? '' : 'none';
             });
-            setTimeout(function () {
-                inputSearch.focus();
-            }, 0);
-        }
-
-        var openHandler = function () {
-            setTimeout(ensureCountrySearch, 0);
-        };
-        flagButton.addEventListener('click', openHandler);
-        flagButton.addEventListener('touchstart', openHandler, { passive: true });
+        });
     }
 
-    initCountrySearchForITI(inputl);
-    initCountrySearchForITI(inputr);
+    function ensureAllCountryListsEnhanced() {
+        var lists = document.querySelectorAll('.iti__country-list');
+        lists.forEach(function (countryList) {
+            enhanceCountryList(countryList);
+            countryList.scrollTop = 0;
+            var inputSearch = countryList.querySelector('.iti__country-search-input');
+            if (inputSearch) {
+                inputSearch.value = '';
+                countryList.querySelectorAll('.iti__country').forEach(function (country) {
+                    country.style.display = '';
+                });
+            }
+        });
+    }
+
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('.iti__selected-flag')) {
+            setTimeout(function () {
+                ensureAllCountryListsEnhanced();
+                var visibleSearch = document.querySelector('.iti__country-list .iti__country-search-input');
+                if (visibleSearch) visibleSearch.focus();
+            }, 60);
+        }
+    });
+    document.addEventListener('touchstart', function (e) {
+        if (e.target.closest('.iti__selected-flag')) {
+            setTimeout(function () {
+                ensureAllCountryListsEnhanced();
+            }, 60);
+        }
+    }, { passive: true });
     
 
 // MENU OPEN CLOSE SCRIPT
