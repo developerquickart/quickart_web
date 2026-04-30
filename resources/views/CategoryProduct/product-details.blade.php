@@ -78,16 +78,6 @@
                                 </div>
                                 @endforeach
                             </div>
-                            @if(isset($getProductDetail['detail']['feature_tags']) &&
-                            count($getProductDetail['detail']['feature_tags']) > 0)
-                            <div class="product_featured_cat_icon_list">
-                                <div class="product_featured_cat_icon">
-                                    @foreach($getProductDetail['detail']['feature_tags'] as $tags)
-                                    <img class="img-fluid" src="{{ trim($tags['image']) }}" alt="Product">
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
                         </div>
                         <div class="navigation_slider">
                             <div id="sync2" class="owl-carousel">
@@ -413,13 +403,6 @@
                                 >
                                 <div class="product-img">
                                     <img class="img-fluid" src="{{$productList['product_image']}}" alt="product">
-                                </div>
-                                <div class="product_featured_cat_icon_list">
-                                    <div class="product_featured_cat_icon">
-                                        @foreach($productList['feature_tags'] as $tags)
-                                        <img class="img-fluid" src="{{ trim($tags['image']) }}" alt="Product">
-                                        @endforeach
-                                    </div>
                                 </div>
                                 <div class="product-body">
                                     <div class="product_name">{{$productList['product_name']}}</div>
