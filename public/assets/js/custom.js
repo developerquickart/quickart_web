@@ -565,6 +565,50 @@ const inputl = document.querySelector("#mobile_code");
 
     updateCountryCoder();
 
+    function setupCountryQuickSearch(searchInput, itiInstance) {
+        if (!searchInput || !itiInstance || !window.intlTelInputGlobals) return;
+
+        var countryData = window.intlTelInputGlobals.getCountryData() || [];
+        var dataList = document.getElementById('country-search-datalist');
+        if (dataList && dataList.children.length === 0) {
+            countryData.forEach(function (c) {
+                var opt = document.createElement('option');
+                opt.value = c.name + ' (+' + c.dialCode + ')';
+                dataList.appendChild(opt);
+            });
+        }
+
+        function resolveCountry(query) {
+            var q = (query || '').trim().toLowerCase();
+            if (!q) return null;
+            var digits = q.replace(/[^0-9]/g, '');
+            return countryData.find(function (c) {
+                var nameMatch = c.name.toLowerCase().indexOf(q) === 0;
+                var isoMatch = c.iso2.toLowerCase() === q;
+                var dialMatch = digits && c.dialCode.indexOf(digits) === 0;
+                return nameMatch || isoMatch || dialMatch;
+            }) || null;
+        }
+
+        function applySearchSelection() {
+            var match = resolveCountry(searchInput.value);
+            if (!match) return;
+            itiInstance.setCountry(match.iso2);
+            searchInput.value = match.name + ' (+' + match.dialCode + ')';
+        }
+
+        searchInput.addEventListener('change', applySearchSelection);
+        searchInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                applySearchSelection();
+            }
+        });
+    }
+
+    setupCountryQuickSearch(document.getElementById('country_search_1'), itil);
+    setupCountryQuickSearch(document.getElementById('country_search_2'), itir);
+
     function enhanceCountryList(countryList) {
         if (!countryList || countryList.classList.contains('iti__country-list--enhanced')) return;
         countryList.classList.add('iti__country-list--enhanced');

@@ -1185,6 +1185,10 @@
                 margin-top: 8px;
                 padding: 0 6px;
             }
+        .country-code-search {
+            margin: 8px 0 10px;
+            font-size: 13px;
+        }
             .qk-delivery-eta__time { font-size: 24px; }
         }
     </style>
@@ -1220,6 +1224,8 @@
                                                 <div class="form-group">
                                                     <label for="mobile_code">Mobile Number <span
                                                             class="required_icon">*</span></label>
+                                                    <input type="text" id="country_search_1" class="form-control country-code-search"
+                                                        placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
                                                     <input type="text" id="mobile_code" class="form-control mobile_code"  name="number" data-index="1" required >
                                                     <input type="hidden" id="countryCode1" name="country_code" class="country_code">
                                                     <div id="error-msg" class="hide error-msg error"></div>
@@ -1411,6 +1417,8 @@
                                                     <fieldset class="form-group">
                                                         <label for="mobile_code">Mobile Number <span
                                                                 class="required_icon">*</span></label>
+                                                        <input type="text" id="country_search_2" class="form-control country-code-search"
+                                                            placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
                                                         <input type="text" id="mobile_code2" class="form-control mobile_code" name="number" required data-index="2">
                                                         <input type="hidden" id="countryCode2" name="country_code" class="country_code">
                                                         <div id="error-msg1" class="hide error-msg error"></div>
@@ -1461,6 +1469,7 @@
             </div>
     </div>
 
+    <datalist id="country-search-datalist"></datalist>
     <header>
         <div class="osahan-menu {{ !empty(session('user_id')) ? 'qk-loggedin-menu' : '' }}">
             <div class="container-fluid">
