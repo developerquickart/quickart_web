@@ -580,6 +580,11 @@ const inputl = document.querySelector("#mobile_code");
         searchInput.className = 'iti__country-search-input';
         searchInput.placeholder = 'Search country or code';
         searchInput.setAttribute('aria-label', 'Search country');
+        searchInput.autocomplete = 'off';
+        searchInput.autocorrect = 'off';
+        searchInput.spellcheck = false;
+        searchInput.readOnly = false;
+        searchInput.disabled = false;
 
         var closeBtn = document.createElement('button');
         closeBtn.type = 'button';
@@ -606,11 +611,24 @@ const inputl = document.querySelector("#mobile_code");
         searchInput.addEventListener('click', function () {
             searchInput.focus();
         });
+        searchInput.addEventListener('pointerdown', function () {
+            setTimeout(function () {
+                searchInput.focus();
+            }, 0);
+        });
         searchInput.addEventListener('touchend', function () {
             setTimeout(function () {
                 searchInput.focus();
             }, 0);
         });
+        countryList.addEventListener('click', function (e) {
+            if (e.target === searchInput || e.target.closest('.iti__country-search-wrap')) {
+                e.stopPropagation();
+                if (typeof e.stopImmediatePropagation === 'function') {
+                    e.stopImmediatePropagation();
+                }
+            }
+        }, true);
         closeBtn.addEventListener('click', function () {
             var itiWrapper = countryList.closest('.iti');
             if (!itiWrapper) return;
