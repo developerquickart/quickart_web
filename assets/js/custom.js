@@ -578,8 +578,11 @@ const inputl = document.querySelector("#mobile_code");
             var countryList = itiWrapper.querySelector('.iti__country-list');
             if (!countryList) return;
 
-            var existingSearch = countryList.querySelector('.iti__country-search-wrap');
+            var existingSearch = countryList.querySelector('.iti__country-search-item');
             if (!existingSearch) {
+                var searchItem = document.createElement('li');
+                searchItem.className = 'iti__country-search-item';
+
                 var wrap = document.createElement('div');
                 wrap.className = 'iti__country-search-wrap';
 
@@ -590,7 +593,8 @@ const inputl = document.querySelector("#mobile_code");
                 searchInput.setAttribute('aria-label', 'Search country');
 
                 wrap.appendChild(searchInput);
-                countryList.insertBefore(wrap, countryList.firstChild);
+                searchItem.appendChild(wrap);
+                countryList.insertBefore(searchItem, countryList.firstChild);
 
                 searchInput.addEventListener('input', function () {
                     var query = searchInput.value.trim().toLowerCase();
@@ -615,9 +619,11 @@ const inputl = document.querySelector("#mobile_code");
             }, 0);
         }
 
-        flagButton.addEventListener('click', function () {
+        var openHandler = function () {
             setTimeout(ensureCountrySearch, 0);
-        });
+        };
+        flagButton.addEventListener('click', openHandler);
+        flagButton.addEventListener('touchstart', openHandler, { passive: true });
     }
 
     initCountrySearchForITI(inputl);

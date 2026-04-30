@@ -590,6 +590,18 @@
             flex-shrink: 0;
         }
         .qk-header-add-address-text { font-size: 16px; font-weight: 700; color: #2e317e; }
+        .qk-header-pick-map-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border: 1px dashed #2e317e;
+            border-radius: 12px;
+            background: #f6f7ff;
+            color: #2e317e;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: left;
+        }
         .qk-header-location-search-wrap {
             position: relative;
             z-index: 2;
@@ -1598,6 +1610,7 @@
                                         </svg>
                                     </span>
                                 </a>
+                                <button type="button" class="qk-header-pick-map-btn">Use map to manually add</button>
                                 <div class="qk-header-map-wrap">
                                     <div class="qk-header-location-search-wrap">
                                         <input type="text" class="form-control form-control-sm qk-header-location-search" placeholder="Search location or landmark">
@@ -2867,6 +2880,12 @@
 
             $('.pick_map_location_btn').on('click', function () {
                 $('.location_picker_map_box').removeClass('d-none');
+                var loginMapPanel = document.querySelector('.location_picker_map_box.login-location-map-panel');
+                if (loginMapPanel) {
+                    setTimeout(function () {
+                        loginMapPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 80);
+                }
                 ensureLoginMapLoaded(function () {
                     if (!loginLocationMap) {
                         initLoginMapPicker();
@@ -2875,6 +2894,28 @@
                         google.maps.event.trigger(loginLocationMap, 'resize');
                         loginLocationMap.setCenter(loginLocationMap.getCenter());
                     }, 100);
+                });
+            });
+
+            $('.qk-header-pick-map-btn').on('click', function () {
+                var mapWrap = document.querySelector('#headerLocationSwitchModal .qk-header-map-wrap');
+                if (mapWrap) {
+                    mapWrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                ensureLoginMapLoaded(function () {
+                    if (!headerSwitchMap) {
+                        var initLat = Number('{{ session('delivery_user_lat') ?: 25.2048 }}');
+                        var initLng = Number('{{ session('delivery_user_lng') ?: 55.2708 }}');
+                        initHeaderLocationSwitchMap(initLat, initLng);
+                    }
+                    setTimeout(function () {
+                        if (headerSwitchMap) {
+                            google.maps.event.trigger(headerSwitchMap, 'resize');
+                            if (selectedHeaderLat !== null && selectedHeaderLng !== null) {
+                                headerSwitchMap.setCenter({ lat: selectedHeaderLat, lng: selectedHeaderLng });
+                            }
+                        }
+                    }, 120);
                 });
             });
 
