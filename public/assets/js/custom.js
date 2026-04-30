@@ -602,6 +602,11 @@ const inputl = document.querySelector("#mobile_code");
         function renderSuggestions() {
             if (!suggestionBox) return;
             var query = (searchInput.value || '').trim().toLowerCase();
+            var clearBtn = document.querySelector('.country-code-search-clear[data-target="' + searchInput.id + '"]');
+            if (clearBtn) {
+                if (query) clearBtn.classList.add('qk-visible');
+                else clearBtn.classList.remove('qk-visible');
+            }
             if (!query) {
                 suggestionBox.style.display = 'none';
                 suggestionBox.innerHTML = '';
@@ -630,6 +635,7 @@ const inputl = document.querySelector("#mobile_code");
 
         searchInput.addEventListener('change', applySearchSelection);
         searchInput.addEventListener('input', renderSuggestions);
+        searchInput.addEventListener('focus', renderSuggestions);
         if (suggestionBox) {
             suggestionBox.addEventListener('click', function (e) {
                 var item = e.target.closest('.country-search-suggestion-item');
@@ -645,6 +651,18 @@ const inputl = document.querySelector("#mobile_code");
                 if (!e.target.closest('.country-code-search-wrap')) {
                     suggestionBox.style.display = 'none';
                 }
+            });
+        }
+        var clearBtn = document.querySelector('.country-code-search-clear[data-target="' + searchInput.id + '"]');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                searchInput.value = '';
+                clearBtn.classList.remove('qk-visible');
+                if (suggestionBox) {
+                    suggestionBox.style.display = 'none';
+                    suggestionBox.innerHTML = '';
+                }
+                searchInput.focus();
             });
         }
         searchInput.addEventListener('keydown', function (e) {

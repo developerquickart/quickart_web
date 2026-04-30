@@ -1192,6 +1192,32 @@
         .country-code-search-wrap {
             position: relative;
         }
+        .country-code-search {
+            padding-right: 34px;
+        }
+        .country-code-search-clear {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 22px;
+            height: 22px;
+            border: 0;
+            border-radius: 50%;
+            background: #eef1f6;
+            color: #5f6678;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            line-height: 1;
+            padding: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .country-code-search-clear.qk-visible {
+            display: inline-flex;
+        }
         .country-search-suggestions {
             position: absolute;
             top: calc(100% - 8px);
@@ -1253,6 +1279,7 @@
                                                     <div class="country-code-search-wrap">
                                                         <input type="text" id="country_search_1" class="form-control country-code-search"
                                                             placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
+                                                        <button type="button" class="country-code-search-clear" data-target="country_search_1" aria-label="Clear country search">&times;</button>
                                                         <div class="country-search-suggestions" id="country_search_1_suggestions"></div>
                                                     </div>
                                                     <input type="text" id="mobile_code" class="form-control mobile_code"  name="number" data-index="1" required >
@@ -1449,6 +1476,7 @@
                                                         <div class="country-code-search-wrap">
                                                             <input type="text" id="country_search_2" class="form-control country-code-search"
                                                                 placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
+                                                            <button type="button" class="country-code-search-clear" data-target="country_search_2" aria-label="Clear country search">&times;</button>
                                                             <div class="country-search-suggestions" id="country_search_2_suggestions"></div>
                                                         </div>
                                                         <input type="text" id="mobile_code2" class="form-control mobile_code" name="number" required data-index="2">
