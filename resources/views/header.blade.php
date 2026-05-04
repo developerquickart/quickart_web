@@ -1145,55 +1145,14 @@
                 max-height: calc(100vh - 80px);
             }
         }
-        @media (max-width: 991px) {
-            .main-wrapper {
-                padding-top: var(--qk-mobile-header-height, 0px);
-            }
-            body.qk-home-page .main-wrapper {
-                padding-top: calc(var(--qk-mobile-header-height, 0px) + 8px);
-            }
-            header,
-            header.sticky {
-                position: fixed !important;
-                top: 0;
-                width: 100%;
-                z-index: 999;
-                animation: none !important;
-                transition: none !important;
-                transform: none !important;
-            }
-            .qk-delivery-topstrip {
-                margin: 0 -12px 0;
-                padding: 7px 10px 12px;
-            }
-            /* Logged-in mobile header uses top strip; collapse legacy header row to remove white gap. */
-            .qk-loggedin-menu .headerBox {
-                padding: 0 !important;
-                margin: 0 !important;
-                min-height: 0 !important;
-                height: 0 !important;
-                overflow: visible !important;
-            }
-            .qk-loggedin-menu .header_icons_box {
-                min-height: 0 !important;
-                height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-            }
-            .qk-delivery-search {
-                margin-top: 8px;
-                padding: 0 6px;
-            }
+        /* Login/register country quick search — global positioning so clear (×) stays inside the field. */
         .country-code-search {
             margin: 8px 0 10px;
             font-size: 13px;
+            padding-right: 34px;
         }
         .country-code-search-wrap {
             position: relative;
-        }
-        .country-code-search {
-            padding-right: 34px;
         }
         .country-code-search-clear {
             position: absolute;
@@ -1241,6 +1200,53 @@
         .country-search-suggestion-item:hover {
             background: #f5f7ff;
         }
+        /* Large screens: one country UI — flag dropdown (+ optional in-dropdown search only). */
+        @media (min-width: 992px) {
+            #login .country-code-search-wrap,
+            #registration .country-code-search-wrap {
+                display: none !important;
+            }
+        }
+        @media (max-width: 991px) {
+            .main-wrapper {
+                padding-top: var(--qk-mobile-header-height, 0px);
+            }
+            body.qk-home-page .main-wrapper {
+                padding-top: calc(var(--qk-mobile-header-height, 0px) + 8px);
+            }
+            header,
+            header.sticky {
+                position: fixed !important;
+                top: 0;
+                width: 100%;
+                z-index: 999;
+                animation: none !important;
+                transition: none !important;
+                transform: none !important;
+            }
+            .qk-delivery-topstrip {
+                margin: 0 -12px 0;
+                padding: 7px 10px 12px;
+            }
+            /* Logged-in mobile header uses top strip; collapse legacy header row to remove white gap. */
+            .qk-loggedin-menu .headerBox {
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: 0 !important;
+                height: 0 !important;
+                overflow: visible !important;
+            }
+            .qk-loggedin-menu .header_icons_box {
+                min-height: 0 !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            .qk-delivery-search {
+                margin-top: 8px;
+                padding: 0 6px;
+            }
             .qk-delivery-eta__time { font-size: 24px; }
         }
     </style>
