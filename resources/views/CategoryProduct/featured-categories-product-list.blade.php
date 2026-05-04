@@ -163,23 +163,20 @@ $(document).ready(function () {
                     hasMorePages = false;
                     $('.ploader').html("");
                 } else {
-                   // console.log(data);
-                    if(loadSubcategory == true){
+                    if (loadSubcategory == true) {
                         $(".product_list_box").html(data);
-                    }else{
+                    } else {
                         $(".product_list_box").append(data);
                     }
-                    bindCartButtons();
-                    $('.ploader').hide();
-                    
                     hasMorePages = true;
-                    isLoading = false;
                 }
-                
+                $('.ploader').hide();
+                isLoading = false;
             },
             error: function(xhr, status, error) {
                 console.log('Error:', error);
                 isLoading = false;
+                $('.ploader').hide();
             }
         });
     }

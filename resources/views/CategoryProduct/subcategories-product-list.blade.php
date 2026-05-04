@@ -182,25 +182,17 @@ $(document).ready(function () {
                 $parsed.find('#totalPages').remove();
                 if (data.trim().length === 0 || newItemsCount === 0) {
                     hasMorePages = false;
-                    $('.ploader,.sloader').hide();
-                    isLoading = false;
                 } else {
-                   // console.log(data);
-                    if(loadSubcategory == true){
+                    if (loadSubcategory == true) {
                         $(".product_list_box").html($parsed.html());
-                    }else{
+                    } else {
                         $(".product_list_box").append($parsed.html());
                     }
-                    bindCartButtons();
-                    $('.ploader,.sloader').hide();
-                    
+                    // Cart uses delegated handlers (e.g. .change-qty in footer); no rebind needed.
                     hasMorePages = page < totalPagesState;
-                    if (!hasMorePages) {
-                        $('.ploader,.sloader').hide();
-                    }
-                    isLoading = false;
                 }
-                
+                $('.ploader,.sloader').hide();
+                isLoading = false;
             },
             error: function(xhr, status, error) {
                 console.log('Error:', error);

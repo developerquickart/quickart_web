@@ -312,8 +312,8 @@ class CategoriesController extends Controller
                                 // $cat_url_data = explode("-", $request->cat_name);
                                 // $count = count($cat_url_data);
                                 // $cat_id = $cat_url_data[$count - 1];
-                                $cat_id = $request->cat_id;
-                                $subCatId = !empty($request->subcatid)?$request->subcatid:null;
+                                $cat_id = $request->catid ?? $cat_id;
+                                $subCatId = !empty($request->subcatid) ? $request->subcatid : $Sub_cat_id;
 
                                 $store_ID = env('STORE_ID');
                                 $perpage = 20;
@@ -737,8 +737,8 @@ class CategoriesController extends Controller
                                 // $cat_url_data = explode("-", $request->cat_name);
                                 // $count = count($cat_url_data);
                                 // $cat_id = $cat_url_data[$count - 1];
-                                $cat_id = $request->cat_id;
-                                $subCatId = !empty($request->sub_cat_id)?$request->sub_cat_id:null;
+                                $cat_id = $request->catid ?? $cat_id;
+                                $subCatId = !empty($request->subcatid) ? $request->subcatid : $Sub_cat_id;
 
                                 $store_ID = env('STORE_ID');
                                 $perpage = 20;
@@ -923,8 +923,8 @@ class CategoriesController extends Controller
                     // $cat_url_data = explode("-", $request->cat_name);
                     // $count = count($cat_url_data);
                     // $cat_id = $cat_url_data[$count - 1];
-                    $cat_id = $request->cat_id;
-                    $subCatId = !empty($request->sub_cat_id)?$request->sub_cat_id:null;
+                    $cat_id = $request->catid ?? $cat_id;
+                    $subCatId = !empty($request->subcatid) ? $request->subcatid : $Sub_cat_id;
 
                     $store_ID = env('STORE_ID');
                     $perpage = 20;
