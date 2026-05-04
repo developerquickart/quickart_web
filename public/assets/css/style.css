@@ -8154,7 +8154,8 @@ a.sub-inner-links.menu-active::before {
     left: 0;
     height: 100%;
     width: 100%;
-    z-index: 1003;
+    /* Above .qk-mobile-tabbar (1040) so the Done bar is not hidden behind the bottom nav */
+    z-index: 1060;
 }
 .products_overlay.active {
     position: fixed;
@@ -8168,7 +8169,7 @@ a.sub-inner-links.menu-active::before {
     will-change: opacity;
     background-color: #000000;
     opacity: .6;
-    z-index: 1003;
+    z-index: 1060;
 }
 .product_options_mainBox {
     transform: translate3d(0, 100%, 0);
@@ -8186,7 +8187,7 @@ a.sub-inner-links.menu-active::before {
     transition: transform 0.5s
 ease;
     background: #fff;
-    z-index: 1003;
+    z-index: 1060;
     perspective: 1000px;
 }
 .product_optionsBox .heading {
@@ -8367,6 +8368,15 @@ ease;
 img.varient-down-arrow {
     height: 15px;
     width: 15px !important;
+}
+@media (max-width: 991.98px) {
+    .option_total_button_wrapper {
+        padding: 8px 14px 12px;
+        padding-bottom: max(12px, calc(env(safe-area-inset-bottom, 0px) + 6px));
+    }
+    .product_options_list {
+        padding-bottom: 6px;
+    }
 }
  /* ---- PRODUCT OPTIONS CSS END ------- */
 
