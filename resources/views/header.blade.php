@@ -1772,6 +1772,9 @@
                             </div>
                             <span class="overlay"></span>
                             <div class="login_cartbox text-end">
+                                <a href="{{ env('APP_URL') }}" class="qk-mobile-menu-logo" aria-label="QuicKart home">
+                                    <img src="{{ asset('assets/images/QuicKart_logo.png') }}" alt="QuicKart" class="img-fluid" loading="lazy" decoding="async">
+                                </a>
                                 <div class="toggle_close_logo" onclick="menu()">
                                     <img src="{{asset('assets/images/order-cancel.png')}}" alt="Close Icon" class="img-fluid">
                                 </div>
