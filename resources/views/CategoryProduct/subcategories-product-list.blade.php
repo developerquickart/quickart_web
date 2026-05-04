@@ -64,11 +64,10 @@ $defaultSubCatId = (!empty($Sub_cat_id)) ? $Sub_cat_id : $subCatList['data'][0][
                                     <div class="subcategories_banner" id="subcategories_banner">
                                         <img src="" alt="" id="subcategories_bannerImg">
                                     </div>
-                                   
-                                    <div class="section-header">
-                                        <h5 class="heading-design-h5" id='selectedCatID'>{{$selectedMainCat}}
-                                            <span id='selectedSubCatID'>{{str_replace('-',' ',$selectedSubcat)}}</span>
-                                        </h5>
+                                    {{-- Names kept for JS (load more, etc.); not shown — subcategory is clear from left nav + banner --}}
+                                    <div class="visually-hidden">
+                                        <span id="selectedCatID">{{ $selectedMainCat }}</span>
+                                        <span id="selectedSubCatID">{{ str_replace('-', ' ', $selectedSubcat) }}</span>
                                     </div>
                                     <div class="sloader">
                                         <!-- <div id="loader1" style="display: flex; justify-content: center; align-items: center;">-->
