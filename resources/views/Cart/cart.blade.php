@@ -97,6 +97,67 @@ body.qk-checkout-loading {
     height: 84px;
     object-fit: contain;
 }
+.qk-address-confirm-current {
+    border: 1px solid #e7eaf3;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #f9fbff;
+    margin-bottom: 12px;
+}
+.qk-address-confirm-current__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #687087;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.qk-address-confirm-current__type {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2e317e;
+}
+.qk-address-confirm-current__text {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #293247;
+    line-height: 1.4;
+}
+.qk-address-options {
+    max-height: 40vh;
+    overflow-y: auto;
+    border: 1px solid #eceff5;
+    border-radius: 12px;
+    padding: 8px;
+}
+.qk-address-option {
+    display: block;
+    border: 1px solid #e6e9f2;
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+.qk-address-option:last-child {
+    margin-bottom: 0;
+}
+.qk-address-option input[type="radio"] {
+    margin-right: 8px;
+}
+.qk-address-option:has(input:checked) {
+    border-color: #2e317e;
+    background: #f5f7ff;
+}
+.qk-address-option__type {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1f2a44;
+}
+.qk-address-option__line {
+    font-size: 12px;
+    color: #5d667d;
+    margin-top: 2px;
+}
 @media (max-width: 991.98px) {
     #couponModal .modal-content {
         position: relative;
@@ -680,7 +741,7 @@ body.qk-checkout-loading {
                                                             <div id="payNowQuick">
                                                                 <div class="pay_btnbox">
                                                                     <div class="pay_btn_listing"
-                                                                        onclick="checkOutDailyCartApiCall('quickPay')">
+                                                                        onclick="openAddressConfirmationBeforeCheckout('quickPay')">
                                                                         <div class="pay_btn_icon">
                                                                             <img src="{{asset('assets/images/money.svg')}}"
                                                                                 alt="Pay Icon" class="img-fluid">
@@ -694,7 +755,7 @@ body.qk-checkout-loading {
                                                                     </div>
                                                                     <div id="applyBtn" style="opacity:0;">
                                                                         <div class="pay_btn_listing" id="applyBtn"
-                                                                            onclick="checkOutDailyCartApiCall('applePay')">
+                                                                            onclick="openAddressConfirmationBeforeCheckout('applePay')">
                                                                             <div class="pay_btn_icon">
                                                                                 <img src="{{asset('assets/images/apple.svg')}}"
                                                                                     alt="Pay Icon" class="img-fluid">
@@ -757,7 +818,7 @@ body.qk-checkout-loading {
                                                              <input type="hidden" name="wallet_use_amt_cash" id="wallet_use_amt_cash" >
                                                             <input type="hidden" name="final_price" id="final_price" >
                                                             <div class="pay_btn"
-                                                                onclick="checkOutDailyCartApiCall('payNow')">
+                                                                onclick="openAddressConfirmationBeforeCheckout('payNow')">
                                                                 <span>Place Order</span>
                                                             </div>
                                                         </div>
@@ -969,6 +1030,39 @@ body.qk-checkout-loading {
         </div>
     </div>
    
+    <!-- Checkout address confirmation modal -->
+    <div class="modal fade" id="addressConfirmModal" tabindex="-1" aria-labelledby="addressConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header">
+                    <div class="section-header mb-0">
+                        <h5 class="heading-design-h5 mb-0" id="addressConfirmModalLabel">Confirm delivery address</h5>
+                        <small class="text-muted">Please verify your address before final checkout</small>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div class="qk-address-confirm-current">
+                        <div class="qk-address-confirm-current__label">Selected address</div>
+                        <div class="qk-address-confirm-current__type" id="qkConfirmCurrentAddressType">-</div>
+                        <div class="qk-address-confirm-current__text" id="qkConfirmCurrentAddressText">-</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong style="font-size:14px;">Choose another saved address</strong>
+                        <a class="add_card_btn" href="{{ url('add-address?addedFrom=cart&tab='.\Request::get('tab')) }}">Add New address</a>
+                    </div>
+                    <div id="qkCheckoutAddressOptions" class="qk-address-options">
+                        <p class="text-muted mb-0">Loading saved addresses...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel_btn" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="pay_btn" id="qkConfirmAddressAndCheckoutBtn">Confirm & Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Selected address list modal...G1 -->
     <div class="modal fade" id="addressModal" tabindex="-1" aria-labelledby="addressModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
@@ -3622,6 +3716,8 @@ function totalCalculationPayment() {
 
 
 let showCartData = @json($showCartProductList['data'] ?? []);
+let qkCheckoutIntentType = '';
+let qkCheckoutAddressBook = [];
 
 function showCheckoutFullLoader() {
     const loader = document.getElementById('checkoutFullLoader');
@@ -3636,6 +3732,118 @@ function hideCheckoutFullLoader() {
     loader.style.display = 'none';
     document.body.classList.remove('qk-checkout-loading');
 }
+
+function openAddressConfirmationBeforeCheckout(type) {
+    var addressInput = document.getElementById('addressId');
+    if (!addressInput || !String(addressInput.value || '').trim()) {
+        return Swal.fire({
+            title: "Please select a delivery address.",
+            icon: "warning"
+        });
+    }
+    qkCheckoutIntentType = type;
+    renderCurrentAddressInConfirmModal();
+    fetchAddressListForCheckoutConfirm();
+    qkShowBootstrapModal('addressConfirmModal');
+}
+
+function renderCurrentAddressInConfirmModal() {
+    var typeEl = document.getElementById('qkConfirmCurrentAddressType');
+    var textEl = document.getElementById('qkConfirmCurrentAddressText');
+    var addressType = document.getElementById('addressType');
+    var showAddress = document.getElementById('showAddress');
+
+    if (typeEl) {
+        typeEl.textContent = (addressType && addressType.textContent) ? addressType.textContent.trim() : 'Selected';
+    }
+    if (textEl) {
+        textEl.textContent = (showAddress && showAddress.textContent) ? showAddress.textContent.trim() : 'Address not available';
+    }
+}
+
+function fetchAddressListForCheckoutConfirm() {
+    var optionsWrap = document.getElementById('qkCheckoutAddressOptions');
+    if (optionsWrap) {
+        optionsWrap.innerHTML = '<p class="text-muted mb-0">Loading saved addresses...</p>';
+    }
+    var currentAddressId = String((document.getElementById('addressId') || {}).value || '');
+    var _token = jQuery('meta[name="csrf-token"]').attr('content');
+    jQuery.ajax({
+        url: "{{ENV('APP_URL')}}showAddressList",
+        method: "POST",
+        data: {
+            screenName: "trialPack",
+            _token: _token
+        },
+        success: function(response) {
+            if (!response || response.success !== '1' || !response.action || !Array.isArray(response.action.data)) {
+                if (optionsWrap) {
+                    optionsWrap.innerHTML = '<p class="text-danger mb-0">Could not load saved addresses.</p>';
+                }
+                return;
+            }
+
+            qkCheckoutAddressBook = response.action.data || [];
+            if (!optionsWrap) return;
+            if (!qkCheckoutAddressBook.length) {
+                optionsWrap.innerHTML = '<p class="text-muted mb-0">No saved addresses found.</p>';
+                return;
+            }
+
+            var html = '';
+            qkCheckoutAddressBook.forEach(function(address, index) {
+                var addressId = String(address.address_id || '');
+                var checked = addressId === currentAddressId || (!currentAddressId && index === 0);
+                var addressType = address.type || 'Address';
+                var phoneText = ((address.country_code || '') + ' ' + (address.receiver_phone || '')).trim();
+                var addressLine = [address.house_no, address.landmark].filter(Boolean).join(', ');
+                html += `
+                    <label class="qk-address-option">
+                        <div>
+                            <input type="radio" name="qk_checkout_address_select" value="${addressId}" ${checked ? 'checked' : ''}>
+                            <span class="qk-address-option__type">${addressType}</span>
+                        </div>
+                        <div class="qk-address-option__line">${addressLine || 'No address line available'}</div>
+                        <div class="qk-address-option__line">${phoneText || 'No phone number'}</div>
+                    </label>
+                `;
+            });
+            optionsWrap.innerHTML = html;
+        },
+        error: function() {
+            if (optionsWrap) {
+                optionsWrap.innerHTML = '<p class="text-danger mb-0">Could not load saved addresses.</p>';
+            }
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    var confirmBtn = document.getElementById('qkConfirmAddressAndCheckoutBtn');
+    if (!confirmBtn) return;
+    confirmBtn.addEventListener('click', function () {
+        var selectedRadio = document.querySelector('input[name="qk_checkout_address_select"]:checked');
+        if (!selectedRadio) {
+            return Swal.fire({
+                title: "Please select an address to continue.",
+                icon: "warning"
+            });
+        }
+
+        var selectedAddressId = String(selectedRadio.value || '');
+        var selectedAddress = (qkCheckoutAddressBook || []).find(function(item) {
+            return String(item.address_id || '') === selectedAddressId;
+        });
+        if (selectedAddress) {
+            saveSelectedAddress(selectedAddress);
+        }
+        qkHideBootstrapModal('addressConfirmModal');
+
+        setTimeout(function () {
+            checkOutDailyCartApiCall(qkCheckoutIntentType || 'payNow');
+        }, 200);
+    });
+});
 
 // < !--checkout subcart api call...G1-- >
 function checkOutDailyCartApiCall(type) {
