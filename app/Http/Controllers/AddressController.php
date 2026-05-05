@@ -657,17 +657,21 @@ class AddressController extends Controller
            }
 
             $statusCode = $response->getStatusCode();
+            $addAddress = json_decode($response->getBody()->getContents(), true);
+            $apiStatus = isset($addAddress['status']) ? (string) $addAddress['status'] : '';
+            $apiSuccess = isset($addAddress['success']) ? (string) $addAddress['success'] : '';
+            $isSuccessfulPayload = in_array($apiStatus, ['1', 'true', 'TRUE'], true)
+                || in_array($apiSuccess, ['1', 'true', 'TRUE'], true);
 
-            if ($statusCode == 201) {
-
-                $addAddress = json_decode($response->getBody()->getContents(), true);
+            if (in_array($statusCode, [200, 201], true) && ($isSuccessfulPayload || empty($addAddress))) {
                 return response()->json([
-                        'success' => true,
-                        'address' => $addAddress ]);
-            } else {
-                $errorMessage = env('ERRORMSG');
-                return response()->json(['success'=>false,'message'=>$errorMessage]);
+                    'success' => true,
+                    'address' => $addAddress
+                ]);
             }
+
+            $errorMessage = !empty($addAddress['message']) ? $addAddress['message'] : env('ERRORMSG');
+            return response()->json(['success' => false, 'message' => $errorMessage]);
         } catch (RequestException $e) {
             $errorMessage = $e->getMessage();
             dd('Exception:', $e->getMessage(), $e->getTraceAsString());
