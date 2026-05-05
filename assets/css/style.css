@@ -6359,6 +6359,8 @@ button.btn-close:hover {
 }
 .otp-input .form-control{
     width: 50px;
+    font-size: 16px;
+    line-height: 1.2;
 }
 
 .signup_formBox .form-control {
