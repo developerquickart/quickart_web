@@ -1038,7 +1038,6 @@ body.qk-checkout-loading {
                 <div class="modal-header">
                     <div class="section-header mb-0">
                         <h5 class="heading-design-h5 mb-0" id="addressConfirmModalLabel">Confirm delivery address</h5>
-                        <small class="text-muted">Please verify your address before final checkout</small>
                     </div>
                 </div>
                 <div class="modal-body">
@@ -1056,7 +1055,6 @@ body.qk-checkout-loading {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="cancel_btn" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="pay_btn" id="qkConfirmAddressAndCheckoutBtn">Confirm & Continue</button>
                 </div>
             </div>
