@@ -174,6 +174,45 @@ body.qk-checkout-loading {
         border-radius: 50% !important;
     }
 }
+@media (max-width: 767.98px) {
+    /* Keep delivery instruction chips fully inside container on small screens */
+    .deliveryInstruction .week-list.new_week-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        overflow: visible;
+        white-space: normal;
+    }
+    .deliveryInstruction .weeks.new_weeks1 {
+        width: calc(50% - 4px);
+        min-width: 0;
+    }
+    .deliveryInstruction .weeks.new_weeks1 label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        padding: 8px 8px;
+        border: 1px solid #ebeef5;
+        border-radius: 10px;
+        box-sizing: border-box;
+        line-height: 1.2;
+    }
+    .deliveryInstruction .weeks.new_weeks1 label span {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .deliveryInstruction .delivery_instruction_text {
+        font-size: 11px;
+        line-height: 1.2;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        font-weight: 500;
+    }
+}
 </style>
 <!-- cart section start -->
 <section class="cart_section section-padding position-relative">
