@@ -1236,9 +1236,11 @@
                 display: none !important;
             }
         }
-        /* Hide intl-tel-input's inner country search ("Search country or code"). */
+        /* Hide intl-tel-input's inner country search ("Search country or code") on all screens. */
         #login .iti__search-container,
-        #registration .iti__search-container {
+        #registration .iti__search-container,
+        .iti .iti__search-container,
+        .iti .iti__search-input {
             display: none !important;
         }
         @media (max-width: 991px) {
