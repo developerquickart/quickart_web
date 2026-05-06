@@ -1817,14 +1817,16 @@
                                 <div class="toggle_close_logo" onclick="menu()">
                                     <img src="{{asset('assets/images/order-cancel.png')}}" alt="Close Icon" class="img-fluid">
                                 </div>
-                                @php
-                                    $qkSidebarName = trim((string) (session('user_name') ?? session('name') ?? ''));
-                                    $qkSidebarPhone = trim((string) (session('user_phone') ?? session('number') ?? ''));
-                                @endphp
-                                <div class="qk-menu-user-meta">
-                                    <div class="qk-menu-user-meta__name">Hi, <span id="qkSidebarUserName">{{ $qkSidebarName !== '' ? $qkSidebarName : 'User' }}</span></div>
-                                    <div class="qk-menu-user-meta__phone" id="qkSidebarUserPhone">{{ $qkSidebarPhone }}</div>
-                                </div>
+                                @if(!empty(session('user_id')))
+                                    @php
+                                        $qkSidebarName = trim((string) (session('user_name') ?? session('name') ?? ''));
+                                        $qkSidebarPhone = trim((string) (session('user_phone') ?? session('number') ?? ''));
+                                    @endphp
+                                    <div class="qk-menu-user-meta">
+                                        <div class="qk-menu-user-meta__name">Hi, <span id="qkSidebarUserName">{{ $qkSidebarName !== '' ? $qkSidebarName : 'User' }}</span></div>
+                                        <div class="qk-menu-user-meta__phone" id="qkSidebarUserPhone">{{ $qkSidebarPhone }}</div>
+                                    </div>
+                                @endif
                                 <ul class="list-inline main-nav-right">
                                     
                                     @if(empty($data_arr['user_id']) && $data_arr['user_id'] == '')
@@ -3350,6 +3352,15 @@
             'X-CSRF-TOKEN': _token
             },
             success: function (response) {
+                try {
+                    sessionStorage.removeItem('qk_user_name');
+                    sessionStorage.removeItem('qk_user_phone');
+                    Object.keys(sessionStorage).forEach(function (k) {
+                        if (k.indexOf('qk_delivery_eta_cache:') === 0) {
+                            sessionStorage.removeItem(k);
+                        }
+                    });
+                } catch (e) {}
                 Swal.fire({
                 title: 'Success!',
                 text:'Logout successful. Have a great day!',
