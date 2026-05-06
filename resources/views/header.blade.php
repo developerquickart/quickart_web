@@ -2083,7 +2083,50 @@
         (function () {
             var roots = document.querySelectorAll('[data-delivery-eta-root]');
             if (!roots.length) return;
+            var ETA_CACHE_PREFIX = 'qk_delivery_eta_cache:';
+            function getCurrentEtaAddressKey() {
+                var locationEl = document.querySelector('[data-delivery-eta-location]');
+                var locationText = locationEl ? String(locationEl.textContent || '').trim().toLowerCase() : '';
+                return locationText || 'current_location';
+            }
+            function applyEtaToStrip(data) {
+                var displayValue = '12 mins';
+                if (data && data.label) {
+                    displayValue = data.label;
+                } else if (data && data.minutes != null) {
+                    displayValue = data.minutes + ' mins';
+                }
+                roots.forEach(function (root) {
+                    var timeEl = root.querySelector('[data-delivery-eta-time]');
+                    var distanceEl = root.querySelector('[data-delivery-eta-distance]');
+                    if (timeEl) timeEl.textContent = displayValue;
+                    if (distanceEl) {
+                        if (data && data.distance_label) {
+                            distanceEl.textContent = data.distance_label;
+                            distanceEl.style.display = 'inline-flex';
+                        } else if (data && data.distance_meters != null) {
+                            distanceEl.textContent = data.distance_meters + ' mtrs away';
+                            distanceEl.style.display = 'inline-flex';
+                        } else {
+                            distanceEl.style.display = 'none';
+                        }
+                    }
+                });
+            }
             window.qkRefreshDeliveryEtaStrip = function () {
+                var addressKey = getCurrentEtaAddressKey();
+                var cacheKey = ETA_CACHE_PREFIX + addressKey;
+                try {
+                    var cached = sessionStorage.getItem(cacheKey);
+                    if (cached) {
+                        var parsed = JSON.parse(cached);
+                        if (parsed && typeof parsed === 'object') {
+                            applyEtaToStrip(parsed);
+                            return;
+                        }
+                    }
+                } catch (e) {}
+
                 fetch('{{ url('/delivery-eta') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
                 .then(function (r) {
                     if (!r.ok) throw new Error('delivery-eta');
@@ -2113,28 +2156,10 @@
                             console.info('[delivery-eta]', data.route_matrix_debug_note);
                         }
                     }
-                    var displayValue = '12 mins';
-                    if (data && data.label) {
-                        displayValue = data.label;
-                    } else if (data && data.minutes != null) {
-                        displayValue = data.minutes + ' mins';
-                    }
-                    roots.forEach(function (root) {
-                        var timeEl = root.querySelector('[data-delivery-eta-time]');
-                        var distanceEl = root.querySelector('[data-delivery-eta-distance]');
-                        if (timeEl) timeEl.textContent = displayValue;
-                        if (distanceEl) {
-                            if (data && data.distance_label) {
-                                distanceEl.textContent = data.distance_label;
-                                distanceEl.style.display = 'inline-flex';
-                            } else if (data && data.distance_meters != null) {
-                                distanceEl.textContent = data.distance_meters + ' mtrs away';
-                                distanceEl.style.display = 'inline-flex';
-                            } else {
-                                distanceEl.style.display = 'none';
-                            }
-                        }
-                    });
+                    applyEtaToStrip(data);
+                    try {
+                        sessionStorage.setItem(cacheKey, JSON.stringify(data || {}));
+                    } catch (e) {}
                 })
                 .catch(function (err) {
                     console.warn('[qk-login-location] /delivery-eta fetch failed', err);
@@ -2635,6 +2660,13 @@
                     if (response.success && response.in_range === true) {
                         var label = response.location_name || locationName || 'Current location';
                         $('[data-delivery-eta-location]').text(label);
+                        try {
+                            Object.keys(sessionStorage).forEach(function (k) {
+                                if (k.indexOf('qk_delivery_eta_cache:') === 0) {
+                                    sessionStorage.removeItem(k);
+                                }
+                            });
+                        } catch (e) {}
                         if (typeof window.qkRefreshDeliveryEtaStrip === 'function') {
                             window.qkRefreshDeliveryEtaStrip();
                         }
