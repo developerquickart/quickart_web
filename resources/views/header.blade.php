@@ -1229,12 +1229,17 @@
         .country-search-suggestion-item:hover {
             background: #f5f7ff;
         }
-        /* Large screens: one country UI — flag dropdown (+ optional in-dropdown search only). */
+        /* Large screens: one country UI — flag dropdown only (no extra search inputs). */
         @media (min-width: 992px) {
             #login .country-code-search-wrap,
             #registration .country-code-search-wrap {
                 display: none !important;
             }
+        }
+        /* Hide intl-tel-input's inner country search ("Search country or code"). */
+        #login .iti__search-container,
+        #registration .iti__search-container {
+            display: none !important;
         }
         @media (max-width: 991px) {
             .main-wrapper {
