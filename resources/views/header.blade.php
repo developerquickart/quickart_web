@@ -1110,6 +1110,7 @@
                 display: block;
                 text-align: left;
                 margin: 4px 2px 10px;
+                padding-right: 34px;
             }
             .qk-loggedin-menu #menu_mainbox .qk-menu-user-meta__name {
                 font-size: 16px;
@@ -1124,6 +1125,15 @@
                 color: #4b5563;
                 line-height: 1.25;
                 word-break: break-word;
+            }
+            .qk-loggedin-menu #menu_mainbox .login_cartbox.text-end .qk-menu-user-meta {
+                text-align: left !important;
+            }
+            .qk-loggedin-menu #menu_mainbox .qk-menu-user-meta__name {
+                font-size: 18px;
+            }
+            .qk-loggedin-menu #menu_mainbox .qk-menu-user-meta__phone {
+                font-size: 15px;
             }
             .qk-loggedin-menu #menu_mainbox .main_menu_mobile {
                 display: block;
@@ -1265,6 +1275,19 @@
             .qk-delivery-search {
                 margin-top: 8px;
                 padding: 0 6px;
+            }
+            #menu_mainbox .qk-menu-user-meta {
+                margin: 10px 12px 8px;
+                padding-right: 44px; /* keep clear of close icon */
+                text-align: left !important;
+            }
+            #menu_mainbox .qk-menu-user-meta__name {
+                font-size: 15px !important;
+                line-height: 1.2;
+            }
+            #menu_mainbox .qk-menu-user-meta__phone {
+                font-size: 13px !important;
+                line-height: 1.3;
             }
             .qk-delivery-eta__time { font-size: 24px; }
         }
