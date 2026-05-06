@@ -2635,11 +2635,28 @@
             $('.qk-header-selected-source-value').text(finalText);
         }
 
+        function qkHeaderLocationShowLoader(text) {
+            try {
+                Swal.fire({
+                    title: text || 'Please wait…',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: function () { Swal.showLoading(); }
+                });
+            } catch (e) {}
+        }
+
+        function qkHeaderLocationHideLoader() {
+            try { Swal.close(); } catch (e) {}
+        }
+
         function submitHeaderLocationCheck(lat, lng, locationName, opts) {
             opts = opts || {};
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
             var norm = normalizeLoginCoordsForSubmit(lat, lng, 'submitHeaderLocationCheck');
             if (!norm) {
+                if (opts && opts.show_loader) qkHeaderLocationHideLoader();
                 Swal.fire({ icon: 'error', title: 'Error Occured', text: 'Invalid coordinates selected.' });
                 return;
             }
@@ -2673,21 +2690,25 @@
                         }
                         $('#headerLocationSwitchModal').modal('hide');
                         if (opts && opts.reload_on_success) {
+                            if (opts && opts.show_loader) qkHeaderLocationHideLoader();
                             window.location.reload();
                             return;
                         }
+                        if (opts && opts.show_loader) qkHeaderLocationHideLoader();
                         Swal.fire({
                             icon: 'success',
                             title: 'Location updated',
                             text: response.message || 'Delivery location changed successfully.'
                         });
                     } else if (response.success && response.in_range === false) {
+                        if (opts && opts.show_loader) qkHeaderLocationHideLoader();
                         Swal.fire({
                             icon: 'warning',
                             title: 'Out of range',
                             text: response.message || 'please select a location in our servicable area'
                         });
                     } else {
+                        if (opts && opts.show_loader) qkHeaderLocationHideLoader();
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
@@ -2704,6 +2725,7 @@
                     if (xhr.responseJSON && xhr.responseJSON.message) {
                         msg = xhr.responseJSON.message;
                     }
+                    if (opts && opts.show_loader) qkHeaderLocationHideLoader();
                     Swal.fire({ icon: 'error', title: 'Error', text: msg });
                 }
             });
@@ -3188,6 +3210,7 @@
                     return;
                 }
                 $btn.data('qk-location-loading', true);
+                qkHeaderLocationShowLoader('Fetching current location…');
                 ensureLoginMapLoaded(function () {
                     navigator.geolocation.getCurrentPosition(function (position) {
                         $btn.data('qk-location-loading', false);
@@ -3195,9 +3218,10 @@
                         var lng = position.coords.longitude;
                         setHeaderLocationMarker(lat, lng, 'Current location');
                         setHeaderSelectedSourceLabel('Current location', 'Current location');
-                        submitHeaderLocationCheck(lat, lng, 'Current location', { reload_on_success: true });
+                        submitHeaderLocationCheck(lat, lng, 'Current location', { reload_on_success: true, show_loader: true });
                     }, function () {
                         $btn.data('qk-location-loading', false);
+                        qkHeaderLocationHideLoader();
                         Swal.fire({
                             icon: 'warning',
                             title: 'Location Permission Required',
