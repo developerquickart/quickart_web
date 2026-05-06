@@ -1106,6 +1106,25 @@
                 color: #6b7280;
                 margin-bottom: 6px;
             }
+            .qk-loggedin-menu #menu_mainbox .qk-menu-user-meta {
+                display: block;
+                text-align: left;
+                margin: 4px 2px 10px;
+            }
+            .qk-loggedin-menu #menu_mainbox .qk-menu-user-meta__name {
+                font-size: 16px;
+                font-weight: 700;
+                color: #1f2937;
+                line-height: 1.2;
+            }
+            .qk-loggedin-menu #menu_mainbox .qk-menu-user-meta__phone {
+                margin-top: 2px;
+                font-size: 13px;
+                font-weight: 600;
+                color: #4b5563;
+                line-height: 1.25;
+                word-break: break-word;
+            }
             .qk-loggedin-menu #menu_mainbox .main_menu_mobile {
                 display: block;
             }
@@ -1772,13 +1791,17 @@
                             </div>
                             <span class="overlay"></span>
                             <div class="login_cartbox text-end">
-                                <a href="{{ env('APP_URL') }}" class="qk-mobile-menu-logo" aria-label="QuicKart home">
-                                    <img src="{{ asset('assets/images/QuicKart_logo.png') }}" alt="QuicKart" class="img-fluid" loading="lazy" decoding="async">
-                                </a>
                                 <div class="toggle_close_logo" onclick="menu()">
                                     <img src="{{asset('assets/images/order-cancel.png')}}" alt="Close Icon" class="img-fluid">
                                 </div>
-                                <div class="mobile_text">Your Information</div>
+                                @php
+                                    $qkSidebarName = trim((string) (session('user_name') ?? session('name') ?? ''));
+                                    $qkSidebarPhone = trim((string) (session('user_phone') ?? session('number') ?? ''));
+                                @endphp
+                                <div class="qk-menu-user-meta">
+                                    <div class="qk-menu-user-meta__name">Hi, <span id="qkSidebarUserName">{{ $qkSidebarName !== '' ? $qkSidebarName : 'User' }}</span></div>
+                                    <div class="qk-menu-user-meta__phone" id="qkSidebarUserPhone">{{ $qkSidebarPhone }}</div>
+                                </div>
                                 <ul class="list-inline main-nav-right">
                                     
                                     @if(empty($data_arr['user_id']) && $data_arr['user_id'] == '')
@@ -2710,6 +2733,33 @@
                 $('#login').modal('show');
             });
             
+            function qkSyncSidebarUserInfo(name, phone) {
+                var finalName = (name || '').toString().trim();
+                var finalPhone = (phone || '').toString().trim();
+                var nameEl = document.getElementById('qkSidebarUserName');
+                var phoneEl = document.getElementById('qkSidebarUserPhone');
+                if (nameEl && finalName) nameEl.textContent = finalName;
+                if (phoneEl) phoneEl.textContent = finalPhone;
+            }
+
+            function qkStoreSidebarUserInfo(name, phone) {
+                try {
+                    if (name) sessionStorage.setItem('qk_user_name', String(name));
+                    if (phone) sessionStorage.setItem('qk_user_phone', String(phone));
+                } catch (e) {}
+                qkSyncSidebarUserInfo(name, phone);
+            }
+
+            (function qkHydrateSidebarUserInfoFromSessionStorage() {
+                try {
+                    var savedName = sessionStorage.getItem('qk_user_name') || '';
+                    var savedPhone = sessionStorage.getItem('qk_user_phone') || '';
+                    if (savedName || savedPhone) {
+                        qkSyncSidebarUserInfo(savedName, savedPhone);
+                    }
+                } catch (e) {}
+            })();
+
             $('.otp_request').on('click',function(){
                     var _token = jQuery('meta[name="csrf-token"]').attr('content');
                     $.ajax({
@@ -2733,6 +2783,9 @@
                         }
 
                         if(response.success == true && response.popup == 'otp'){
+                            var qkLoginName = response.name || '';
+                            var qkLoginPhone = response.user_phone || response.number || '';
+                            qkStoreSidebarUserInfo(qkLoginName, qkLoginPhone);
                             $('.entered_mobile').html(response.country_code+' '+response.number);
 
                             $('.number').val(response.number);
@@ -2749,6 +2802,9 @@
 
 
                         }else if(response.success == true && response.popup == 'register'){
+                            var qkRegisterName = response.name || '';
+                            var qkRegisterPhone = response.user_phone || response.number || '';
+                            qkStoreSidebarUserInfo(qkRegisterName, qkRegisterPhone);
                             // Temporarily block registration flow for ZAP users.
                             Swal.fire({
                                 icon: 'info',
@@ -2821,6 +2877,7 @@
                             });
                             $('.otp-value').val('');
                         }else{
+                            qkStoreSidebarUserInfo($('.login_form_step2 .name').val() || '', $('.login_form_step2 .number').val() || '');
                             if (Array.isArray(response.saved_addresses)) {
                                 showLocationGateStep(response.saved_addresses);
                             } else {

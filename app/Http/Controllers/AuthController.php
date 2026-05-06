@@ -262,9 +262,11 @@ class AuthController extends Controller
             if ($statusCode == 200) {
                 $loginUser = json_decode($response->getBody()->getContents(), true);
                 if ($loginUser['message'] == "go to register details page") {
+                    $userPhone = $loginUser['data']['user_phone'] ?? $number;
                     return response()->json([
                         'success' => true,
                         'number' => $number,
+                        'user_phone' => $userPhone,
                         'country_code' => $country_code,
                         'data_arr' => $data_arr,
                         'errorMessage' => $errorMessage,
@@ -287,6 +289,7 @@ class AuthController extends Controller
                     $code = $loginUser['code'];
                     $email = $loginUser['data']['email'];
                     $name = $loginUser['data']['name'];
+                    $userPhone = $loginUser['data']['user_phone'] ?? $number;
                     $referral_code = $loginUser['data']['referral_code'];
 
                     return response()->json([
@@ -295,6 +298,7 @@ class AuthController extends Controller
                         'code' => $code,
                         'email' => $email,
                         'number' => $number,
+                        'user_phone' => $userPhone,
                         'name' => $name,
                         'referral_code' => $referral_code,
                         'country_code' => $country_code,
