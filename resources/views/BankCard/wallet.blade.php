@@ -292,6 +292,10 @@ function getWalletMessage($resource = null) {
                                         @php
                                             $type = strtolower($item['type'] ?? '');
                                             $orderRef = trim((!empty($item['group_id']) ? $item['group_id'] : '') . (!empty($item['cart_id']) ? ' (' . $item['cart_id'] . ')' : ''));
+                                            $rewardSplit = (float) ($item['wallet_split_reward_amount'] ?? 0);
+                                            $refundSplit = (float) ($item['wallet_split_refund_amount'] ?? 0);
+                                            $hasSplit = in_array($type, ['add', 'deduction'], true) && (($rewardSplit > 0) || ($refundSplit > 0));
+                                            $rewardExpiry = $item['wallet_split_reward_expiry_date'] ?? null;
                                         @endphp
                                         <details class="wallet-acc">
                                             <summary class="wallet-acc__summary">
@@ -322,13 +326,55 @@ function getWalletMessage($resource = null) {
                                                     <span class="wallet-acc__label">Type</span>
                                                     <span class="wallet-acc__value">{{ ucfirst($item['type'] ?? '—') }}</span>
                                                 </div>
-                                                <div class="wallet-acc__row">
-                                                    <span class="wallet-acc__label">Expiry</span>
-                                                    <span class="wallet-acc__value">{{ !empty($item['expiry_date'])
-                                                            ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M Y')
-                                                            : '—'
-                                                        }}</span>
-                                                </div>
+                                                @if($hasSplit)
+                                                    @if($type === 'deduction')
+                                                        @if($rewardSplit > 0)
+                                                        <div class="wallet-acc__row">
+                                                            <span class="wallet-acc__label">Deduction from reward wallet</span>
+                                                            <span class="wallet-acc__value">AED {{ number_format($rewardSplit, 2) }}</span>
+                                                        </div>
+                                                        @if(!empty($rewardExpiry))
+                                                        <div class="wallet-acc__row">
+                                                            <span class="wallet-acc__label">Reward expiry</span>
+                                                            <span class="wallet-acc__value">{{ \Carbon\Carbon::parse($rewardExpiry)->format('d M Y') }}</span>
+                                                        </div>
+                                                        @endif
+                                                        @endif
+                                                        @if($refundSplit > 0)
+                                                        <div class="wallet-acc__row">
+                                                            <span class="wallet-acc__label">Deduction from refund wallet</span>
+                                                            <span class="wallet-acc__value">AED {{ number_format($refundSplit, 2) }}</span>
+                                                        </div>
+                                                        @endif
+                                                    @elseif($type === 'add')
+                                                        @if($rewardSplit > 0)
+                                                        <div class="wallet-acc__row">
+                                                            <span class="wallet-acc__label">Addition to reward wallet</span>
+                                                            <span class="wallet-acc__value">AED {{ number_format($rewardSplit, 2) }}</span>
+                                                        </div>
+                                                        @if(!empty($rewardExpiry))
+                                                        <div class="wallet-acc__row">
+                                                            <span class="wallet-acc__label">Reward expiry</span>
+                                                            <span class="wallet-acc__value">{{ \Carbon\Carbon::parse($rewardExpiry)->format('d M Y') }}</span>
+                                                        </div>
+                                                        @endif
+                                                        @endif
+                                                        @if($refundSplit > 0)
+                                                        <div class="wallet-acc__row">
+                                                            <span class="wallet-acc__label">Addition to refund wallet</span>
+                                                            <span class="wallet-acc__value">AED {{ number_format($refundSplit, 2) }}</span>
+                                                        </div>
+                                                        @endif
+                                                    @endif
+                                                @else
+                                                    <div class="wallet-acc__row">
+                                                        <span class="wallet-acc__label">Expiry</span>
+                                                        <span class="wallet-acc__value">{{ !empty($item['expiry_date'])
+                                                                ? \Carbon\Carbon::parse($item['expiry_date'])->format('d M Y')
+                                                                : '—'
+                                                            }}</span>
+                                                    </div>
+                                                @endif
                                                 <div class="wallet-acc__row">
                                                     <span class="wallet-acc__label">Via</span>
                                                     <span class="wallet-acc__value">{{ getWalletMessage($item['resource'] ?? '') }}</span>

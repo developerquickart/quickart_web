@@ -456,11 +456,16 @@ class CardController extends Controller
                 }
 
                 $key = $groupId . '|' . $type;
+                $isRewardWallet = $this->isRewardWalletResource($item['resource'] ?? '');
+                $itemAmount = (float) ($item['amount'] ?? 0);
 
                 if (!isset($groupedIndexes[$key])) {
-                    $item['amount'] = (float) ($item['amount'] ?? 0);
+                    $item['amount'] = $itemAmount;
                     $item['cart_id'] = '';
                     $item['wallet_entry_count'] = 1;
+                    $item['wallet_split_reward_amount'] = $isRewardWallet ? $itemAmount : 0.0;
+                    $item['wallet_split_refund_amount'] = $isRewardWallet ? 0.0 : $itemAmount;
+                    $item['wallet_split_reward_expiry_date'] = $isRewardWallet ? ($item['expiry_date'] ?? null) : null;
 
                     $items[] = $item;
                     $groupedIndexes[$key] = count($items) - 1;
@@ -468,10 +473,19 @@ class CardController extends Controller
                 }
 
                 $itemIndex = $groupedIndexes[$key];
-                $items[$itemIndex]['amount'] = (float) ($items[$itemIndex]['amount'] ?? 0) + (float) ($item['amount'] ?? 0);
+                $items[$itemIndex]['amount'] = (float) ($items[$itemIndex]['amount'] ?? 0) + $itemAmount;
                 $items[$itemIndex]['wallet_entry_count'] = (int) ($items[$itemIndex]['wallet_entry_count'] ?? 1) + 1;
                 $items[$itemIndex]['created_at'] = $this->latestWalletDate($items[$itemIndex]['created_at'] ?? null, $item['created_at'] ?? null);
                 $items[$itemIndex]['expiry_date'] = $this->latestWalletDate($items[$itemIndex]['expiry_date'] ?? null, $item['expiry_date'] ?? null);
+                if ($isRewardWallet) {
+                    $items[$itemIndex]['wallet_split_reward_amount'] = (float) ($items[$itemIndex]['wallet_split_reward_amount'] ?? 0) + $itemAmount;
+                    $items[$itemIndex]['wallet_split_reward_expiry_date'] = $this->latestWalletDate(
+                        $items[$itemIndex]['wallet_split_reward_expiry_date'] ?? null,
+                        $item['expiry_date'] ?? null
+                    );
+                } else {
+                    $items[$itemIndex]['wallet_split_refund_amount'] = (float) ($items[$itemIndex]['wallet_split_refund_amount'] ?? 0) + $itemAmount;
+                }
             }
 
             $walletHistoryList['data'][$yearIndex]['items'] = $items;
@@ -498,6 +512,12 @@ class CardController extends Controller
         }
 
         return $newTimestamp > $currentTimestamp ? $newDate : $currentDate;
+    }
+
+    private function isRewardWalletResource($resource)
+    {
+        $resource = strtolower(trim((string) $resource));
+        return $resource !== '' && str_ends_with($resource, 'ref');
     }
     
 
