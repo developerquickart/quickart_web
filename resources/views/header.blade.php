@@ -2635,7 +2635,8 @@
             $('.qk-header-selected-source-value').text(finalText);
         }
 
-        function submitHeaderLocationCheck(lat, lng, locationName) {
+        function submitHeaderLocationCheck(lat, lng, locationName, opts) {
+            opts = opts || {};
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
             var norm = normalizeLoginCoordsForSubmit(lat, lng, 'submitHeaderLocationCheck');
             if (!norm) {
@@ -2671,6 +2672,10 @@
                             window.qkRefreshDeliveryEtaStrip();
                         }
                         $('#headerLocationSwitchModal').modal('hide');
+                        if (opts && opts.reload_on_success) {
+                            window.location.reload();
+                            return;
+                        }
                         Swal.fire({
                             icon: 'success',
                             title: 'Location updated',
@@ -3190,6 +3195,7 @@
                         var lng = position.coords.longitude;
                         setHeaderLocationMarker(lat, lng, 'Current location');
                         setHeaderSelectedSourceLabel('Current location', 'Current location');
+                        submitHeaderLocationCheck(lat, lng, 'Current location', { reload_on_success: true });
                     }, function () {
                         $btn.data('qk-location-loading', false);
                         Swal.fire({
