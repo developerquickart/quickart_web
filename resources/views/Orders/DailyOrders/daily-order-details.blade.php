@@ -220,47 +220,48 @@
                                 <div class="daily_payment_detail_section">
                                 <div class="order-subheading">Payment Details</div>
                                 <div class="row">
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>Total Value:
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Total Value:</span>
                                                 <span>AED
                                                     {{number_format(($dailyOrderDetailsList['data']['total_products_mrp']+$dailyOrderDetailsList['data']['trail_discount']), 2)}}</span>
                                             </li>
                                         </ul>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>Payment method:
-                                                <span>{{$dailyOrderDetailsList['data']['payment_method']}}</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <ul class="order_details_list">
-                                            <li>Delivery fees: <span>AED
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Delivery fees:</span>
+                                                <span>AED
                                                     {{number_format($dailyOrderDetailsList['data']['delivery_charge'], 2)}}</span>
                                             </li>
                                         </ul>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>VAT: <span>AED
-                                                    {{number_format($dailyOrderDetailsList['data']['vat'], 2)}}</span>
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Delivery Partner Tip:</span>
+                                                <span>AED
+                                                    {{number_format($dailyOrderDetailsList['data']['del_partner_tip'], 2)}}</span>
                                             </li>
                                         </ul>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>Delivery Partner Tip: <span>AED
-                                                    {{number_format($dailyOrderDetailsList['data']['del_partner_tip'], 2)}}</span>
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Payment method:</span>
+                                                <span>{{$dailyOrderDetailsList['data']['payment_method']}}</span>
                                             </li>
                                         </ul>
                                     </div>
                                     @if($dailyOrderDetailsList['data']['payment_method'] == "COD")
 
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>COD Extra Charges: <span>AED
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>COD Extra Charges:</span>
+                                                <span>AED
                                                     {{number_format($dailyOrderDetailsList['data']['cod_charges'], 2)}}</span>
                                             </li>
                                         </ul>
