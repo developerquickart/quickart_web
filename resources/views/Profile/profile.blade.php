@@ -33,11 +33,6 @@ $referralText = $getUserProfile['data']['referral_message'] ?? '';
                                 </div>
                             </div>
                             <div class="menu_item">
-                                <div class="sub-menu-list">
-                                    <a href="{{ENV('APP_URL')}}notification" class="sub-menu-list-link">Notification</a>
-                                </div>
-                            </div>
-                            <div class="menu_item">
                                 <div class="sub-menu-list dropdown" data-bs-toggle="collapse" data-bs-target="#account" aria-expanded="false" aria-controls="account">Payment Details</div>
                                 <div class="collapse" id="account" data-bs-parent="#side-menu">
                                     <ul class="btn-toggle-nav list-unstyled fw-normal small">
