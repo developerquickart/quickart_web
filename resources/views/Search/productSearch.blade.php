@@ -374,14 +374,6 @@
                                             </a>
                                         </li>
                                         <li class="list-inline-item">
-                                            <a href="{{ENV('APP_URL')}}notification" class="top_icon">
-                                                <div class="top_other_icon_img">
-                                                    <img src="{{asset('assets/images/menu_notification.png')}}" alt="Signin">
-                                                </div>
-                                                <div class="top_other_icon_heading">Notification</div>
-                                            </a>
-                                        </li>
-                                        <li class="list-inline-item">
                                             <a href="{{ENV('APP_URL')}}profile?tag=3" class="top_icon">
                                                 <div class="top_other_icon_img">
                                                     <img src="{{asset('assets/images/menu_payment.png')}}" alt="Signin">
