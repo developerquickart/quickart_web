@@ -594,7 +594,22 @@ function deleteAddress(addressId) {
             }
         },
         error: function(xhr) {
-            alert("An error occurred: " + xhr.responseText);
+            var fallbackMessage = "Unable to delete address. Please try again.";
+            var apiMessage = fallbackMessage;
+            if (xhr && xhr.responseJSON && typeof xhr.responseJSON.message === 'string' && xhr.responseJSON.message.trim() !== '') {
+                apiMessage = xhr.responseJSON.message;
+            } else if (xhr && typeof xhr.responseText === 'string' && xhr.responseText.trim() !== '') {
+                try {
+                    var parsed = JSON.parse(xhr.responseText);
+                    if (parsed && typeof parsed.message === 'string' && parsed.message.trim() !== '') {
+                        apiMessage = parsed.message;
+                    }
+                } catch (e) {}
+            }
+            Swal.fire({
+                title: apiMessage,
+                icon: "error",
+            });
         },
     });
 }
