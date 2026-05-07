@@ -42,6 +42,43 @@
                         height: 220px;
                         min-height: 200px;
                     }
+                    /* Keep order-track icons and labels aligned on all mobile widths. */
+                    .order_track_listBox .track_list {
+                        display: flex;
+                        align-items: center;
+                        width: 100%;
+                    }
+                    .order_track_listBox .track_list_check {
+                        width: 10%;
+                        display: flex;
+                        justify-content: center;
+                    }
+                    .order_track_listBox .track_list_sept {
+                        width: 20%;
+                        flex: 0 0 20%;
+                    }
+                    .order_track_listBox .track_list.status_list {
+                        display: grid;
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                        gap: 6px;
+                        margin-top: 8px;
+                    }
+                    .order_track_listBox .track_list.status_list .track_status {
+                        width: auto;
+                        margin: 0 !important;
+                        text-align: center;
+                        font-size: 12px;
+                        line-height: 1.25;
+                        word-break: break-word;
+                    }
+                    @media (max-width: 576px) {
+                        .order_track_listBox .track_list_check img {
+                            max-height: 24px;
+                        }
+                        .order_track_listBox .track_list.status_list .track_status {
+                            font-size: 11px;
+                        }
+                    }
                 </style>
                 <div class="qk-dboy-track" id="qkDboyTrack"
                      data-poll-url="{{ url('/delivery-boy-position') }}"
@@ -270,87 +307,65 @@
                                     <div class="col-12">
                                         <div style="border-bottom: 0.5px solid #000; margin: 3px 0;"></div>
                                     </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>Order Value:
-                                            </li>
-                                        </ul>
-                                    </div>
-
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <ul class="order_details_list">
-                                            <li><span>AED
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Order Value:</span>
+                                                <span>AED
                                                     @if($dailyOrderDetailsList['data']['order_type'] == 'trail')
                                                     {{number_format($dailyOrderDetailsList['data']['price_without_delivery'], 2)}}
                                                     @else
                                                     {{number_format($dailyOrderDetailsList['data']['total_price'], 2)}}
                                                     @endif
-                                                    
-
-                                                    </span>
+                                                </span>
                                             </li>
                                         </ul>
                                     </div>
                                     @if ($dailyOrderDetailsList['data']['order_type'] == 'trail')
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>Trial pack discount:
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <ul class="order_details_list">
-                                            <li><span style="color: green;">AED
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Trial pack discount:</span>
+                                                <span style="color: green;">AED
                                                     {{number_format($dailyOrderDetailsList['data']['trail_discount'], 2)}}</span>
                                             </li>
                                         </ul>
                                     </div>
                                     @else
-                                      <div class="col-lg-6 col-md-6 col-6">
+                                      <div class="col-12">
                                         <ul class="order_details_list">
-                                            <li>Wallet Applied:
-                                            </li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <ul class="order_details_list">
-                                            <li><span style="color: green;">AED
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Wallet Applied:</span>
+                                                <span style="color: green;">AED
                                                     {{number_format($dailyOrderDetailsList['data']['paid_by_wallet'], 2)}}</span>
                                             </li>
                                         </ul>
                                     </div>
-                                    <div class=" col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list">
-                                        <li>Coupon Applied: @if($dailyOrderDetailsList['data']['coupon_code'] != null) <span style="color: green;">({{ $dailyOrderDetailsList['data']['coupon_code'] }})</span> @endif</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <ul class="order_details_list">
-                                            <li><span style="color: green;">AED
-                                                    {{number_format($dailyOrderDetailsList['data']['coupon_discount'], 2)}}</span>
-                                            </li>
+                                        <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                            <span>Coupon Applied: @if($dailyOrderDetailsList['data']['coupon_code'] != null) <span style="color: green;">({{ $dailyOrderDetailsList['data']['coupon_code'] }})</span> @endif</span>
+                                            <span style="color: green;">AED
+                                                {{number_format($dailyOrderDetailsList['data']['coupon_discount'], 2)}}</span>
+                                        </li>
                                         </ul>
                                     </div>
                                     @endif
 
 
 
-                                    <div class="col-lg-6 col-md-6 col-6">
+                                    <div class="col-12">
                                         <ul class="order_details_list payment">
-                                            <li>Amount to be Paid: </li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-lg-6 col-md-6 col-6">
-                                        <ul class="">
-                                            <li><span><strong>
-                                                        AED
+                                            <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+                                                <span>Amount to be Paid:</span>
+                                                <span><strong>AED
                                                     @if($dailyOrderDetailsList['data']['order_type'] == 'trail')
                                                     {{number_format($dailyOrderDetailsList['data']['total_price'], 2)}}
                                                     @else
                                                     {{ number_format($dailyOrderDetailsList['data']['total_price'] - $dailyOrderDetailsList['data']['coupon_discount'] - $dailyOrderDetailsList['data']['paid_by_wallet'], 2) }}
                                                     @endif
-                                                    </strong>
-                                                </span> </li>
+                                                    </strong></span>
+                                            </li>
                                         </ul>
                                     </div>
                                 </div>
