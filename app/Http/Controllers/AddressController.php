@@ -95,32 +95,52 @@ class AddressController extends Controller
 
             $client = new Client();
             $response = $client->post($url, [
-                'json' => $payload
+                'json' => $payload,
+                'http_errors' => false,
             ]);
-
-            $client = new Client();
             $statusCode = $response->getStatusCode();
-            $responseBody = json_decode($response->getBody()->getContents(), true);
+            $rawBody = (string) $response->getBody();
+            $responseBody = json_decode($rawBody, true);
+            if (!is_array($responseBody)) {
+                $responseBody = [];
+            }
+            $message = $responseBody['message'] ?? env('ERRORMSG');
+            $status = (int) ($responseBody['status'] ?? 0);
 
-            if ($statusCode == 200 && isset($responseBody['status']) && $responseBody['status'] === 1) {
+            if ($statusCode == 200 && $status === 1) {
                 return response()->json([
                     'success' => true,
-                    'action' => $responseBody['status'],
-                    'message' => $responseBody['message'],
+                    'action' => 1,
+                    'message' => $message,
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'action' => $responseBody['status'],
-                    'message' => $responseBody['message'] ?? env('ERRORMSG'),
-                ]);
+                    'action' => $status,
+                    'message' => $message,
+                ], $statusCode >= 400 ? $statusCode : 200);
             }
         } catch (RequestException $e) {
-
-            $errorMessage = $e->getMessage();
+            $message = env('ERRORMSG');
+            $statusCode = 500;
+            if ($e->hasResponse()) {
+                $statusCode = $e->getResponse()->getStatusCode();
+                $body = json_decode((string) $e->getResponse()->getBody(), true);
+                if (is_array($body) && !empty($body['message'])) {
+                    $message = (string) $body['message'];
+                }
+            }
+            return response()->json([
+                'success' => false,
+                'action' => 0,
+                'message' => $message,
+            ], $statusCode);
         } catch (\Exception $e) {
-
-            $errorMessage = $e->getMessage();
+            return response()->json([
+                'success' => false,
+                'action' => 0,
+                'message' => env('ERRORMSG'),
+            ], 500);
         }
     }
 
