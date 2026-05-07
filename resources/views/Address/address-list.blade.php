@@ -571,6 +571,19 @@ function deleteAddressAlert(addressId) {
 function deleteAddress(addressId) {
     var _token = jQuery('meta[name="csrf-token"]').attr('content');
     var url = "{{ENV('APP_URL')}}deleteAddressAPICall";
+    function resolveApiMessage(payload, fallbackMessage) {
+        if (!payload) return fallbackMessage;
+        if (typeof payload === 'string' && payload.trim() !== '') return payload.trim();
+        if (typeof payload.message === 'string' && payload.message.trim() !== '') return payload.message.trim();
+        if (Array.isArray(payload.message) && payload.message.length > 0) return String(payload.message[0]);
+        if (payload.errors && typeof payload.errors === 'object') {
+            var firstKey = Object.keys(payload.errors)[0];
+            if (firstKey && Array.isArray(payload.errors[firstKey]) && payload.errors[firstKey].length > 0) {
+                return String(payload.errors[firstKey][0]);
+            }
+        }
+        return fallbackMessage;
+    }
 
     jQuery.ajax({
         url: url,
@@ -582,32 +595,28 @@ function deleteAddress(addressId) {
         success: function(result) {
             if (result.action == "1") {
                 Swal.fire({
-                    title: result.message,
+                    text: resolveApiMessage(result, "Address deleted successfully."),
                     icon: "success",
                     confirmButtonText: "OK",
                 }).then(() => location.reload());
             } else {
                 Swal.fire({
-                    title: result.message,
+                    text: resolveApiMessage(result, "Unable to delete address."),
                     icon: "error",
                 });
             }
         },
         error: function(xhr) {
             var fallbackMessage = "Unable to delete address. Please try again.";
-            var apiMessage = fallbackMessage;
-            if (xhr && xhr.responseJSON && typeof xhr.responseJSON.message === 'string' && xhr.responseJSON.message.trim() !== '') {
-                apiMessage = xhr.responseJSON.message;
-            } else if (xhr && typeof xhr.responseText === 'string' && xhr.responseText.trim() !== '') {
+            var apiMessage = resolveApiMessage(xhr && xhr.responseJSON ? xhr.responseJSON : null, fallbackMessage);
+            if (apiMessage === fallbackMessage && xhr && typeof xhr.responseText === 'string' && xhr.responseText.trim() !== '') {
                 try {
                     var parsed = JSON.parse(xhr.responseText);
-                    if (parsed && typeof parsed.message === 'string' && parsed.message.trim() !== '') {
-                        apiMessage = parsed.message;
-                    }
+                    apiMessage = resolveApiMessage(parsed, fallbackMessage);
                 } catch (e) {}
             }
             Swal.fire({
-                title: apiMessage,
+                text: apiMessage,
                 icon: "error",
             });
         },
