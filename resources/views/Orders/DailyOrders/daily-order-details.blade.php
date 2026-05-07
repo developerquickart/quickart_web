@@ -776,22 +776,47 @@
         document.head.appendChild(s);
     }
 
+    var tickInFlight = false;
     function tick() {
-        fetch(pollUrl + '?group_id=' + encodeURIComponent(groupId), {
+        if (tickInFlight) return;
+        tickInFlight = true;
+        var reqUrl = pollUrl + '?group_id=' + encodeURIComponent(groupId) + '&_ts=' + Date.now();
+        fetch(reqUrl, {
             credentials: 'same-origin',
-            headers: { Accept: 'application/json' }
+            cache: 'no-store',
+            headers: {
+                Accept: 'application/json',
+                'Cache-Control': 'no-cache'
+            }
         })
-            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (!r.ok) throw new Error('poll_failed_' + r.status);
+                return r.json();
+            })
             .then(function (data) {
-                if (!data || !data.ok || !isFinite(data.rider_lat) || !isFinite(data.rider_lng)) return;
+                if (!data || !data.ok) {
+                    console.warn('[order-track] Poll returned non-ok payload', data);
+                    return;
+                }
+                var riderLat = Number(data.rider_lat);
+                var riderLng = Number(data.rider_lng);
+                if (!isFinite(riderLat) || !isFinite(riderLng)) {
+                    console.warn('[order-track] Poll returned invalid coords', data);
+                    return;
+                }
                 if (map && directionsService) {
-                    drawDrivingRoute(data.rider_lat, data.rider_lng);
+                    drawDrivingRoute(riderLat, riderLng);
                 } else if (map) {
-                    updateDriverMarker(data.rider_lat, data.rider_lng);
-                    updateProjectedRouteLine(data.rider_lat, data.rider_lng);
+                    updateDriverMarker(riderLat, riderLng);
+                    updateProjectedRouteLine(riderLat, riderLng);
                 }
             })
-            .catch(function () {});
+            .catch(function (err) {
+                console.warn('[order-track] Poll request failed', err);
+            })
+            .finally(function () {
+                tickInFlight = false;
+            });
     }
 
     if (mapsKey && mapEl) {
