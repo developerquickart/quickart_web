@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 class OrderTrackingController extends Controller
 {
     /**
-     * Poll delivery boy live coordinates (subscription_order.dboy_id → delivery_boy.current_lat/current_lng).
+     * Poll delivery boy live coordinates (subscription_order.dboy_id → delivery_boy.lat/lng).
      */
     public function deliveryBoyPosition(Request $request)
     {
@@ -43,8 +43,8 @@ class OrderTrackingController extends Controller
                 return response()->json(['ok' => false, 'message' => 'delivery_boy_not_found'], 404);
             }
 
-            $latRaw = $boy->current_lat ?? null;
-            $lngRaw = $boy->current_lng ?? null;
+            $latRaw = $boy->lat ?? null;
+            $lngRaw = $boy->lng ?? null;
             if ($latRaw === null || $latRaw === '' || $lngRaw === null || $lngRaw === '') {
                 return response()->json(['ok' => false, 'message' => 'no_coordinates']);
             }
