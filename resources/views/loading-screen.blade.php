@@ -24,7 +24,7 @@
 <script>
   $(document).ready(function () {
     setTimeout(function () {
-      window.location.href = "{{ rtrim(env('NODE_APP_URL'), '/') }}/success"; // your target URL
+      window.location.href = "{{ url('/my-orders?tab=1') }}";
     }, 5000); 
   });
 </script>
