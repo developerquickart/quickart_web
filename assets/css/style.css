@@ -895,7 +895,7 @@ label.control-label {
 }
 
 .carousel-slider-main--full .owl-carousel-slider .owl-stage-outer .owl-stage {
-    transition-timing-function: linear;
+    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .owl-carousel-slider a {

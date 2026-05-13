@@ -34,10 +34,9 @@ $('.owl-carousel-slider').owlCarousel({
     margin: 12,
     autoWidth: true,
     autoplay: true,
-    /* Chain slides back-to-back: interval ≈ transition length so it rarely “sits” idle */
-    smartSpeed: 2200,
-    autoplayTimeout: 2280,
+    autoplayTimeout: 5000,
     autoplayHoverPause: true,
+    smartSpeed: 950,
     responsive: {
         0: {
             margin: 8,
