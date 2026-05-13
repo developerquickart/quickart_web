@@ -8,37 +8,56 @@ $('[data-toggle="offcanvas"]').on('click', function () {
     $('body').toggleClass('toggled');
 });
 
+var $heroBannerCarousel = $('.carousel-slider-main--full .owl-carousel-slider');
+function updateHeroBannerSlideWidths() {
+    if (!$heroBannerCarousel.length) {
+        return;
+    }
+    var trackW = $heroBannerCarousel.outerWidth();
+    if (!trackW) {
+        return;
+    }
+    var ww = $(window).width();
+    var gap = ww >= 992 ? 16 : ww >= 576 ? 12 : 8;
+    var slideW = Math.max(160, (trackW - gap) / 1.5);
+    $heroBannerCarousel.find('.owl-item > .item').css({
+        width: slideW,
+        maxWidth: slideW,
+    });
+    $heroBannerCarousel.trigger('refresh.owl.carousel');
+}
+
 $('.owl-carousel-slider').owlCarousel({
     loop: true,
     nav: false,
     dots: false,
-    center: true,
+    margin: 12,
+    autoWidth: true,
     autoplay: true,
-    autoplayTimeout: 4000,
-    smartSpeed: 600,
+    autoplayTimeout: 5000,
+    autoplayHoverPause: true,
+    smartSpeed: 950,
     responsive: {
         0: {
-            items: 1,
             margin: 8,
-            stagePadding: 28,
         },
         576: {
-            items: 1,
             margin: 12,
-            stagePadding: 48,
         },
         992: {
-            items: 1,
             margin: 16,
-            stagePadding: 96,
-        },
-        1400: {
-            items: 1,
-            margin: 20,
-            stagePadding: 140,
         },
     },
-})
+});
+
+if ($heroBannerCarousel.length) {
+    updateHeroBannerSlideWidths();
+    var heroBannerResizeTimer;
+    $(window).on('resize', function () {
+        clearTimeout(heroBannerResizeTimer);
+        heroBannerResizeTimer = setTimeout(updateHeroBannerSlideWidths, 120);
+    });
+}
 
 $('.owl-carousel-one').owlCarousel({
     items: 1,
