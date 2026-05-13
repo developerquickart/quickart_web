@@ -28,7 +28,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                 </div>
                 @endif
             </div>
-            <div class="col-lg-4 d-none d-lg-block">
+            <!-- <div class="col-lg-4 d-none d-lg-block">
                 @if(isset($oneAPIList['featurecategory']) && count($oneAPIList['featurecategory']) > 0)
                 <div class="featured_cat_MainBox">
                     <div class="section-header1">
@@ -53,7 +53,7 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                     </div>
                 </div>
                 @endif
-            </div>
+            </div> -->
         </div>
     </div>
 </section>
