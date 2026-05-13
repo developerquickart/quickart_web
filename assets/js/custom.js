@@ -13,12 +13,20 @@ function updateHeroBannerSlideWidths() {
     if (!$heroBannerCarousel.length) {
         return;
     }
+    var ww = $(window).width();
+    if (ww < 992) {
+        $heroBannerCarousel.find('.owl-item > .item').css({
+            width: '',
+            maxWidth: '',
+        });
+        $heroBannerCarousel.trigger('refresh.owl.carousel');
+        return;
+    }
     var trackW = $heroBannerCarousel.outerWidth();
     if (!trackW) {
         return;
     }
-    var ww = $(window).width();
-    var gap = ww >= 992 ? 16 : ww >= 576 ? 12 : 8;
+    var gap = 16;
     var slideW = Math.max(160, (trackW - gap) / 1.5);
     $heroBannerCarousel.find('.owl-item > .item').css({
         width: slideW,
@@ -31,21 +39,17 @@ $('.owl-carousel-slider').owlCarousel({
     loop: true,
     nav: false,
     dots: false,
-    margin: 12,
-    autoWidth: true,
+    items: 1,
+    margin: 2,
+    autoWidth: false,
     autoplay: true,
     autoplayTimeout: 5000,
     autoplayHoverPause: true,
     smartSpeed: 950,
     responsive: {
-        0: {
-            margin: 8,
-        },
-        576: {
-            margin: 12,
-        },
         992: {
             margin: 16,
+            autoWidth: true,
         },
     },
 });

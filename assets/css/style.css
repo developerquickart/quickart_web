@@ -868,34 +868,62 @@ label.control-label {
     overflow: hidden;
 }
 
-.carousel-slider-main--full .home_banner {
-    border-radius: 0;
-    overflow: visible;
+/* Full-width hero — mobile: single slide, natural image height (no letterboxing) */
+@media (max-width: 991.98px) {
+    .carousel-slider-main--full .home_banner {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .carousel-slider-main--full .home_banner .banner_img {
+        height: auto;
+        min-height: 0;
+    }
+
+    .carousel-slider-main--full .owl-carousel-slider .owl-item > .item {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .carousel-slider-main--full .owl-carousel-slider .banner_img img {
+        width: 100%;
+        height: auto;
+        max-height: none;
+        object-fit: initial;
+        display: block;
+    }
 }
 
-.carousel-slider-main--full .home_banner .banner_img {
-    border-radius: 16px;
-    overflow: hidden;
-}
+/* Full-width hero — desktop: ~1.5 slides, fixed stage height */
+@media (min-width: 992px) {
+    .carousel-slider-main--full .home_banner {
+        border-radius: 0;
+        overflow: visible;
+    }
 
-/* Full-width hero: slide width set in custom.js (~1.5 banners per track) */
-.carousel-slider-main--full .owl-carousel-slider .owl-item > .item {
-    box-sizing: border-box;
-}
+    .carousel-slider-main--full .home_banner .banner_img {
+        border-radius: 16px;
+        overflow: hidden;
+    }
 
-.carousel-slider-main--full .owl-carousel-slider .banner_img {
-    height: 350px;
-}
+    .carousel-slider-main--full .owl-carousel-slider .owl-item > .item {
+        box-sizing: border-box;
+    }
 
-.carousel-slider-main--full .owl-carousel-slider .banner_img img {
-    width: 100%;
-    height: 100%;
-    max-height: 350px;
-    object-fit: contain;
-}
+    .carousel-slider-main--full .owl-carousel-slider .banner_img {
+        height: 350px;
+    }
 
-.carousel-slider-main--full .owl-carousel-slider .owl-stage-outer .owl-stage {
-    transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+    .carousel-slider-main--full .owl-carousel-slider .banner_img img {
+        width: 100%;
+        height: 100%;
+        max-height: 350px;
+        object-fit: contain;
+    }
+
+    .carousel-slider-main--full .owl-carousel-slider .owl-stage-outer .owl-stage {
+        transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
 }
 
 .owl-carousel-slider a {
@@ -10083,13 +10111,6 @@ img.varient-down-arrow {
         margin: 0 0 20px 0;
     }
     .home_banner,.banner_img,.banner_img img,.featured_cat_MainBox{
-        border-radius: 10px;
-    }
-    .carousel-slider-main--full .home_banner {
-        border-radius: 0;
-    }
-    .carousel-slider-main--full .home_banner .banner_img,
-    .carousel-slider-main--full .home_banner .banner_img img {
         border-radius: 10px;
     }
     .DownloadAndFollowRow__Grid {
