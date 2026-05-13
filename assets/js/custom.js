@@ -11,10 +11,33 @@ $('[data-toggle="offcanvas"]').on('click', function () {
 $('.owl-carousel-slider').owlCarousel({
     loop: true,
     nav: false,
+    dots: false,
+    center: true,
     autoplay: true,
-    autoplaySpeed: 3000,
-    items: 1,
-    margin:2,
+    autoplayTimeout: 4000,
+    smartSpeed: 600,
+    responsive: {
+        0: {
+            items: 1,
+            margin: 8,
+            stagePadding: 28,
+        },
+        576: {
+            items: 1,
+            margin: 12,
+            stagePadding: 48,
+        },
+        992: {
+            items: 1,
+            margin: 16,
+            stagePadding: 96,
+        },
+        1400: {
+            items: 1,
+            margin: 20,
+            stagePadding: 140,
+        },
+    },
 })
 
 $('.owl-carousel-one').owlCarousel({

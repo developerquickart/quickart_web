@@ -4,10 +4,10 @@ $referralCode = $appInfo['data']['referral_code'] ?? '';
 $referralText = $appInfo['data']['referral_message'] ?? '';
 ?>
 <!-- MAIN BANNER START Done-->
-<section class="carousel-slider-main text-center">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-8">
+<section class="carousel-slider-main carousel-slider-main--full text-center">
+    <div class="container-fluid px-0">
+        <div class="row g-0">
+            <div class="col-12">
                 @if(isset($oneAPIList['banner']) && count($oneAPIList['banner']) > 0)
                 <div class="home_banner">
                     <div class="owl-carousel owl-carousel-slider">
@@ -28,32 +28,6 @@ $referralText = $appInfo['data']['referral_message'] ?? '';
                 </div>
                 @endif
             </div>
-            <!-- <div class="col-lg-4 d-none d-lg-block">
-                @if(isset($oneAPIList['featurecategory']) && count($oneAPIList['featurecategory']) > 0)
-                <div class="featured_cat_MainBox">
-                    <div class="section-header1">
-                        <h5 class="heading-design-h5 text-center pb-3">Filter by Tags</h5>
-                    </div>
-                    <div class="order_again_mainBox">
-                        <div class="row">
-                            <div class="featured_cate_mainbox">
-                                @foreach($oneAPIList['featurecategory'] as $featuredCat)
-                                <div class="featured_cate_list">
-                                    <div class="featured_cate_img">
-                                        <a
-                                            href="{{ENV('APP_URL')}}featured-categories-product-list/{{$featuredCat['id']}}/{{Str::slug($featuredCat['title'])}}">
-                                            <img src="{{$featuredCat['image']}}" alt="categories" class="img-fluid">
-                                        </a>
-                                    </div>
-                                    <div class="featured_cate_text">{{$featuredCat['title']}}</div>
-                                </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                @endif
-            </div> -->
         </div>
     </div>
 </section>

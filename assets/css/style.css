@@ -867,6 +867,17 @@ label.control-label {
     border-radius: 20px;
     overflow: hidden;
 }
+
+.carousel-slider-main--full .home_banner {
+    border-radius: 0;
+    overflow: visible;
+}
+
+.carousel-slider-main--full .home_banner .banner_img {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
 .owl-carousel-slider a {
     width: 100%;
     height: 500px;
@@ -10052,6 +10063,13 @@ img.varient-down-arrow {
         margin: 0 0 20px 0;
     }
     .home_banner,.banner_img,.banner_img img,.featured_cat_MainBox{
+        border-radius: 10px;
+    }
+    .carousel-slider-main--full .home_banner {
+        border-radius: 0;
+    }
+    .carousel-slider-main--full .home_banner .banner_img,
+    .carousel-slider-main--full .home_banner .banner_img img {
         border-radius: 10px;
     }
     .DownloadAndFollowRow__Grid {
