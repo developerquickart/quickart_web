@@ -703,8 +703,15 @@ class CartController extends Controller
             $cashWalletAmt = $request->totalcashwalletamt;
         }
         
+        $walletOnlyCheckout = $request->walletStatus === 'yes'
+            && empty(trim((string) ($request->siNo ?? '')))
+            && ((float) $walletAmt > 0 || (float) $cashWalletAmt > 0);
+
         if ($request->paymentMethod == "COD") {
             $method = 'COD';
+            $siNo = '';
+        } elseif ($walletOnlyCheckout) {
+            $method = 'wallet';
             $siNo = '';
         } else {
             $method = "card";
@@ -748,7 +755,7 @@ class CartController extends Controller
                     "si_sub_ref_no" => $siNo,
                     "store_id" => $store_ID,
                     "payment_method" => $method,
-                    "payment_status" => ($method == 'COD')? "pending":"success",
+                    "payment_status" => ($method == 'COD') ? "pending" : "success",
                     "wallet" => $request->walletStatus,
                     "payment_id" => null,
                     "payment_gateway" => null,

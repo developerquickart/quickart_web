@@ -3756,6 +3756,19 @@ let showCartData = @json($showCartProductList['data'] ?? []);
 let qkCheckoutIntentType = '';
 let qkCheckoutAddressBook = [];
 
+/** Daily cart tab=1: true when wallet covers full order (toPay is 0 and wallet is applied). */
+function isDailyCartPaidFullyByWallet() {
+    var totalText = document.getElementById('toPay')?.innerText || '0';
+    var totalPrice = parseFloat(totalText.replace(/[^0-9.-]+/g, '')) || 0;
+    if (totalPrice > 0.009) return false;
+    var walletCb = document.getElementById('daily_wallet');
+    var cashCb = document.getElementById('daily_wallet_cash');
+    if (!walletCb?.checked && !cashCb?.checked) return false;
+    var refAmt = parseFloat(document.getElementById('wallet_use_amt')?.value) || 0;
+    var cashAmt = parseFloat(document.getElementById('wallet_use_amt_cash')?.value) || 0;
+    return refAmt > 0 || cashAmt > 0;
+}
+
 function showCheckoutFullLoader() {
     const loader = document.getElementById('checkoutFullLoader');
     if (!loader) return;
@@ -3919,7 +3932,7 @@ function checkOutDailyCartApiCall(type) {
         selectedMethod = selectedPayment.value;
         console.log("Selected Method:", selectedMethod);
     }
-    if (type === "payNow") {
+    if (type === "payNow" && !isDailyCartPaidFullyByWallet()) {
         const siNOS = document.getElementById("siNo");
         if (siNOS && siNOS.value !== 'undefined' && siNOS.value !== null && siNOS.value.trim() !== '') {
             siNO = siNOS.value;
