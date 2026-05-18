@@ -1032,6 +1032,28 @@
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             pointer-events: none;
         }
+        @media (max-width: 991.98px) {
+            .qk-sticky-cart-fab {
+                touch-action: none;
+                -webkit-user-select: none;
+                user-select: none;
+            }
+            .qk-sticky-cart-fab.qk-sticky-cart-fab--placed,
+            .qk-sticky-cart-fab.qk-sticky-cart-fab--dragging {
+                right: auto !important;
+                transform: none;
+            }
+            .qk-sticky-cart-fab.qk-sticky-cart-fab--dragging {
+                transition: none;
+                box-shadow: 0 12px 32px rgba(30, 33, 94, 0.5);
+            }
+            .qk-sticky-cart-fab:hover {
+                transform: none;
+            }
+            .qk-sticky-cart-fab.qk-sticky-cart-fab--placed:active {
+                transform: scale(1.04);
+            }
+        }
         @media (min-width: 992px) {
             .qk-on-the-way-tag {
                 left: auto;
@@ -2004,7 +2026,8 @@
     <a href="{{ url('cart?tab=1') }}"
        onclick="openCart()"
        class="qk-sticky-cart-fab"
-       aria-label="My cart">
+       aria-label="My cart"
+       data-sticky-cart-fab>
         <span class="qk-sticky-cart-fab__inner">
             <img src="{{ asset('assets/images/top_cart.png') }}" alt="" width="24" height="24" class="qk-sticky-cart-fab__img">
             <span class="qk-sticky-cart-fab__badge" data-sticky-cart-badge aria-hidden="true">{{ (int) ($dailyCartCountSticky ?? 0) }}</span>
@@ -2043,6 +2066,172 @@
                 })
                 .catch(function () {});
         };
+
+        /** Mobile: drag FAB to any screen position; position persists in localStorage. */
+        (function initStickyCartFabDrag() {
+            var fab = document.querySelector('[data-sticky-cart-fab]');
+            if (!fab) return;
+
+            var mq = window.matchMedia('(max-width: 991.98px)');
+            var STORAGE_KEY = 'qk_sticky_cart_fab_pos';
+            var DRAG_THRESHOLD = 8;
+            var EDGE_PAD = 14;
+            var dragState = null;
+            var suppressClick = false;
+
+            function isMobile() {
+                return mq.matches;
+            }
+
+            function getBottomReserve() {
+                var pb = parseFloat(window.getComputedStyle(document.body).paddingBottom) || 0;
+                return Math.max(pb, 62);
+            }
+
+            function getBounds() {
+                var w = fab.offsetWidth;
+                var h = fab.offsetHeight;
+                var bottom = getBottomReserve();
+                return {
+                    minX: EDGE_PAD,
+                    minY: EDGE_PAD,
+                    maxX: Math.max(EDGE_PAD, window.innerWidth - w - EDGE_PAD),
+                    maxY: Math.max(EDGE_PAD, window.innerHeight - h - bottom - EDGE_PAD)
+                };
+            }
+
+            function clampPos(x, y) {
+                var b = getBounds();
+                return {
+                    x: Math.min(b.maxX, Math.max(b.minX, x)),
+                    y: Math.min(b.maxY, Math.max(b.minY, y))
+                };
+            }
+
+            function applyFabPos(x, y) {
+                var c = clampPos(x, y);
+                fab.style.left = c.x + 'px';
+                fab.style.top = c.y + 'px';
+                fab.style.right = 'auto';
+                fab.classList.add('qk-sticky-cart-fab--placed');
+                return c;
+            }
+
+            function saveFabPos(x, y) {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        xRatio: x / window.innerWidth,
+                        yRatio: y / window.innerHeight
+                    }));
+                } catch (e) {}
+            }
+
+            function restoreFabPos() {
+                if (!isMobile()) return;
+                try {
+                    var raw = localStorage.getItem(STORAGE_KEY);
+                    if (!raw) return;
+                    var p = JSON.parse(raw);
+                    if (p.xRatio == null || p.yRatio == null) return;
+                    var c = applyFabPos(p.xRatio * window.innerWidth, p.yRatio * window.innerHeight);
+                    saveFabPos(c.x, c.y);
+                } catch (e) {}
+            }
+
+            function resetDesktopLayout() {
+                fab.style.left = '';
+                fab.style.top = '';
+                fab.style.right = '';
+                fab.classList.remove('qk-sticky-cart-fab--placed', 'qk-sticky-cart-fab--dragging');
+            }
+
+            function ensurePlacedFromLayout() {
+                if (fab.classList.contains('qk-sticky-cart-fab--placed')) return;
+                var rect = fab.getBoundingClientRect();
+                applyFabPos(rect.left, rect.top);
+            }
+
+            fab.addEventListener('dragstart', function (e) {
+                e.preventDefault();
+            });
+
+            fab.addEventListener('pointerdown', function (e) {
+                if (!isMobile() || e.button !== 0) return;
+                ensurePlacedFromLayout();
+                var rect = fab.getBoundingClientRect();
+                dragState = {
+                    pointerId: e.pointerId,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    originX: rect.left,
+                    originY: rect.top,
+                    moved: false
+                };
+                fab.setPointerCapture(e.pointerId);
+                fab.classList.add('qk-sticky-cart-fab--dragging');
+            });
+
+            fab.addEventListener('pointermove', function (e) {
+                if (!dragState || e.pointerId !== dragState.pointerId) return;
+                var dx = e.clientX - dragState.startX;
+                var dy = e.clientY - dragState.startY;
+                if (!dragState.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+                dragState.moved = true;
+                e.preventDefault();
+                applyFabPos(dragState.originX + dx, dragState.originY + dy);
+            });
+
+            function endDrag(e) {
+                if (!dragState || e.pointerId !== dragState.pointerId) return;
+                try {
+                    fab.releasePointerCapture(e.pointerId);
+                } catch (err) {}
+                fab.classList.remove('qk-sticky-cart-fab--dragging');
+                if (dragState.moved) {
+                    var rect = fab.getBoundingClientRect();
+                    var c = applyFabPos(rect.left, rect.top);
+                    saveFabPos(c.x, c.y);
+                    suppressClick = true;
+                    setTimeout(function () { suppressClick = false; }, 400);
+                }
+                dragState = null;
+            }
+
+            fab.addEventListener('pointerup', endDrag);
+            fab.addEventListener('pointercancel', endDrag);
+
+            fab.addEventListener('click', function (e) {
+                if (suppressClick) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            }, true);
+
+            restoreFabPos();
+
+            window.addEventListener('resize', function () {
+                if (!isMobile() || !fab.classList.contains('qk-sticky-cart-fab--placed')) return;
+                restoreFabPos();
+            });
+
+            if (typeof mq.addEventListener === 'function') {
+                mq.addEventListener('change', function () {
+                    if (mq.matches) {
+                        restoreFabPos();
+                    } else {
+                        resetDesktopLayout();
+                    }
+                });
+            } else if (typeof mq.addListener === 'function') {
+                mq.addListener(function () {
+                    if (mq.matches) {
+                        restoreFabPos();
+                    } else {
+                        resetDesktopLayout();
+                    }
+                });
+            }
+        })();
     })();
     </script>
     @endif
