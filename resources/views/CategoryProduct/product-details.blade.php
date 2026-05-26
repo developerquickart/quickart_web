@@ -372,8 +372,9 @@
                 </div>
                 <div class="owl-carousel owl-carousel-featured">
                     @foreach($getProductDetail['similar_product'] as $productList)
+                    @if(trim($productList['stock'] ?? '') != '0')
                     <div class="item">
-                        <div class="product">
+                        <div class="product" data-productDetail='@json($productList)' data-product-id="{{ trim($productList['product_id']) }}">
                             <div class="product_header">
                                 <div class="product_top_left">
                                     @if($productList['discountper'] > 0)
@@ -398,35 +399,130 @@
                                     </div>
                                 </div>
                             </div>
-                            <a class="product_link"
-                                href="{{ url('product-details') }}/{{ Str::slug($productList['product_name']) }}/{{ trim($productList['product_id']) }}" 
-                                >
+                            <a href="{{ url('product-details') }}/{{ Str::slug($productList['product_name']) }}/{{ trim($productList['product_id']) }}">
                                 <div class="product-img">
                                     <img class="img-fluid" src="{{$productList['product_image']}}" alt="product">
                                 </div>
+                                @if(isset($productList['feature_tags']) && count($productList['feature_tags']) > 0)
+                                <div class="product_featured_cat_icon_list">
+                                    <div class="product_featured_cat_icon">
+                                        @foreach($productList['feature_tags'] as $tags)
+                                        <img class="img-fluid" src="{{ trim($tags['image']) }}" alt="Product">
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
                                 <div class="product-body">
                                     <div class="product_name">{{$productList['product_name']}}</div>
-                                   
+                                </div>
+                            </a>
+                            <div class="product_weight" style="display: flex; align-items: center; gap: 8px;">
+                                <span>
+                                    {{ trim($productList['quantity'] ?? '') }} {{ trim($productList['unit'] ?? '') }}
+                                </span>
+                                @if(isset($productList['varients']) && count($productList['varients']) > 1)
+                                <div class="change-qty" data-productDetail='@json($productList)' data-product-id="{{ trim($productList['product_id']) }}">
+                                    <span style="color: #2e317e; font-weight: 500; display: flex; align-items: center; gap: 4px;">
+                                        {{ count($productList['varients']) }} options
+                                        <img class="varient-down-arrow" src="{{ asset('assets/images/chevron.svg') }}" alt="down-arrow" style="width: 12px; height: 12px;">
+                                    </span>
+                                </div>
+                                @endif
+                            </div>
+                            <div class="product-footer">
+                                <div class="product_detail">
+                                    <p class="offer-price">AED
+                                        <span>{{number_format($productList['price'], 2)}}</span><br>
+                                        @if ($productList['price'] != $productList['mrp'])
+                                        <span class="regular-price">AED
+                                            <span>{{number_format($productList['mrp'], 2)}}</span></span>
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="cart_btn" data-product-id="{{ trim($productList['product_id']) }}" data-productdetail='@json($productList)'>
+                                    <div class="qtyBox" data-varient-id="{{ trim($productList['varient_id']) }}">
+                                        <button class="qty-btn qty-btn-minus change-qty" type="button"
+                                            data-productDetail='@json($productList)'
+                                            data-change="-1">-</button>
+                                        <input type="text" name="qty"
+                                            value="{{ trim($productList['total_cart_qty'] ?? 0) }}" id="totalCartQTY"
+                                            class="input-qty input-rounded" min="0">
+                                        <input type="hidden" name="stock" id="stock"
+                                            value="{{ trim($productList['stock']) }}">
+                                        <button class="qty-btn qty-btn-plus change-qty" type="button"
+                                            data-productDetail='@json($productList)'
+                                            data-change="1">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @else
+                    <div class="item">
+                        <div class="product">
+                            <div class="product_header">
+                                <div class="product_top_left">
+                                    @if($productList['discountper'] > 0)
+                                    <div class="discount_text">
+                                        {{number_format($productList['discountper'], 0)}}%<span>Off</span>
+                                    </div>
+                                    @endif
+                                    @if($productList['discountper'] <= 0 && !empty($productList['country_icon']))
+                                    <div class="country_flag">
+                                        <img src="{{$productList['country_icon']}}" alt="flag">
+                                    </div>
+                                    @endif
+                                </div>
+                                <div class="product_top_right">
+                                    <div class="product_wishlist">
+                                        <a href="javascript:void(0);" class="wishlist-btn"
+                                            data-varient-id="{{ $productList['varient_id'] }}">
+                                            <img class="wishlist-icon"
+                                                src="{{ asset($productList['isFavourite'] == 'true' ? 'assets/images/wishlisted.png' : 'assets/images/wishlist.png') }}"
+                                                alt="wishlist" style="max-width: 25px;">
+                                        </a>
+                                    </div>
+                                    <div class="product_wishlist">
+                                        @if(($productList['notify_me'] ?? 'false') == 'false')
+                                        <a href="javascript:void(0);" class="notify-me"
+                                            data-varient-id="{{ $productList['varient_id'] }}"
+                                            data-product-id="{{ $productList['product_id'] }}" data-notified="0">
+                                            <img class="notify-icon" src="{{ asset('assets/images/notification.png') }}"
+                                                alt="wishlist" style="max-width: 25px;">
+                                        </a>
+                                        @else
+                                        <a href="{{ENV('APP_URL')}}notify">
+                                            <img id="notifyMe-{{ $productList['varient_id'] }}" data-notified="1"
+                                                src="{{ asset('assets/images/notification-fill.png') }}" alt="wishlist"
+                                                style="max-width: 25px;">
+                                        </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url('product-details') }}/{{ Str::slug($productList['product_name']) }}/{{ trim($productList['product_id']) }}">
+                                <div class="product-img">
+                                    <img class="img-fluid" src="{{$productList['product_image']}}" alt="product">
+                                </div>
+                            </a>
+                            <div class="product-body notify_box">
+                                <div class="product-body">
+                                    <div class="product_name">{{ trim($productList['product_name']) }}</div>
                                     <div class="product_weight"><span>{{$productList['quantity']}}
                                             {{$productList['unit']}}</span></div>
                                 </div>
-                            </a>
-                            
-                            <div class="product-footer">
-                                <div class="product_detail">
-                                    <p class="offer-price ">AED
-                                        <span class="value">{{number_format($productList['price'], 2)}}</span>
-                                    </p>
-                                    @if ($productList['price'] != $productList['mrp'])
-                                    <p class="regular-price">AED
-                                        <span>{{number_format($productList['mrp'], 2)}}</span>
-                                    </p>
+                                <div class="product_unavailable">
+                                    <div class="product_unavailable_title">Product Unavailable</div>
+                                    @if(($productList['notify_me'] ?? 'false') == "true")
+                                    <p>You will be notified.</p>
+                                    @else
+                                    <p>Click on the bell to get notified.</p>
                                     @endif
                                 </div>
                             </div>
-                            
                         </div>
                     </div>
+                    @endif
                     @endforeach
                 </div>
 

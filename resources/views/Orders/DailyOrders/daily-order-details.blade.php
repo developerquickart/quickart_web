@@ -357,7 +357,7 @@
                                     <div class="col-12">
                                         <ul class="order_details_list payment">
                                             <li style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-                                                <span>Amount to be Paid:</span>
+                                                <span>Amount paid:</span>
                                                 <span><strong>AED
                                                     @if($dailyOrderDetailsList['data']['order_type'] == 'trail')
                                                     {{number_format($dailyOrderDetailsList['data']['total_price'], 2)}}
