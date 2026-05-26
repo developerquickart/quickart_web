@@ -466,6 +466,7 @@
                                 <div class="cart_btn" data-product-id="{{ trim($productList['product_id']) }}" data-productdetail='@json($relatedProduct)'>
                                     <div class="qtyBox" data-varient-id="{{ trim($productList['varient_id']) }}">
                                         <button class="qty-btn qty-btn-minus change-qty" type="button"
+                                            data-varient-id="{{ trim($productList['varient_id']) }}"
                                             data-productDetail='@json($relatedProduct)'
                                             data-change="-1">-</button>
                                         <input type="text" name="qty"
@@ -474,6 +475,7 @@
                                         <input type="hidden" name="stock"
                                             value="{{ trim($productList['stock']) }}">
                                         <button class="qty-btn qty-btn-plus change-qty" type="button"
+                                            data-varient-id="{{ trim($productList['varient_id']) }}"
                                             data-productDetail='@json($relatedProduct)'
                                             data-change="1">+</button>
                                     </div>

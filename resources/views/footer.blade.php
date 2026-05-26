@@ -412,19 +412,44 @@
 <script>
     // Object to track added products
     var addedProducts = {};
+
+    function readProductDetail($btn) {
+        var raw = $btn.attr('data-productdetail');
+        if (raw == null) {
+            raw = $btn.attr('data-productDetail');
+        }
+        if (raw == null) {
+            var cached = $btn.data('productdetail');
+            if (cached != null) {
+                return typeof cached === 'object' ? cached : JSON.parse(cached);
+            }
+            return null;
+        }
+        return JSON.parse(raw);
+    }
+
+    function writeProductDetail($el, productDetail) {
+        var json = JSON.stringify(productDetail);
+        $el.attr('data-productdetail', json);
+    }
     
-    jQuery(document).on('click', '.change-qty', function() {
+    jQuery(document).on('click', '.change-qty', function(e) {
         var $btn = jQuery(this);
-        var change = parseInt($btn.data('change'));
+        var change = parseInt($btn.data('change'), 10);
+        if (isNaN(change)) {
+            return;
+        }
         var $qtyBox = $btn.closest('.qtyBox');
+        if (!$qtyBox.length) {
+            return;
+        }
         var $qtyInput = $qtyBox.find('.input-qty');
-        var productDetail = $btn.attr('data-productDetail');
-        var screenName = $btn.attr('data-screen-name');
+        var productDetail = readProductDetail($btn);
+        var screenName = $btn.attr('data-screen-name') || $btn.attr('data-screen_name') || '';
         var varients = [];
         var features = [];
 
         if (productDetail) {
-            productDetail = JSON.parse(productDetail);
             varients = productDetail.varients || [];
             features = productDetail.features || [];
         } else {
@@ -451,7 +476,8 @@
             var varientId = varients[0].varient_id;
 
             // Always get the *live* input value
-            var currentQty = parseInt($qtyInput.val()) || 0;
+            var currentQty = parseInt($qtyInput.val(), 10) || 0;
+            var previousQty = currentQty;
             var newQty = currentQty + change;
             if (newQty < 0) newQty = 0;
 
@@ -460,20 +486,21 @@
 
             // Optional: Update productDetail JSON so next click has the latest value
             productDetail.cart_qty = newQty;
-            
-            $btn.attr('data-productDetail', JSON.stringify(productDetail));
+            productDetail.total_cart_qty = newQty;
+            writeProductDetail($btn, productDetail);
             
              if (screenName == "product_detail") {
                  newQty = 1;
              }
             //  console.log('screenName:----------0', newQty,);
             if (change == -1){
-                addToCart(varientId, -1, true, screenName, newQty, "remove", productDetail.product_id, 0);
+                addToCart(varientId, -1, true, screenName, newQty, "remove", productDetail.product_id, 0, $qtyBox, previousQty);
             }else {
-                addToCart(varientId, 1, true, screenName, newQty,"", productDetail.product_id, 0);
+                addToCart(varientId, 1, true, screenName, newQty,"", productDetail.product_id, 0, $qtyBox, previousQty);
             }
         }else{
-            var currentQty = parseInt($qtyInput.val()) || 0;
+            var currentQty = parseInt($qtyInput.val(), 10) || 0;
+            var previousQty = currentQty;
             var newQty = currentQty + change;
             if (newQty < 0) newQty = 0;
 
@@ -482,15 +509,16 @@
 
             // Optional: Update productDetail JSON so next click has the latest value
             productDetail.cart_qty = newQty;
-            
-            $btn.attr('data-productDetail', JSON.stringify(productDetail));
+            productDetail.total_cart_qty = newQty;
+            writeProductDetail($btn, productDetail);
             
             //  console.log('screenName:----------111', newQty,);
+            var featureId = productDetail.product_feature_id || 0;
             if (change == -1){
-                addToCart(productDetail.varient_id, -1, true, screenName, newQty, "remove", productDetail.product_id, productDetail.product_feature_id);
+                addToCart(productDetail.varient_id, -1, true, screenName, newQty, "remove", productDetail.product_id, featureId, $qtyBox, previousQty);
             }else {
             // Call addToCart with updated quantity
-            addToCart(productDetail.varient_id, 1, true, screenName, newQty,"", productDetail.product_id, productDetail.product_feature_id);
+            addToCart(productDetail.varient_id, 1, true, screenName, newQty,"", productDetail.product_id, featureId, $qtyBox, previousQty);
             }
         }
     });
@@ -700,8 +728,8 @@
         const $qtyInput = $btn.siblings('input[name="qty"]'); 
         const stock = parseInt($btn.siblings('input[name="stock"]').val()); 
         const change = parseInt($btn.data('change'));
-        let currentQty = parseInt($qtyInput.val()) || 0;
-
+        let currentQty = parseInt($qtyInput.val(), 10) || 0;
+        const prevQty = currentQty;
         let newQty = currentQty + change;
 
         // Ensure newQty is >= 0 and <= stock
@@ -709,8 +737,6 @@
         if (newQty > stock) newQty = stock;
 
         $qtyInput.val(newQty);
-        
-        
         
         const varientId = $btn.data('varient-id');
          const productID = $btn.data('product-id');
@@ -725,14 +751,16 @@
          console.log('total------1',total);
         allTotalEl.textContent = `AED ${total.toFixed(2)}`;
 
-        addToCart(varientId, change, true, "screenName", $qtyInput.val(),"remove", productID, 0);
+        const $qtyBoxModal = $btn.closest('.qtyBox');
+        addToCart(varientId, change, true, "screenName", newQty, "remove", productID, 0, $qtyBoxModal, prevQty);
     });
     jQuery(document).on('click', '.varient-btn-plus', function() {
         const $btn = jQuery(this);
         const $qtyInput = $btn.siblings('input[name="qty"]'); // find the qty input in same box
         const stock = parseInt($btn.siblings('input[name="stock"]').val()); // stock value
         const change = parseInt($btn.data('change')); // -1 or +1
-        let currentQty = parseInt($qtyInput.val()) || 0;
+        let currentQty = parseInt($qtyInput.val(), 10) || 0;
+        const prevQty = currentQty;
 
         // Update quantity
         let newQty = currentQty + 1;
@@ -760,20 +788,56 @@
 
         var screenName = jQuery(this).data('screen');
         // console.log('qty-btn-plus------1',$qtyInput.val());
-        addToCart(varientId, change, true, "screenName", $qtyInput.val(),"", productID, 0);
+        const $qtyBoxModal = $btn.closest('.qtyBox');
+        addToCart(varientId, change, true, "screenName", newQty, "", productID, 0, $qtyBoxModal, prevQty);
     });
 
 
 
 //Update Cart qty...G1
-function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, productId='', cartFeatureID='') {
-           
-    var stock = parseInt(jQuery('.qtyBox[data-varient-id="' + varientId + '"] #stock').val());
-    // console.log(stock);
-    var removeButton = jQuery('.qty-btn-minus[data-varient-id="' + varientId + '"]');
-    var addButton = jQuery('.qty-btn-plus[data-varient-id="' + varientId + '"]');
-    var qtyBox = jQuery('.qtyBox[data-varient-id="' + varientId + '"] .input-qty');
-    const qtyInput = jQuery('.qtyBox[data-varient-id="' + varientId + '"] .input-qty');
+function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, productId='', cartFeatureID='', $activeQtyBox, previousQty) {
+    $activeQtyBox = $activeQtyBox && $activeQtyBox.length ? $activeQtyBox : jQuery('.qtyBox[data-varient-id="' + varientId + '"]').first();
+    var stock = parseInt($activeQtyBox.find('input[name="stock"]').val(), 10);
+    if (isNaN(stock)) {
+        stock = parseInt(jQuery('.qtyBox[data-varient-id="' + varientId + '"] input[name="stock"]').first().val(), 10) || 0;
+    }
+    var removeButton = $activeQtyBox.find('.qty-btn-minus');
+    var addButton = $activeQtyBox.find('.qty-btn-plus');
+    var qtyInput = $activeQtyBox.find('.input-qty');
+    newQTY = parseInt(newQTY, 10);
+    if (isNaN(newQTY)) {
+        newQTY = 0;
+    }
+    previousQty = parseInt(previousQty, 10);
+    if (isNaN(previousQty)) {
+        previousQty = parseInt(qtyInput.val(), 10) || 0;
+    }
+
+    function revertQtyInput() {
+        qtyInput.val(previousQty);
+    }
+
+    function applyCartBadges(cartCount) {
+        var cc = (cartCount && typeof cartCount === 'object') ? cartCount : {};
+        var dailyCartCount = parseInt(cc.dailycartCount, 10) || 0;
+        var subscriptionCartCount = parseInt(cc.subscriptioncartCount, 10) || 0;
+        if (addedRemove === 'remove') {
+            var badgeEl = document.querySelector('[data-sticky-cart-badge]');
+            var prevBadge = badgeEl ? (parseInt(badgeEl.textContent, 10) || 0) : 0;
+            if (dailyCartCount >= prevBadge && prevBadge > 0 && newQTY < previousQty) {
+                dailyCartCount = prevBadge - 1;
+            }
+        }
+        var totalCartCount = dailyCartCount + subscriptionCartCount;
+        jQuery('.cart-value').text(totalCartCount);
+        if (typeof window.setStickyDailyCartBadge === 'function') {
+            window.setStickyDailyCartBadge(dailyCartCount);
+        }
+        var totalPrice = (parseFloat(cc.dailytotalPrice) || 0) + (parseFloat(cc.subscriptiontotalPrice) || 0);
+        var savedAmount = (parseFloat(cc.dailydiscountOnMrp) || 0) + (parseFloat(cc.subscriptiondiscountOnMrp) || 0);
+        jQuery('.countText').text(totalCartCount + ' items | AED ' + totalPrice.toFixed(2));
+        jQuery('.saveText').html('You have saved <span>AED ' + savedAmount.toFixed(2) + '</span> on your order');
+    }
     if (newQTY < 0) {
         newQTY = 0; 
     }
@@ -788,7 +852,7 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
             addButton.prop('disabled', true).html('<span class="loader"></span>');
             removeButton.prop('disabled', true);
             console.log(newQTY,stock);
-            $(qtyBox).val(newQTY-1);
+            qtyInput.val(Math.max(newQTY - 1, 0));
             addButton.prop('disabled', true);
             removeButton.prop('disabled', true);
             return false; 
@@ -845,53 +909,33 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                             let productUpdated = false;
 
                             if (variants.length > 0) {
-                            const variant = variants.find(v => parseInt(v.varient_id) === parseInt(varientId));
+                            const variant = variants.find(v => parseInt(v.varient_id, 10) === parseInt(varientId, 10));
                             if (variant) {
-                                // Update cart qty based on action
-                                if (addedRemove === 'remove') {
-                                    variant.cart_qty = Math.max((parseInt(variant.cart_qty, 10) || 0) - 1, 0);
-                                } else {
-                                    variant.cart_qty = (parseInt(variant.cart_qty, 10) || 0) + 1;
-                                }
-                                // Update the correct variant inside the array
+                                variant.cart_qty = newQTY;
                                 const updatedVarients = variants.map(v =>
-                                    parseInt(v.varient_id) === parseInt(varientId) ? variant : v
+                                    parseInt(v.varient_id, 10) === parseInt(varientId, 10) ? variant : v
                                 );
-                                // Recalculate total_cart_qty from all variants
                                 const totalQty = updatedVarients.reduce((sum, v) => sum + (parseInt(v.cart_qty, 10) || 0), 0);
                                 productDetail.total_cart_qty = totalQty;
-                                 $mainCard.find('.input-qty').val(totalQty);
-
-
+                                $mainCard.find('.input-qty').val(totalQty);
                                 productDetail.varients = updatedVarients;
                                 productUpdated = true;
                             }
                             } else if (productDetail.varient_id != null && parseInt(productDetail.varient_id, 10) === parseInt(varientId, 10)) {
-                                let cartQty = parseInt(productDetail.cart_qty, 10);
-                                if (isNaN(cartQty)) {
-                                    cartQty = parseInt(productDetail.total_cart_qty, 10) || 0;
-                                }
-                                if (addedRemove === 'remove') {
-                                    cartQty = Math.max(cartQty - 1, 0);
-                                } else {
-                                    cartQty = cartQty + 1;
-                                }
-                                productDetail.cart_qty = cartQty;
-                                productDetail.total_cart_qty = cartQty;
-                                $mainCard.find('.input-qty').val(cartQty);
+                                productDetail.cart_qty = newQTY;
+                                productDetail.total_cart_qty = newQTY;
+                                $mainCard.find('.input-qty').val(newQTY);
                                 productUpdated = true;
                             }
 
                             if (productUpdated) {
-                                // Save the updated JSON back to the element
                                 $mainCard.attr('data-productdetail', JSON.stringify(productDetail));
-                                // Also update data on both +/- buttons inside this card
                                 $mainCard.find('.change-qty').each(function () {
-                                    jQuery(this).attr('data-productdetail', JSON.stringify(productDetail));
+                                    writeProductDetail(jQuery(this), productDetail);
                                 });
                                 const $mainCardn = jQuery(`.product[data-product-id="${productId}"]`);
                                 $mainCardn.find('.change-qty').each(function () {
-                                    jQuery(this).attr('data-productdetail', JSON.stringify(productDetail));
+                                    writeProductDetail(jQuery(this), productDetail);
                                 });
                             }
                         }
@@ -899,67 +943,61 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                     } catch (cartUiErr) {
                         console.error('Cart card sync failed:', cartUiErr);
                     }
-                    var cc = (result.cart_count && typeof result.cart_count === 'object') ? result.cart_count : {};
-                    var dailyCartCount = parseInt(cc.dailycartCount, 10) || 0;
-                    // console.log(dailyCartCount);
-                    var subscriptionCartCount = parseInt(cc.subscriptioncartCount, 10) || 0;
-                    var totalCartCount = dailyCartCount + subscriptionCartCount;
-                    jQuery('.cart-value').text(totalCartCount);
-                    if (typeof window.setStickyDailyCartBadge === 'function') {
-                        window.setStickyDailyCartBadge(dailyCartCount);
-                    }
-                    var totalPrice = parseFloat(cc.dailytotalPrice) + parseFloat(
-                        cc.subscriptiontotalPrice);
-                    var savedAmount = parseFloat(cc.dailydiscountOnMrp) + parseFloat(
-                        cc.subscriptiondiscountOnMrp);
-                    jQuery('.countText').text(totalCartCount + ' items | AED ' + totalPrice.toFixed(
-                        2));
-                    jQuery('.saveText').html('You have saved <span>AED ' + savedAmount.toFixed(2) +
-                        '</span> on your order');
-                    if(result.data.status == 0){
+                    var apiStatus = result.data ? result.data.status : null;
+                    var apiOk = apiStatus == 1 || apiStatus === '1';
+                    if (apiOk) {
+                        applyCartBadges(result.cart_count);
+                        try {
+                            if (result.data.data) {
+                                if (addedRemove == 'remove') {
+                                    gtag('event', 'remove_to_cartW', {
+                                        currency: 'AED',
+                                        value: result.data.data.price.toFixed(2),
+                                        items: [{
+                                            item_id: varientId,
+                                            item_name: result.data.data.product_name,
+                                            quantity: newQTY,
+                                            price: result.data.data.price.toFixed(2)
+                                        }],
+                                        method: 'cart_button_click',
+                                        page_location: window.location.href,
+                                        debug_mode: false
+                                    });
+                                } else {
+                                    gtag('event', 'add_to_cartW', {
+                                        currency: 'AED',
+                                        value: result.data.data.price.toFixed(2),
+                                        items: [{
+                                            item_id: varientId,
+                                            item_name: result.data.data.product_name,
+                                            quantity: newQTY,
+                                            price: result.data.data.price.toFixed(2)
+                                        }],
+                                        method: 'cart_button_click',
+                                        page_location: window.location.href,
+                                        debug_mode: false
+                                    });
+                                }
+                                fbq('track', 'AddToCart', {
+                                    content_ids: varientId,
+                                    content_name: result.data.data.product_name,
+                                    content_type: 'product',
+                                    value: result.data.data.price.toFixed(2),
+                                    currency: 'AED'
+                                });
+                            }
+                        } catch (trackErr) {
+                            console.error('Cart tracking failed:', trackErr);
+                        }
+                    } else if (result.data && (apiStatus == 0 || apiStatus === '0')) {
+                        revertQtyInput();
                         Swal.fire({
                             icon: 'warning',
                             title: 'Quickart',
-                            text: result.data.message
-                            // text: 'You cannot add more than ' + stock + ' items to the cart.',
+                            text: result.data.message || 'Unable to update cart.'
                         });
-                    }else if(result.data.status == 1){
-                         if (addedRemove == 'remove') {
-                            gtag('event', 'remove_to_cartW', {
-                                currency: 'AED',
-                                value: result.data.data.price.toFixed(2), 
-                                items: [{
-                                    item_id: varientId,
-                                    item_name:  result.data.data.product_name,
-                                    quantity: newQTY,
-                                    price: result.data.data.price.toFixed(2)
-                                }],
-                                method: 'cart_button_click',
-                                page_location: window.location.href,
-                                debug_mode: false // set true if testing in DebugView
-                                });
-                        } else {
-                            gtag('event', 'add_to_cartW', {
-                                currency: 'AED',
-                                value: result.data.data.price.toFixed(2), 
-                                items: [{
-                                    item_id: varientId,
-                                    item_name:  result.data.data.product_name,
-                                    quantity: newQTY,
-                                    price: result.data.data.price.toFixed(2)
-                                }],
-                                method: 'cart_button_click',
-                                page_location: window.location.href,
-                                debug_mode: false // set true if testing in DebugView
-                                });
-                        }
-                        fbq('track', 'AddToCart', {
-                            content_ids: varientId,
-                            content_name: result.data.data.product_name,
-                            content_type: 'product',
-                            value: result.data.data.price.toFixed(2),
-                            currency: 'AED'
-                            });
+                    } else {
+                        applyCartBadges(result.cart_count);
                     }
                     // console.log('✅ UscreenN-----ame'  , screenName);
                     if (screenName == "cart" || screenName == "product_detail") {
@@ -967,11 +1005,13 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                     }
                     
                 } else {
+                    revertQtyInput();
                     alert(result.message); // Show error message
                 }
             },
             error: function(xhr, status, error) {
                 console.error("Error:", status, error);
+                revertQtyInput();
                // alert("An error occurred: " + error); // Show error alert
             }
         }).always(function() {
