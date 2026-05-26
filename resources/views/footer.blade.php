@@ -833,6 +833,7 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                 // console.log('screenName:----------2', screenName);
                 if (result.success) {
                 //    var currentQty = parseInt($('#totalCartQTY').val()) || 0;
+                    try {
                     const $mainCard = jQuery(`.cart_btn[data-product-id="${productId}"]`);
                     if ($mainCard.length && screenName != "cart" ) {
                         let productDetail = $mainCard.data('productdetail');
@@ -840,25 +841,48 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                             if (typeof productDetail === "string") {
                                 productDetail = JSON.parse(productDetail);
                             }
-                            const variant = productDetail.varients.find(v => parseInt(v.varient_id) === parseInt(varientId));
+                            const variants = Array.isArray(productDetail.varients) ? productDetail.varients : [];
+                            let productUpdated = false;
+
+                            if (variants.length > 0) {
+                            const variant = variants.find(v => parseInt(v.varient_id) === parseInt(varientId));
                             if (variant) {
                                 // Update cart qty based on action
                                 if (addedRemove === 'remove') {
-                                    variant.cart_qty = Math.max(variant.cart_qty - 1, 0);
+                                    variant.cart_qty = Math.max((parseInt(variant.cart_qty, 10) || 0) - 1, 0);
                                 } else {
-                                    variant.cart_qty = variant.cart_qty + 1;
+                                    variant.cart_qty = (parseInt(variant.cart_qty, 10) || 0) + 1;
                                 }
                                 // Update the correct variant inside the array
-                                const updatedVarients = productDetail.varients.map(v =>
+                                const updatedVarients = variants.map(v =>
                                     parseInt(v.varient_id) === parseInt(varientId) ? variant : v
                                 );
                                 // Recalculate total_cart_qty from all variants
-                                const totalQty = productDetail.varients.reduce((sum, v) => sum + (parseInt(v.cart_qty) || 0), 0);
+                                const totalQty = updatedVarients.reduce((sum, v) => sum + (parseInt(v.cart_qty, 10) || 0), 0);
                                 productDetail.total_cart_qty = totalQty;
-                                 $mainCard.find('#totalCartQTY').val(totalQty);
+                                 $mainCard.find('.input-qty').val(totalQty);
 
 
                                 productDetail.varients = updatedVarients;
+                                productUpdated = true;
+                            }
+                            } else if (productDetail.varient_id != null && parseInt(productDetail.varient_id, 10) === parseInt(varientId, 10)) {
+                                let cartQty = parseInt(productDetail.cart_qty, 10);
+                                if (isNaN(cartQty)) {
+                                    cartQty = parseInt(productDetail.total_cart_qty, 10) || 0;
+                                }
+                                if (addedRemove === 'remove') {
+                                    cartQty = Math.max(cartQty - 1, 0);
+                                } else {
+                                    cartQty = cartQty + 1;
+                                }
+                                productDetail.cart_qty = cartQty;
+                                productDetail.total_cart_qty = cartQty;
+                                $mainCard.find('.input-qty').val(cartQty);
+                                productUpdated = true;
+                            }
+
+                            if (productUpdated) {
                                 // Save the updated JSON back to the element
                                 $mainCard.attr('data-productdetail', JSON.stringify(productDetail));
                                 // Also update data on both +/- buttons inside this card
@@ -869,11 +893,11 @@ function addToCart(varientId,change,isLogin,screenName='', newQTY, addedRemove, 
                                 $mainCardn.find('.change-qty').each(function () {
                                     jQuery(this).attr('data-productdetail', JSON.stringify(productDetail));
                                 });
-                                
-                                // console.log('✅ Updated main productDetail JSON:', $mainCardn);
-                                // console.log('✅ Updated main productDetail JSON:', productDetail);
                             }
                         }
+                    }
+                    } catch (cartUiErr) {
+                        console.error('Cart card sync failed:', cartUiErr);
                     }
                     var cc = (result.cart_count && typeof result.cart_count === 'object') ? result.cart_count : {};
                     var dailyCartCount = parseInt(cc.dailycartCount, 10) || 0;

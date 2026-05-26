@@ -372,9 +372,33 @@
                 </div>
                 <div class="owl-carousel owl-carousel-featured">
                     @foreach($getProductDetail['similar_product'] as $productList)
+                    @php
+                        $relatedProduct = $productList;
+                        if (empty($relatedProduct['varients']) || !is_array($relatedProduct['varients'])) {
+                            $relatedProduct['varients'] = [[
+                                'stock' => $relatedProduct['stock'] ?? 0,
+                                'varient_id' => $relatedProduct['varient_id'],
+                                'product_id' => $relatedProduct['product_id'],
+                                'product_name' => $relatedProduct['product_name'],
+                                'product_image' => $relatedProduct['product_image'] ?? '',
+                                'price' => $relatedProduct['price'] ?? 0,
+                                'mrp' => $relatedProduct['mrp'] ?? 0,
+                                'unit' => $relatedProduct['unit'] ?? '',
+                                'quantity' => $relatedProduct['quantity'] ?? '',
+                                'discountper' => $relatedProduct['discountper'] ?? 0,
+                                'notify_me' => $relatedProduct['notify_me'] ?? 'false',
+                                'isFavourite' => $relatedProduct['isFavourite'] ?? 'false',
+                                'cart_qty' => $relatedProduct['cart_qty'] ?? $relatedProduct['total_cart_qty'] ?? 0,
+                                'product_feature_id' => 0,
+                            ]];
+                        }
+                        if (empty($relatedProduct['features']) || !is_array($relatedProduct['features'])) {
+                            $relatedProduct['features'] = [];
+                        }
+                    @endphp
                     @if(trim($productList['stock'] ?? '') != '0')
                     <div class="item">
-                        <div class="product" data-productDetail='@json($productList)' data-product-id="{{ trim($productList['product_id']) }}">
+                        <div class="product" data-productDetail='@json($relatedProduct)' data-product-id="{{ trim($productList['product_id']) }}">
                             <div class="product_header">
                                 <div class="product_top_left">
                                     @if($productList['discountper'] > 0)
@@ -420,8 +444,8 @@
                                 <span>
                                     {{ trim($productList['quantity'] ?? '') }} {{ trim($productList['unit'] ?? '') }}
                                 </span>
-                                @if(isset($productList['varients']) && count($productList['varients']) > 1)
-                                <div class="change-qty" data-productDetail='@json($productList)' data-product-id="{{ trim($productList['product_id']) }}">
+                                @if(isset($relatedProduct['varients']) && count($relatedProduct['varients']) > 1)
+                                <div class="change-qty" data-productDetail='@json($relatedProduct)' data-product-id="{{ trim($productList['product_id']) }}">
                                     <span style="color: #2e317e; font-weight: 500; display: flex; align-items: center; gap: 4px;">
                                         {{ count($productList['varients']) }} options
                                         <img class="varient-down-arrow" src="{{ asset('assets/images/chevron.svg') }}" alt="down-arrow" style="width: 12px; height: 12px;">
@@ -439,18 +463,18 @@
                                         @endif
                                     </p>
                                 </div>
-                                <div class="cart_btn" data-product-id="{{ trim($productList['product_id']) }}" data-productdetail='@json($productList)'>
+                                <div class="cart_btn" data-product-id="{{ trim($productList['product_id']) }}" data-productdetail='@json($relatedProduct)'>
                                     <div class="qtyBox" data-varient-id="{{ trim($productList['varient_id']) }}">
                                         <button class="qty-btn qty-btn-minus change-qty" type="button"
-                                            data-productDetail='@json($productList)'
+                                            data-productDetail='@json($relatedProduct)'
                                             data-change="-1">-</button>
                                         <input type="text" name="qty"
-                                            value="{{ trim($productList['total_cart_qty'] ?? 0) }}" id="totalCartQTY"
+                                            value="{{ trim($productList['total_cart_qty'] ?? 0) }}"
                                             class="input-qty input-rounded" min="0">
-                                        <input type="hidden" name="stock" id="stock"
+                                        <input type="hidden" name="stock"
                                             value="{{ trim($productList['stock']) }}">
                                         <button class="qty-btn qty-btn-plus change-qty" type="button"
-                                            data-productDetail='@json($productList)'
+                                            data-productDetail='@json($relatedProduct)'
                                             data-change="1">+</button>
                                     </div>
                                 </div>
