@@ -72,6 +72,11 @@
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        width: fit-content;
+                        margin: 0 auto;
+                        padding: 0 3px;
+                        background: #fff;
+                        border-radius: 999px;
                     }
                     .order_track_listBox .track_status {
                         margin-top: 6px;
@@ -136,6 +141,11 @@
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        width: fit-content;
+                        margin: 0 auto;
+                        padding: 0 3px;
+                        background: #fff;
+                        border-radius: 999px;
                     }
                     .order_track_listBox .track_status {
                         margin-top: 6px;
