@@ -105,6 +105,55 @@
                     </div>
                 </div>
                 @endif
+                <style>
+                    /* Always-on order track layout (independent of delivery map block). */
+                    .order_track_listBox {
+                        display: grid;
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                        column-gap: 0;
+                    }
+                    .order_track_listBox .track_step {
+                        position: relative;
+                        min-width: 0;
+                        text-align: center;
+                    }
+                    .order_track_listBox .track_step:not(:last-child)::after {
+                        content: "";
+                        position: absolute;
+                        top: 12px;
+                        left: 50%;
+                        width: 100%;
+                        height: 4px;
+                        background: #EBECF5;
+                        z-index: 0;
+                    }
+                    .order_track_listBox .track_step.track_select:not(:last-child)::after {
+                        background: var(--green-color);
+                    }
+                    .order_track_listBox .track_list_check {
+                        position: relative;
+                        z-index: 1;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    .order_track_listBox .track_status {
+                        margin-top: 6px;
+                        text-align: center;
+                        font-size: 12px;
+                        line-height: 1.25;
+                        white-space: normal;
+                        word-break: break-word;
+                    }
+                    @media (max-width: 576px) {
+                        .order_track_listBox .track_list_check img {
+                            max-height: 24px;
+                        }
+                        .order_track_listBox .track_status {
+                            font-size: 11px;
+                        }
+                    }
+                </style>
                 
                 <?php
                 // echo "<pre>";
