@@ -42,48 +42,50 @@
                         height: 220px;
                         min-height: 200px;
                     }
-                    /* Keep order-track icons and labels aligned on all mobile widths. */
-                    .order_track_listBox .track_list {
-                        display: flex;
-                        align-items: center;
+                    /* Single-grid track: icon + label in same cell to prevent mobile misalignment. */
+                    .order_track_listBox {
+                        display: grid;
+                        grid-template-columns: repeat(4, minmax(0, 1fr));
+                        column-gap: 0;
+                    }
+                    .order_track_listBox .track_step {
+                        position: relative;
+                        min-width: 0;
+                        text-align: center;
+                    }
+                    .order_track_listBox .track_step:not(:last-child)::after {
+                        content: "";
+                        position: absolute;
+                        top: 12px;
+                        left: 50%;
                         width: 100%;
+                        height: 4px;
+                        background: #EBECF5;
+                        z-index: 0;
+                    }
+                    .order_track_listBox .track_step.track_select:not(:last-child)::after {
+                        background: var(--green-color);
                     }
                     .order_track_listBox .track_list_check {
-                        width: 10%;
+                        position: relative;
+                        z-index: 1;
                         display: flex;
                         justify-content: center;
+                        align-items: center;
                     }
-                    .order_track_listBox .track_list_sept {
-                        width: 20%;
-                        flex: 0 0 20%;
-                    }
-                    .order_track_listBox .track_list.status_list {
-                        display: grid;
-                        /* Match the underlying flex layout widths: check(10%) + sept(20%) + ... = 10/20/10/20/10/20/10 */
-                        grid-template-columns: 10% 20% 10% 20% 10% 20% 10%;
-                        gap: 0;
-                        margin-top: 8px;
-                        align-items: start;
-                        justify-items: center;
-                    }
-                    .order_track_listBox .track_list.status_list .track_status {
-                        width: 100%;
-                        margin: 0 !important;
+                    .order_track_listBox .track_status {
+                        margin-top: 6px;
                         text-align: center;
                         font-size: 12px;
                         line-height: 1.25;
+                        white-space: normal;
                         word-break: break-word;
                     }
-                    /* Place each label under its corresponding check icon column. */
-                    .order_track_listBox .track_list.status_list .track_status.list1 { grid-column: 1 !important; }
-                    .order_track_listBox .track_list.status_list .track_status.list2 { grid-column: 3 !important; }
-                    .order_track_listBox .track_list.status_list .track_status.list3 { grid-column: 5 !important; }
-                    .order_track_listBox .track_list.status_list .track_status.list4 { grid-column: 7 !important; }
                     @media (max-width: 576px) {
                         .order_track_listBox .track_list_check img {
                             max-height: 24px;
                         }
-                        .order_track_listBox .track_list.status_list .track_status {
+                        .order_track_listBox .track_status {
                             font-size: 11px;
                         }
                     }
@@ -174,20 +176,11 @@
                                     @endphp
 
                                     <div class="order_track_listBox">
-                                        <div class="track_list">
-                                            @foreach ($statusFlow as $index => $status)
-                                            <div
-                                                class="track_list_check {{ $index <= $currentStatusIndex ? 'track_select' : '' }}">
-                                                <img src="{{ asset('assets/images/check.png') }}" alt="Check"
-                                                    class="img-fluid">
+                                        @foreach ($statusFlow as $index => $status)
+                                        <div class="track_step {{ $index <= $currentStatusIndex ? 'track_select' : '' }}">
+                                            <div class="track_list_check {{ $index <= $currentStatusIndex ? 'track_select' : '' }}">
+                                                <img src="{{ asset('assets/images/check.png') }}" alt="Check" class="img-fluid">
                                             </div>
-                                            @if ($index < count($statusFlow) - 1) 
-                                            <div class="track_list_sept {{ $index < $currentStatusIndex ? 'track_select' : '' }}"> </div>
-                                            @endif
-                                            @endforeach
-                                         </div>
-                                        <div class="track_list status_list">
-                                            @foreach ($statusFlow as $index => $status)
                                             <div class="track_status list{{ $index + 1 }}" @if($currentStatusIndex == $index) style="color: green;" @endif>
                                                 @if($status == "Out_For_Delivery")
                                                 Out For Delivery
@@ -197,8 +190,8 @@
                                                 {{ $status }}
                                                 @endif
                                             </div>
-                                            @endforeach
                                         </div>
+                                        @endforeach
                                     </div>
                                     @endif
                                     
