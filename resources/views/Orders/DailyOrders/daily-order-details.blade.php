@@ -59,18 +59,26 @@
                     }
                     .order_track_listBox .track_list.status_list {
                         display: grid;
-                        grid-template-columns: repeat(4, minmax(0, 1fr));
-                        gap: 6px;
+                        /* Match the underlying flex layout widths: check(10%) + sept(20%) + ... = 10/20/10/20/10/20/10 */
+                        grid-template-columns: 10% 20% 10% 20% 10% 20% 10%;
+                        gap: 0;
                         margin-top: 8px;
+                        align-items: start;
+                        justify-items: center;
                     }
                     .order_track_listBox .track_list.status_list .track_status {
-                        width: auto;
+                        width: 100%;
                         margin: 0 !important;
                         text-align: center;
                         font-size: 12px;
                         line-height: 1.25;
                         word-break: break-word;
                     }
+                    /* Place each label under its corresponding check icon column. */
+                    .order_track_listBox .track_list.status_list .track_status.list1 { grid-column: 1 !important; }
+                    .order_track_listBox .track_list.status_list .track_status.list2 { grid-column: 3 !important; }
+                    .order_track_listBox .track_list.status_list .track_status.list3 { grid-column: 5 !important; }
+                    .order_track_listBox .track_list.status_list .track_status.list4 { grid-column: 7 !important; }
                     @media (max-width: 576px) {
                         .order_track_listBox .track_list_check img {
                             max-height: 24px;
