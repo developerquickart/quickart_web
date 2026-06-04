@@ -159,9 +159,16 @@
                         @if ($getProductDetail['detail']['availability'] == "all" ||
                             $getProductDetail['detail']['availability'] == "quick")
                           <div class="cart_btnBox">
+                            <div class="qtyBox product-detail-qtyBox"
+                                 data-varient-id="{{ $getProductDetail['detail']['varient_id'] }}"
+                                 style="display:none;">
+                              <input type="hidden" name="stock"
+                                     value="{{ $getProductDetail['detail']['varients'][0]['stock'] }}">
+                              <input type="text" name="qty" value="0" class="input-qty input-rounded" min="0">
+                            </div>
                             @if ($getProductDetail['detail']['total_cart_qty'] == 0)
                               @if ($getProductDetail['detail']['is_offer_product'] == false)
-                                <div class="cart_btn add_cart_btn change-qty" data-productDetail='@json($getProductDetail['detail'])'
+                                <div class="cart_btn add_cart_btn" data-productDetail='@json($getProductDetail['detail'])'
                                      data-screen-name='product_detail'
                                      data-varient-id="{{ $getProductDetail['detail']['varient_id'] }}"
                                      data-product-id="{{ $getProductDetail['detail']['product_id'] }}">
@@ -1052,6 +1059,18 @@ function selectedVarientUnit(productDetail, varientId, el) {
     if (buttonBox) buttonBox.style.display = "none";
     if (stockSection) stockSection.style.display = "block";
   }
+
+  const qtyBox = document.querySelector('.product-detail-qtyBox');
+  if (qtyBox) {
+    qtyBox.setAttribute('data-varient-id', selectedVariant.varient_id);
+    const stockInput = qtyBox.querySelector('input[name="stock"]');
+    if (stockInput) stockInput.value = selectedVariant.stock;
+  }
+
+  const addCartBtn = document.querySelector('.add_cart_btn');
+  if (addCartBtn) {
+    addCartBtn.setAttribute('data-varient-id', selectedVariant.varient_id);
+  }
 }
 
 </script>
@@ -1432,23 +1451,60 @@ function disableSpecificDays(productString) {
 <!-- Add to cart api call...G1 -->
 <script>
 
-jQuery(document).on('click', '.add_cart_btn', function() {
-    if(currentUserID == ''){
-         pendingProductId = jQuery(this).data('varient-id');
-         action = 'addToCart';
-         console.log(pendingProductId);
-        $('#login').modal('show');
-    }else{
-        console.log('change-qty else');
-        var varientId = jQuery(this).data('varient-id');
-        var product_id = jQuery(this).data('product-id');
-        var change = 1;
-        var isLogin =false;
-        var screenName = 'product_detail';
-        // addToCart(varientId,change,isLogin,screenName);
-        // addToCart(varientId, change, true, screenName, 1, "", product_id);
+jQuery(document).on('click', '.add_cart_btn', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
 
+    var $btn = jQuery(this);
+
+    if (currentUserID == '') {
+        pendingProductId = $btn.data('varient-id');
+        action = 'addToCart';
+        $('#login').modal('show');
+        return;
     }
+
+    var productDetail = readProductDetail($btn);
+    if (!productDetail) {
+        console.error('productDetail not found');
+        return;
+    }
+
+    var varients = productDetail.varients || [];
+    var features = productDetail.features || [];
+    var screenName = $btn.attr('data-screen-name') || 'product_detail';
+    var product_id = $btn.data('product-id') || productDetail.product_id;
+
+    if (features.length >= 1) {
+        openVariantSelectionModal(productDetail, screenName);
+        return;
+    }
+
+    var varientId;
+    var stock = 0;
+    var activeUnits = document.querySelectorAll('.varient_unit');
+    var activeIndex = Array.prototype.findIndex.call(activeUnits, function(el) {
+        return el.classList.contains('active');
+    });
+
+    if (activeIndex >= 0 && varients[activeIndex]) {
+        varientId = varients[activeIndex].varient_id;
+        stock = parseInt(varients[activeIndex].stock, 10) || 0;
+    } else if (varients.length >= 1) {
+        varientId = varients[0].varient_id;
+        stock = parseInt(varients[0].stock, 10) || 0;
+    } else {
+        varientId = $btn.data('varient-id');
+        stock = parseInt(productDetail.stock, 10) || 0;
+    }
+
+    var $qtyBox = jQuery('.product-detail-qtyBox');
+    if ($qtyBox.length) {
+        $qtyBox.attr('data-varient-id', varientId);
+        $qtyBox.find('input[name="stock"]').val(stock);
+    }
+
+    addToCart(varientId, 1, true, screenName, 1, '', product_id, 0, $qtyBox, 0);
 });
 
 jQuery(document).on('click', '.add_sub_cart_btn', function() {
