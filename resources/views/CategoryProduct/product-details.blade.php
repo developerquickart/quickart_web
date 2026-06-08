@@ -160,26 +160,32 @@
                             $getProductDetail['detail']['availability'] == "quick")
                           <div class="cart_btnBox">
                             <div class="qtyBox product-detail-qtyBox"
-                                 data-varient-id="{{ $getProductDetail['detail']['varient_id'] }}"
+                                 data-varient-id="{{ $getProductDetail['detail']['varients'][0]['varient_id'] }}"
                                  style="display:none;">
                               <input type="hidden" name="stock"
                                      value="{{ $getProductDetail['detail']['varients'][0]['stock'] }}">
-                              <input type="text" name="qty" value="0" class="input-qty input-rounded" min="0">
+                              <input type="text" name="qty"
+                                     value="{{ (int) ($getProductDetail['detail']['varients'][0]['cart_qty'] ?? 0) }}"
+                                     class="input-qty input-rounded" min="0">
                             </div>
-                            @if ($getProductDetail['detail']['total_cart_qty'] == 0)
-                              @if ($getProductDetail['detail']['is_offer_product'] == false)
+                            @if ($getProductDetail['detail']['is_offer_product'] == false)
+                              @php
+                                $firstVariantCartQty = (int) ($getProductDetail['detail']['varients'][0]['cart_qty'] ?? 0);
+                              @endphp
+                              <div class="detail-add-cart-wrap" style="display: {{ $firstVariantCartQty == 0 ? 'block' : 'none' }};">
                                 <div class="cart_btn add_cart_btn" data-productDetail='@json($getProductDetail['detail'])'
                                      data-screen-name='product_detail'
-                                     data-varient-id="{{ $getProductDetail['detail']['varient_id'] }}"
+                                     data-varient-id="{{ $getProductDetail['detail']['varients'][0]['varient_id'] }}"
                                      data-product-id="{{ $getProductDetail['detail']['product_id'] }}">
                                   ADD TO CART
                                 </div>
-                              @endif    
-                            @else
-                              <div class="detail-qtyBox">
-                                <div class="cart_btn"
-                                     onclick="navigateToNextPage('{{ env('APP_URL') }}cart?tab=1', '1')">
-                                  GO TO CART
+                              </div>
+                              <div class="detail-go-cart-wrap" style="display: {{ $firstVariantCartQty > 0 ? 'block' : 'none' }};">
+                                <div class="detail-qtyBox">
+                                  <div class="cart_btn"
+                                       onclick="navigateToNextPage('{{ env('APP_URL') }}cart?tab=1', '1')">
+                                    GO TO CART
+                                  </div>
                                 </div>
                               </div>
                             @endif
@@ -1003,6 +1009,25 @@
 
 <!--- Set varient data in selection...G1 -->
 <script>
+function updateProductDetailCartButton(selectedVariant) {
+  const addWrap = document.querySelector('.detail-add-cart-wrap');
+  const goWrap = document.querySelector('.detail-go-cart-wrap');
+  const cartQty = parseInt(selectedVariant.cart_qty, 10) || 0;
+
+  if (addWrap && goWrap) {
+    addWrap.style.display = cartQty > 0 ? 'none' : 'block';
+    goWrap.style.display = cartQty > 0 ? 'block' : 'none';
+  }
+
+  const qtyBox = document.querySelector('.product-detail-qtyBox');
+  if (qtyBox) {
+    const qtyInput = qtyBox.querySelector('.input-qty');
+    if (qtyInput) {
+      qtyInput.value = cartQty;
+    }
+  }
+}
+
 function selectedVarientUnit(productDetail, varientId, el) {
     
   document.querySelectorAll('.varient_unit').forEach(box => {
@@ -1011,7 +1036,10 @@ function selectedVarientUnit(productDetail, varientId, el) {
   el.classList.add('active');
 
   const variants = productDetail.varients || [];
-  const selectedVariant = variants.find(v => v.varient_id == varientId)
+  const selectedVariant = variants.find(v => v.varient_id == varientId);
+  if (!selectedVariant) {
+    return;
+  }
 
   const ASSET_URL = "{{ asset('assets/images') }}";
   const wishlistIcon = document.querySelector(".varient-icon");
@@ -1071,6 +1099,8 @@ function selectedVarientUnit(productDetail, varientId, el) {
   if (addCartBtn) {
     addCartBtn.setAttribute('data-varient-id', selectedVariant.varient_id);
   }
+
+  updateProductDetailCartButton(selectedVariant);
 }
 
 </script>
