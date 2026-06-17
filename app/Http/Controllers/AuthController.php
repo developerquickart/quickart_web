@@ -563,7 +563,7 @@ class AuthController extends Controller
                     ST_DWithin(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                        COALESCE(NULLIF(TRIM(del_range::text), '')::double precision, 5) * 1000
+                        COALESCE(NULLIF(TRIM(del_range::text), '')::double precision, 15) * 1000
                     ) AS in_range,
                     ST_Distance(
                         location,
@@ -709,7 +709,7 @@ class AuthController extends Controller
                     ST_DWithin(
                         location,
                         ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography,
-                        COALESCE(NULLIF(TRIM(del_range::text), '')::double precision, 5) * 1000
+                        COALESCE(NULLIF(TRIM(del_range::text), '')::double precision, 15) * 1000
                     ) AS in_range,
                     ST_Distance(
                         location,
