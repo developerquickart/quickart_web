@@ -1777,6 +1777,8 @@
                                                     class="qk-header-address-radio"
                                                     data-lat="{{ $hAddress['lat'] ?? '' }}"
                                                     data-lng="{{ $hAddress['lng'] ?? '' }}"
+                                                    data-house-no="{{ $hAddress['house_no'] ?? '' }}"
+                                                    data-type="{{ $hAddress['type'] ?? 'Address' }}"
                                                     data-name="{{ trim(($hAddress['house_no'] ?? '') . ', ' . ($hAddress['society_name'] ?? '')) }}"
                                                     value="{{ $hAddress['address_id'] ?? '' }}">
                                                 <div>
@@ -2443,6 +2445,111 @@
         let selectedHeaderLat = null;
         let selectedHeaderLng = null;
         let selectedHeaderLocationName = '';
+        let selectedHeaderSavedAddress = null;
+
+        function clearHeaderSavedAddressSelection() {
+            selectedHeaderSavedAddress = null;
+        }
+
+        function setHeaderSavedAddressFromRadio($radio) {
+            if (!$radio || !$radio.length) {
+                return;
+            }
+            var lat = Number($radio.data('lat'));
+            var lng = Number($radio.data('lng'));
+            if (!isFinite(lat) || !isFinite(lng)) {
+                return;
+            }
+            selectedHeaderSavedAddress = {
+                address_id: String($radio.val() || ''),
+                house_no: String($radio.data('house-no') || $radio.data('name') || '').trim(),
+                type: String($radio.data('type') || 'Address').trim(),
+                lat: lat,
+                lng: lng
+            };
+        }
+
+        window.qkPersistDeliveryAddressSelection = function (addressData) {
+            if (!addressData || !addressData.address_id) {
+                return;
+            }
+            try {
+                localStorage.setItem('selectedAddress', JSON.stringify(addressData));
+            } catch (e) {}
+            if (typeof window.saveSelectedAddress === 'function') {
+                window.saveSelectedAddress(addressData);
+            }
+            try {
+                window.dispatchEvent(new CustomEvent('qk-delivery-address-changed', { detail: addressData }));
+            } catch (e) {}
+        };
+
+        function qkIsDailyCartPage() {
+            var path = (window.location.pathname || '').toLowerCase();
+            if (path.indexOf('/cart') === -1) {
+                return false;
+            }
+            var tab = new URLSearchParams(window.location.search || '').get('tab');
+            return tab === '1' || tab === null || tab === '';
+        }
+
+        function qkRedirectCartCurrentLocationToAddAddress(lat, lng) {
+            var tab = new URLSearchParams(window.location.search || '').get('tab') || '1';
+            var params = new URLSearchParams({
+                addedFrom: 'cart',
+                tab: tab,
+                prefill: '1',
+                lat: String(lat),
+                lng: String(lng)
+            });
+            $('#headerLocationSwitchModal').modal('hide');
+            window.location.href = "{{ url('/add-address') }}?" + params.toString();
+        }
+
+        function qkValidateCurrentLocationForCartAddAddress(lat, lng, onSuccess, onFail) {
+            var _token = jQuery('meta[name="csrf-token"]').attr('content');
+            var norm = normalizeLoginCoordsForSubmit(lat, lng, 'qkValidateCurrentLocationForCartAddAddress');
+            if (!norm) {
+                if (typeof onFail === 'function') {
+                    onFail('Invalid coordinates. Please try again.');
+                }
+                return;
+            }
+            $.ajax({
+                url: "{{ route('checkAddressLocationRange') }}",
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: _token,
+                    lat: norm.lat,
+                    lng: norm.lng,
+                    location_name: 'Current location'
+                },
+                success: function (response) {
+                    if (response && response.success && response.in_range === true) {
+                        if (typeof onSuccess === 'function') {
+                            onSuccess(norm.lat, norm.lng);
+                        }
+                        return;
+                    }
+                    var msg = (response && response.message)
+                        ? response.message
+                        : 'please select a location in our servicable area';
+                    if (typeof onFail === 'function') {
+                        onFail(msg);
+                    }
+                },
+                error: function (xhr) {
+                    var msg = 'Unable to validate location. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    if (typeof onFail === 'function') {
+                        onFail(msg);
+                    }
+                }
+            });
+        }
 
         function resetLoginLocationStep() {
             selectedLoginLat = null;
@@ -2812,6 +2919,7 @@
             headerSwitchMap.setCenter({ lat: lat, lng: lng });
             if (!preserveSelectedAddressRadio) {
                 $('.qk-header-address-radio').prop('checked', false);
+                clearHeaderSavedAddressSelection();
             }
         }
 
@@ -2868,6 +2976,13 @@
                     if (response.success && response.in_range === true) {
                         var label = response.location_name || locationName || 'Current location';
                         $('[data-delivery-eta-location]').text(label);
+                        var savedAddress = (opts && opts.saved_address) ? opts.saved_address : selectedHeaderSavedAddress;
+                        if (savedAddress && savedAddress.address_id) {
+                            if (!savedAddress.house_no) {
+                                savedAddress.house_no = label;
+                            }
+                            window.qkPersistDeliveryAddressSelection(savedAddress);
+                        }
                         try {
                             Object.keys(sessionStorage).forEach(function (k) {
                                 if (k.indexOf('qk_delivery_eta_cache:') === 0) {
@@ -3386,6 +3501,7 @@
                 if (!isFinite(lat) || !isFinite(lng)) {
                     return;
                 }
+                setHeaderSavedAddressFromRadio($(this));
                 setHeaderLocationMarker(lat, lng, name, true);
                 setHeaderSelectedSourceLabel('Saved address', name);
             });
@@ -3403,9 +3519,25 @@
                 qkHeaderLocationShowLoader('Fetching current location…');
                 ensureLoginMapLoaded(function () {
                     navigator.geolocation.getCurrentPosition(function (position) {
-                        $btn.data('qk-location-loading', false);
                         var lat = position.coords.latitude;
                         var lng = position.coords.longitude;
+                        if (qkIsDailyCartPage()) {
+                            qkValidateCurrentLocationForCartAddAddress(lat, lng, function (validLat, validLng) {
+                                $btn.data('qk-location-loading', false);
+                                qkHeaderLocationHideLoader();
+                                qkRedirectCartCurrentLocationToAddAddress(validLat, validLng);
+                            }, function (message) {
+                                $btn.data('qk-location-loading', false);
+                                qkHeaderLocationHideLoader();
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Out of range',
+                                    text: message || 'please select a location in our servicable area'
+                                });
+                            });
+                            return;
+                        }
+                        $btn.data('qk-location-loading', false);
                         setHeaderLocationMarker(lat, lng, 'Current location');
                         setHeaderSelectedSourceLabel('Current location', 'Current location');
                         submitHeaderLocationCheck(lat, lng, 'Current location', { reload_on_success: true, show_loader: true });
@@ -3486,7 +3618,18 @@
                     });
                     return;
                 }
-                submitHeaderLocationCheck(selectedHeaderLat, selectedHeaderLng, selectedHeaderLocationName || 'Selected location');
+                var savedAddress = selectedHeaderSavedAddress;
+                var $checkedRadio = $('.qk-header-address-radio:checked');
+                if ((!savedAddress || !savedAddress.address_id) && $checkedRadio.length) {
+                    setHeaderSavedAddressFromRadio($checkedRadio);
+                    savedAddress = selectedHeaderSavedAddress;
+                }
+                submitHeaderLocationCheck(
+                    selectedHeaderLat,
+                    selectedHeaderLng,
+                    selectedHeaderLocationName || 'Selected location',
+                    { saved_address: savedAddress }
+                );
             });
 
             $('.join_waitlist_btn').on('click', function () {

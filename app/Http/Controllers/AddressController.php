@@ -461,8 +461,27 @@ class AddressController extends Controller
         }
 
         if($addedFrom == 'cart'){
-            // Return a response or redirect as needed
-           return redirect('cart?tab='.$tab.'&addedFrom='.$addedFrom);
+            $newAddressId = null;
+            $responseData = $addAddress['data'] ?? null;
+            if (is_array($responseData)) {
+                $newAddressId = $responseData['address_id'] ?? $responseData['id'] ?? null;
+                if ($newAddressId === null && isset($responseData[0]) && is_array($responseData[0])) {
+                    $newAddressId = $responseData[0]['address_id'] ?? $responseData[0]['id'] ?? null;
+                }
+            }
+            if ($newAddressId === null && !empty($addAddress['address_id'])) {
+                $newAddressId = $addAddress['address_id'];
+            }
+
+            session()->flash('qk_cart_selected_address', [
+                'address_id' => $newAddressId,
+                'house_no' => $house_no,
+                'type' => $type,
+                'lat' => $lat,
+                'lng' => $lng,
+            ]);
+
+            return redirect('cart?tab='.$tab.'&addedFrom='.$addedFrom.'&addressSaved=1');
         }else if($addedFrom == 'trailcart'){
             // Return a response or redirect as needed
            return redirect('trial-pack-cart?addedFrom='.$addedFrom);

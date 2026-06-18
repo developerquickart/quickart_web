@@ -2571,7 +2571,7 @@ function qkShowBootstrapModal(modalId) {
 }
 
 // Function to handle selected address
-function saveSelectedAddress(storedAddresses) {
+window.saveSelectedAddress = function saveSelectedAddress(storedAddresses) {
     if (!storedAddresses || typeof storedAddresses !== 'object') {
         return;
     }
@@ -2613,7 +2613,8 @@ function saveSelectedAddress(storedAddresses) {
         }, 250);
     }
     
-}
+};
+
 </script>
 
 <!-- Show card list api call...G1 -->
@@ -4361,15 +4362,29 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     var addedFrom = "{{\Request::get('addedFrom')}}";
+    var addressSaved = "{{\Request::get('addressSaved')}}";
+    var flashedCartAddress = @json(session('qk_cart_selected_address'));
     addressModal.addEventListener("hidden.bs.modal", function() {
         document.body.style.overflow = "";
-        if(addedFrom == 'cart' && !window.__qkCartAddressSelected){
+        if(addedFrom == 'cart' && addressSaved !== '1' && !window.__qkCartAddressSelected){
             window.location.href="{{url('cart?tab='.\Request::get('tab'))}}"
         }
     });
     
     
-    if(addedFrom == 'cart'){
+    if (addressSaved === '1' && flashedCartAddress) {
+        if (flashedCartAddress.address_id && typeof window.saveSelectedAddress === 'function') {
+            window.saveSelectedAddress(flashedCartAddress);
+        } else if (typeof fetchAddressList === 'function') {
+            fetchAddressList();
+            setTimeout(function () {
+                var firstSelectable = document.querySelector('#addressListContainer .addressIcon');
+                if (firstSelectable) {
+                    firstSelectable.click();
+                }
+            }, 800);
+        }
+    } else if(addedFrom == 'cart'){
         qkShowBootstrapModal('addressModal');
         $('.btn_addresslist').trigger('click');
     }
@@ -4380,7 +4395,15 @@ document.addEventListener("DOMContentLoaded", function() {
     let nTitle = @json($title);
     //  console.log("G1------>title",nTitle);
 
-     if (nTitle === 'daily') {
+    var existingSelectedAddress = null;
+    try {
+        existingSelectedAddress = JSON.parse(localStorage.getItem("selectedAddress") || "null");
+    } catch (e) {
+        existingSelectedAddress = null;
+    }
+    var hasStoredAddressSelection = !!(existingSelectedAddress && existingSelectedAddress.address_id);
+
+     if (addressSaved !== '1' && !hasStoredAddressSelection && nTitle === 'daily') {
         let showCartProductList = @json($showCartProductList);
        if (showCartProductList.data.lastadd && showCartProductList.data.lastadd.length > 0) {
             const address = showCartProductList.data.lastadd[0];
@@ -4396,7 +4419,7 @@ document.addEventListener("DOMContentLoaded", function() {
             // Keep any previously selected address (e.g. just selected via Add Address flow).
             console.log("No last address found from API, preserving existing selectedAddress.");
         }
-    }else {
+    } else if (addressSaved !== '1' && !hasStoredAddressSelection) {
          let subCartProductList = @json($subCartProductList);
         if (subCartProductList.data.lastadd && subCartProductList.data.lastadd.length > 0) {
             const address = subCartProductList.data.lastadd[0];

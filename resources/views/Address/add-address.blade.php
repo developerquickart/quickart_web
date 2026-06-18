@@ -1,4 +1,11 @@
 @include('header')
+@php
+    $prefillLat = request('lat');
+    $prefillLng = request('lng');
+    $qkShouldPrefillLocation = request('prefill') === '1' && is_numeric($prefillLat) && is_numeric($prefillLng);
+    $mapInitLat = $qkShouldPrefillLocation ? (float) $prefillLat : (session('delivery_user_lat') ?: 25.2048);
+    $mapInitLng = $qkShouldPrefillLocation ? (float) $prefillLng : (session('delivery_user_lng') ?: 55.2708);
+@endphp
 <?php
 $strToArr = 'Ajman,Dubai,Sharjah,عجمان,دبي,الشارقة';
 $countries = explode(',', $strToArr);
@@ -72,8 +79,8 @@ $countries = explode(',', $strToArr);
                                         <label for="house_no">Address Details (House No, Building & Block No & Area)
                                             <span class="required_icon">*</span></label>
                                         <input type="text" name="house_no" id="house_no" class="form-control" value="{{old('house_no')}}">
-                                        <input type="hidden" id="mapLat" value="{{ session('delivery_user_lat') }}">
-                                        <input type="hidden" id="mapLng" value="{{ session('delivery_user_lng') }}">
+                                        <input type="hidden" id="mapLat" value="{{ $mapInitLat }}">
+                                        <input type="hidden" id="mapLng" value="{{ $mapInitLng }}">
                                         <input type="hidden" id="latitude" name="latitude" value="{{old('latitude')}}">
                                         <input type="hidden" id="longitude" name="longitude" value="{{old('longitude')}}">
                                         <input type="hidden" id="addedFrom" name="addedFrom" value="{{\Request::get('addedFrom')}}">
@@ -270,6 +277,74 @@ updateCountryCode1();
     var selected_adr_components = [];
     var selected_country = [];
     var geocoder;
+    var qkPrefillLocation = @json($qkShouldPrefillLocation ? ['lat' => $mapInitLat, 'lng' => $mapInitLng, 'autoConfirm' => true] : null);
+    var qkPrefillLocationConfirmed = false;
+    
+    function applyConfirmedLocationToForm() {
+        $('#latitude').val(selected_lat);
+        $('#longitude').val(selected_lng);
+        $('.location_address').html(selected_location);
+        $('#address').val(selected_location);
+    }
+
+    function confirmSelectedLocation(showSuccessAlert) {
+        let _token = jQuery('meta[name="csrf-token"]').attr('content');
+
+        if (!selected_location || !selected_lat || !selected_lng) {
+            alert('Please select a location');
+            return;
+        }
+
+        $.ajax({
+            url: "{{ route('checkAddressLocationRange') }}",
+            type: 'POST',
+            data: {
+                _token: _token,
+                lat: selected_lat,
+                lng: selected_lng,
+                location_name: selected_location
+            },
+            success: function (response) {
+                if (response.success && response.in_range === true) {
+                    applyConfirmedLocationToForm();
+                    if (showSuccessAlert !== false) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Location updated',
+                            text: response.message || 'Your delivery location has been updated. You can now save this address.'
+                        });
+                    }
+                } else if (response.success && response.in_range === false) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Out of range',
+                        text: 'please select a location in our servicable area'
+                    });
+                    $('#latitude').val("");
+                    $('#longitude').val("");
+                    $('.location_address').html("Please select a location");
+                    $('#address').val("");
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: (response && response.message) ? response.message : 'Unable to validate location.'
+                    });
+                }
+            },
+            error: function (xhr) {
+                let msg = 'Unable to validate location. Please try again.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    msg = xhr.responseJSON.message;
+                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: msg
+                });
+            }
+        });
+    }
     
     function initAutocomplete() {
         var mapLat = parseFloat($('#mapLat').val()) || 25.2048;
@@ -311,9 +386,12 @@ updateCountryCode1();
                         selected_adr_components = results[0].address_components;
                         console.log("G1-------add--->", formatted);
 
-                        // document.getElementById("pac-input").value = formatted;
-                        //$('#address').val(formatted);
-                       // $('.location_address').html(formatted);
+                        $('.location_address').html(formatted);
+
+                        if (qkPrefillLocation && qkPrefillLocation.autoConfirm && !qkPrefillLocationConfirmed) {
+                            qkPrefillLocationConfirmed = true;
+                            confirmSelectedLocation(false);
+                        }
 
                         selected_country = [];
                         $.each(selected_adr_components, function (key, value) {
@@ -347,70 +425,7 @@ updateCountryCode1();
 
     $(document).ready(function() {
         $('.btnConfirm').on('click', function() {
-            let _token = jQuery('meta[name="csrf-token"]').attr('content');
-            
-            let isError = 0;
-            if (!selected_location) {
-                alert('Please select a location');
-                isError = 1;
-                // return;
-            }
-            console.log('isError',isError);
-            
-            if(isError != 0){
-                return;
-            }
-
-            $.ajax({
-                url: "{{ route('checkAddressLocationRange') }}",
-                type: 'POST',
-                data: {
-                    _token: _token,
-                    lat: selected_lat,
-                    lng: selected_lng,
-                    location_name: selected_location
-                },
-                success: function (response) {
-                    if (response.success && response.in_range === true) {
-                        $('#latitude').val(selected_lat);
-                        $('#longitude').val(selected_lng);
-                        $('.location_address').html(selected_location);
-                        $('#address').val(selected_location);
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Location updated',
-                            text: response.message || 'Your delivery location has been updated. You can now save this address.'
-                        });
-                    } else if (response.success && response.in_range === false) {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Out of range',
-                            text: 'please select a location in our servicable area'
-                        });
-                        $('#latitude').val("");
-                        $('#longitude').val("");
-                        $('.location_address').html("Please select a location");
-                        $('#address').val("");
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: (response && response.message) ? response.message : 'Unable to validate location.'
-                        });
-                    }
-                },
-                error: function (xhr) {
-                    let msg = 'Unable to validate location. Please try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        msg = xhr.responseJSON.message;
-                    }
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: msg
-                    });
-                }
-            });
+            confirmSelectedLocation(true);
         });
     });
 
