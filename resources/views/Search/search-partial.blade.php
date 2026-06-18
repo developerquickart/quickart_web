@@ -21,7 +21,7 @@
                                         <a href="javascript:void(0);" class="wishlist-btn"
                                             data-varient-id="{{ $product['varient_id'] }}">
                                             <img class="wishlist-icon"
-                                                src="{{ asset($product['isFavourite'] == 'true' ? 'assets/images/wishlisted.png' : 'assets/images/wishlist.png') }}"
+                                                src="{{ asset(($product['isFavourite'] ?? 'false') == 'true' ? 'assets/images/wishlisted.png' : 'assets/images/wishlist.png') }}"
                                                 alt="wishlist" style="max-width: 25px;">
                                         </a>
                                     </div>
@@ -66,7 +66,7 @@
                                             data-productDetail='@json($product)'
                                             data-change="-1">-</button>
                                         <input type="text" name="qty"
-                                            value="{{ trim($product['total_cart_qty']) }}" id="totalCartQTY"
+                                            value="{{ trim($product['total_cart_qty'] ?? 0) }}" id="totalCartQTY"
                                             class="input-qty input-rounded" min="0">
                                         <input type="hidden" name="stock" id="stock"
                                             value="{{ trim($product['stock']) }}">
@@ -101,12 +101,12 @@
                                             <a href="javascript:void(0);" class="wishlist-btn"
                                                 data-varient-id="{{ $product['varient_id'] }}">
                                                 <img class="wishlist-icon"
-                                                    src="{{ asset($product['isFavourite'] == 'true' ? 'assets/images/wishlisted.png' : 'assets/images/wishlist.png') }}"
+                                                    src="{{ asset(($product['isFavourite'] ?? 'false') == 'true' ? 'assets/images/wishlisted.png' : 'assets/images/wishlist.png') }}"
                                                     alt="wishlist" style="max-width: 25px;">
                                             </a>
                                         </div>
                                         <div class="product_wishlist">
-                                            @if($product['notify_me'] == 'false')
+                                            @if(($product['notify_me'] ?? 'false') == 'false')
                                             <a href="javascript:void(0);" class="notify-me" data-notified="0"
                                                 data-varient-id="{{ $product['varient_id'] }}"
                                                 data-product-id="{{ $product['product_id'] }}">
@@ -137,7 +137,7 @@
                                     </div>
                                     <div class="product_unavailable">
                                         <div class="product_unavailable_title">Product Unavailable</div>
-                                        @if($product['notify_me'] == "true")
+                                        @if(($product['notify_me'] ?? 'false') == "true")
                                         <p>You will be notified.</p>
                                         @else
                                         <p>Click on the bell to get notified.</p>
