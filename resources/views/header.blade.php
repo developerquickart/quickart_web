@@ -1321,17 +1321,27 @@
             .qk-delivery-eta__time { font-size: 24px; }
         }
     </style>
+    @php
+        $qkGuestHomeLoginLock = empty(session('user_id')) && request()->routeIs('index');
+    @endphp
+    @if($qkGuestHomeLoginLock)
+    <style>
+        #login.qk-guest-login-locked .btn-close { display: none !important; }
+    </style>
+    @endif
 </head>
 
-<body class="{{ request()->routeIs('index') ? 'qk-home-page' : '' }}">
+<body class="{{ request()->routeIs('index') ? 'qk-home-page' : '' }}"@if($qkGuestHomeLoginLock) data-qk-guest-login-required="1"@endif>
       <!--<script src="https://chat.bot247.live/api/chatbot-script" data-chatbot-id="cb_1749551624924"></script>-->
     <div class="main-wrapper">
-    <div class="modal fade" id="login" tabindex="-1" role="dialog" aria-labelledby="loginLabel">
+    <div class="modal fade @if($qkGuestHomeLoginLock) qk-guest-login-locked @endif" id="login" tabindex="-1" role="dialog" aria-labelledby="loginLabel"@if($qkGuestHomeLoginLock) data-bs-backdrop="static" data-bs-keyboard="false"@endif>
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-body">
                     <div class="login-modal">
+                        @if(!$qkGuestHomeLoginLock)
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-bs-label="Close"></button>
+                        @endif
                         <div class="login_box">
                             <div class="login_img_box">
                                 <img src="{{asset('assets/images/Fresh_Farm_Delight.png')}}" alt="logo">
@@ -1613,8 +1623,6 @@
                 @if(!empty(session('user_id')))
                 @php
                     $qkStoreIsOnline = false;
-                    $qkStoreStatusText = 'Store Offline';
-                    $qkStoreStatusClass = 'qk-store-status-badge--offline';
                     try {
                         $qkStoreId = trim((string) env('GO_STORE_ID', ''));
                         if ($qkStoreId !== '') {
@@ -1639,17 +1647,12 @@
                                     if ($qkClose->lessThanOrEqualTo($qkOpen)) {
                                         $qkClose->addDay();
                                     }
-                                    $qkIsOpen = $qkDubaiNow->betweenIncluded($qkOpen, $qkClose);
-                                    if ($qkIsOpen) {
-                                        $qkStoreIsOnline = true;
-                                        $qkStoreStatusText = 'Store Online';
-                                        $qkStoreStatusClass = 'qk-store-status-badge--online';
-                                    }
+                                    $qkStoreIsOnline = $qkDubaiNow->betweenIncluded($qkOpen, $qkClose);
                                 }
                             }
                         }
                     } catch (\Throwable $e) {
-                        // Keep default offline badge on query/parse error.
+                        // Keep default offline state on query/parse error.
                     }
                 @endphp
                 <div class="qk-delivery-topstrip">
@@ -1681,10 +1684,6 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="qk-store-status-badge {{ $qkStoreStatusClass }}" aria-label="Store status">
-                            <span class="qk-store-status-badge__dot" aria-hidden="true"></span>
-                            {{ $qkStoreStatusText }}
-                        </span>
                         @else
                         <div class="qk-delivery-eta__offline-msg">
                             <span class="qk-delivery-eta__offline-title">Store is currently closed</span>
@@ -2652,6 +2651,7 @@
         }
 
         function handleSuccessfulLoginAfterLocation(serverMessage) {
+            window.__qkAllowLoginModalClose = true;
             if (pendingProductId) {
                 if(action == 'addToCart'){
                     localStorage.setItem("selectedTab", 1);
@@ -3711,6 +3711,15 @@
             const loginModal = document.getElementById('login');
             if (!loginModal) {
                 return;
+            }
+            if (document.body.getAttribute('data-qk-guest-login-required') === '1') {
+                window.__qkAllowLoginModalClose = false;
+                loginModal.addEventListener('hide.bs.modal', function (e) {
+                    if (!window.__qkAllowLoginModalClose) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }, true);
             }
             // Listen for modal close event
             loginModal.addEventListener('hidden.bs.modal', function () {

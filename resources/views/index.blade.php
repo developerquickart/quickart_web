@@ -1164,7 +1164,17 @@ window.onload = function() {
     @if(empty(session('user_id')))
     {{-- Guest: prompt sign-in on homepage load; do not show marketing popup banner --}}
     if (typeof jQuery !== 'undefined' && jQuery('#login').length) {
-        jQuery('#login').modal('show');
+        var loginEl = document.getElementById('login');
+        if (loginEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            var loginModal = bootstrap.Modal.getOrCreateInstance(loginEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            loginModal.show();
+        } else {
+            jQuery('#login').modal({ backdrop: 'static', keyboard: false });
+            jQuery('#login').modal('show');
+        }
     }
     @else
     if (!sessionStorage.getItem("modalShown")) {
