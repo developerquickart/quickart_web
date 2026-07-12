@@ -17,6 +17,22 @@ class DeliveryEtaController extends Controller
 
     private const CACHE_TTL_SECONDS = 600;
 
+    /**
+     * After route time + packaging buffer, display only 30 / 60 / 90.
+     * 0–30 → 30, 31–60 → 60, >60 → 90.
+     */
+    private function bucketEtaMinutes(int $minutes): int
+    {
+        if ($minutes <= 30) {
+            return 30;
+        }
+        if ($minutes <= 60) {
+            return 60;
+        }
+
+        return 90;
+    }
+
     private const ROUTE_MATRIX_URL = 'https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix';
 
     private const ROUTE_MATRIX_FIELD_MASK = 'originIndex,destinationIndex,duration,staticDuration,distanceMeters,status,condition';
@@ -33,9 +49,11 @@ class DeliveryEtaController extends Controller
         $storeLng = $this->sessionCoord('delivery_store_lng');
 
         if ($userLat === null || $userLng === null || $storeLat === null || $storeLng === null) {
+            $mins = $this->bucketEtaMinutes(self::FALLBACK_MINUTES);
+
             return response()->json([
-                'minutes' => self::FALLBACK_MINUTES,
-                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'minutes' => $mins,
+                'label' => (string) $mins . ' mins',
                 'distance_meters' => null,
                 'distance_label' => null,
                 'source' => 'fallback_no_coords',
@@ -45,9 +63,11 @@ class DeliveryEtaController extends Controller
 
         $key = config('services.google.maps_server_key');
         if (empty($key)) {
+            $mins = $this->bucketEtaMinutes(self::FALLBACK_MINUTES);
+
             return response()->json([
-                'minutes' => self::FALLBACK_MINUTES,
-                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'minutes' => $mins,
+                'label' => (string) $mins . ' mins',
                 'distance_meters' => null,
                 'distance_label' => null,
                 'source' => 'fallback_no_api_key',
@@ -93,10 +113,12 @@ class DeliveryEtaController extends Controller
             }
         }
         if ($userLat === null || $userLng === null) {
+            $mins = $this->bucketEtaMinutes(self::FALLBACK_MINUTES);
+
             return response()->json([
                 'ok' => true,
-                'minutes' => self::FALLBACK_MINUTES,
-                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'minutes' => $mins,
+                'label' => (string) $mins . ' mins',
                 'distance_meters' => null,
                 'distance_label' => null,
                 'source' => 'fallback_invalid_coords',
@@ -106,10 +128,12 @@ class DeliveryEtaController extends Controller
         $storeLat = $this->sessionCoord('delivery_store_lat');
         $storeLng = $this->sessionCoord('delivery_store_lng');
         if ($storeLat === null || $storeLng === null) {
+            $mins = $this->bucketEtaMinutes(self::FALLBACK_MINUTES);
+
             return response()->json([
                 'ok' => true,
-                'minutes' => self::FALLBACK_MINUTES,
-                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'minutes' => $mins,
+                'label' => (string) $mins . ' mins',
                 'distance_meters' => null,
                 'distance_label' => null,
                 'source' => 'fallback_no_store_coords',
@@ -118,10 +142,12 @@ class DeliveryEtaController extends Controller
 
         $key = config('services.google.maps_server_key');
         if (empty($key)) {
+            $mins = $this->bucketEtaMinutes(self::FALLBACK_MINUTES);
+
             return response()->json([
                 'ok' => true,
-                'minutes' => self::FALLBACK_MINUTES,
-                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'minutes' => $mins,
+                'label' => (string) $mins . ' mins',
                 'distance_meters' => null,
                 'distance_label' => null,
                 'source' => 'fallback_no_api_key',
@@ -207,9 +233,10 @@ class DeliveryEtaController extends Controller
         }
 
         if ($payload === null) {
+            $mins = $this->bucketEtaMinutes(self::FALLBACK_MINUTES);
             $body = [
-                'minutes' => self::FALLBACK_MINUTES,
-                'label' => (string) self::FALLBACK_MINUTES . ' mins',
+                'minutes' => $mins,
+                'label' => (string) $mins . ' mins',
                 'distance_meters' => null,
                 'distance_label' => null,
                 'source' => 'fallback_api',
@@ -232,9 +259,10 @@ class DeliveryEtaController extends Controller
             ? (int) $payload['distance_meters']
             : null;
 
+        $mins = $this->bucketEtaMinutes((int) $payload['minutes']);
         $body = [
-            'minutes' => $payload['minutes'],
-            'label' => $payload['minutes'] . ' mins',
+            'minutes' => $mins,
+            'label' => $mins . ' mins',
             'distance_meters' => $distanceMeters,
             'distance_label' => $this->formatDistanceLabel($distanceMeters),
             'source' => 'google_route_matrix',
