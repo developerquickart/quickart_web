@@ -2446,6 +2446,8 @@
         let selectedHeaderLng = null;
         let selectedHeaderLocationName = '';
         let selectedHeaderSavedAddress = null;
+        /** 'map' | 'saved' | 'current' | null — drives Change location behavior */
+        let selectedHeaderSource = null;
 
         function clearHeaderSavedAddressSelection() {
             selectedHeaderSavedAddress = null;
@@ -2467,6 +2469,7 @@
                 lat: lat,
                 lng: lng
             };
+            selectedHeaderSource = 'saved';
         }
 
         window.qkPersistDeliveryAddressSelection = function (addressData) {
@@ -2483,6 +2486,28 @@
                 window.dispatchEvent(new CustomEvent('qk-delivery-address-changed', { detail: addressData }));
             } catch (e) {}
         };
+
+        // After header map → add-address save: persist the new address as the selected delivery address.
+        (function applyFlashedHeaderAddress() {
+            var flashed = @json(session('qk_header_address_just_saved'));
+            if (!flashed || !flashed.address_id) {
+                return;
+            }
+            window.qkPersistDeliveryAddressSelection(flashed);
+            if (flashed.house_no) {
+                $('[data-delivery-eta-location]').text(flashed.house_no);
+            }
+            try {
+                Object.keys(sessionStorage).forEach(function (k) {
+                    if (k.indexOf('qk_delivery_eta_cache:') === 0) {
+                        sessionStorage.removeItem(k);
+                    }
+                });
+            } catch (e) {}
+            if (typeof window.qkRefreshDeliveryEtaStrip === 'function') {
+                window.qkRefreshDeliveryEtaStrip();
+            }
+        })();
 
         function qkIsDailyCartPage() {
             var path = (window.location.pathname || '').toLowerCase();
@@ -2504,6 +2529,91 @@
             });
             $('#headerLocationSwitchModal').modal('hide');
             window.location.href = "{{ url('/add-address') }}?" + params.toString();
+        }
+
+        /**
+         * Header map pick → add-address with pin prefilled.
+         * Does not apply the pin as the active delivery location until the address is saved.
+         */
+        function qkRedirectHeaderMapToAddAddress(lat, lng) {
+            var norm = normalizeLoginCoordsForSubmit(lat, lng, 'qkRedirectHeaderMapToAddAddress');
+            if (!norm) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Occured',
+                    text: 'Invalid coordinates. Please pick a location on the map again.'
+                });
+                return;
+            }
+            var params = new URLSearchParams({
+                prefill: '1',
+                lat: String(norm.lat),
+                lng: String(norm.lng)
+            });
+            if (qkIsDailyCartPage()) {
+                var tab = new URLSearchParams(window.location.search || '').get('tab') || '1';
+                params.set('addedFrom', 'cart');
+                params.set('tab', tab);
+            } else {
+                params.set('addedFrom', 'header');
+                params.set('tab', '1');
+                var returnTo = (window.location.pathname || '/') + (window.location.search || '');
+                if (returnTo.indexOf('/add-address') === -1) {
+                    params.set('return_to', returnTo);
+                }
+            }
+            $('#headerLocationSwitchModal').modal('hide');
+            window.location.href = "{{ url('/add-address') }}?" + params.toString();
+        }
+
+        /** Validate range only (no session delivery update) then open add-address for map picks. */
+        function qkValidateThenRedirectHeaderMapToAddAddress(lat, lng, locationName) {
+            var _token = jQuery('meta[name="csrf-token"]').attr('content');
+            var norm = normalizeLoginCoordsForSubmit(lat, lng, 'qkValidateThenRedirectHeaderMapToAddAddress');
+            if (!norm) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error Occured',
+                    text: 'Invalid coordinates. Please pick a location on the map again.'
+                });
+                return;
+            }
+            qkHeaderLocationShowLoader('Checking location…');
+            $.ajax({
+                url: "{{ route('checkAddressLocationRange') }}",
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    _token: _token,
+                    lat: norm.lat,
+                    lng: norm.lng,
+                    location_name: locationName || 'Selected location',
+                    validate_only: 1
+                },
+                complete: function () {
+                    qkHeaderLocationHideLoader();
+                },
+                success: function (response) {
+                    if (response && response.success && response.in_range === true) {
+                        qkRedirectHeaderMapToAddAddress(norm.lat, norm.lng);
+                        return;
+                    }
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Out of range',
+                        text: (response && response.message)
+                            ? response.message
+                            : 'please select a location in our servicable area'
+                    });
+                },
+                error: function (xhr) {
+                    var msg = 'Unable to validate location. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    Swal.fire({ icon: 'error', title: 'Error', text: msg });
+                }
+            });
         }
 
         /** After login current-location / map pick: open add-address with that pin prefilled (same as cart header prefill). */
@@ -2984,6 +3094,7 @@
                     const lng = place.geometry.location.lng();
                     const name = (place.formatted_address || input.value || 'Selected location').trim();
                     setHeaderLocationMarker(lat, lng, name);
+                    selectedHeaderSource = 'map';
                     setHeaderSelectedSourceLabel('Map selection', name);
                 });
             }
@@ -2991,6 +3102,7 @@
                 const lat = event.latLng.lat();
                 const lng = event.latLng.lng();
                 setHeaderLocationMarker(lat, lng, 'Selected location');
+                selectedHeaderSource = 'map';
                 setHeaderSelectedSourceLabel('Map selection', 'Selected location');
             });
         }
@@ -3565,6 +3677,8 @@
             });
 
             $('#headerLocationSwitchModal').on('shown.bs.modal', function () {
+                selectedHeaderSource = null;
+                clearHeaderSavedAddressSelection();
                 setHeaderSelectedSourceLabel('Not selected', '');
                 ensureLoginMapLoaded(function () {
                     if (!headerSwitchMap) {
@@ -3633,6 +3747,7 @@
                         }
                         $btn.data('qk-location-loading', false);
                         setHeaderLocationMarker(lat, lng, 'Current location');
+                        selectedHeaderSource = 'current';
                         setHeaderSelectedSourceLabel('Current location', 'Current location');
                         submitHeaderLocationCheck(lat, lng, 'Current location', { reload_on_success: true, show_loader: true });
                     }, function () {
@@ -3718,6 +3833,17 @@
                     setHeaderSavedAddressFromRadio($checkedRadio);
                     savedAddress = selectedHeaderSavedAddress;
                 }
+
+                // Map pick only: open add-address with pin prefilled — do not apply as delivery location yet.
+                if (selectedHeaderSource === 'map') {
+                    qkValidateThenRedirectHeaderMapToAddAddress(
+                        selectedHeaderLat,
+                        selectedHeaderLng,
+                        selectedHeaderLocationName || 'Selected location'
+                    );
+                    return;
+                }
+
                 submitHeaderLocationCheck(
                     selectedHeaderLat,
                     selectedHeaderLng,

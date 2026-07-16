@@ -767,22 +767,27 @@ class AuthController extends Controller
                 return response()->json($payload);
             }
 
-            // Update delivery session only (keep user login intact)
-            $request->session()->put('delivery_user_lat', $lat);
-            $request->session()->put('delivery_user_lng', $lng);
-            $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
-            $request->session()->put('delivery_store_id', (int) $nearestStore->id);
-            $storeLatRaw = $nearestStore->store_lat ?? null;
-            $storeLngRaw = $nearestStore->store_lng ?? null;
-            if (is_numeric($storeLatRaw) && is_numeric($storeLngRaw)) {
-                $request->session()->put('delivery_store_lat', (float) $storeLatRaw);
-                $request->session()->put('delivery_store_lng', (float) $storeLngRaw);
-            } else {
-                \Log::warning('checkAddressLocationRange: nearest store missing numeric lat/lng for ETA', [
-                    'store_id' => $nearestStore->id ?? null,
-                ]);
+            // Update delivery session only (keep user login intact), unless validate_only.
+            $validateOnly = filter_var($request->input('validate_only', false), FILTER_VALIDATE_BOOLEAN)
+                || (string) $request->input('validate_only') === '1';
+
+            if (!$validateOnly) {
+                $request->session()->put('delivery_user_lat', $lat);
+                $request->session()->put('delivery_user_lng', $lng);
+                $request->session()->put('delivery_location_name', $locationName !== '' ? $locationName : 'Current location');
+                $request->session()->put('delivery_store_id', (int) $nearestStore->id);
+                $storeLatRaw = $nearestStore->store_lat ?? null;
+                $storeLngRaw = $nearestStore->store_lng ?? null;
+                if (is_numeric($storeLatRaw) && is_numeric($storeLngRaw)) {
+                    $request->session()->put('delivery_store_lat', (float) $storeLatRaw);
+                    $request->session()->put('delivery_store_lng', (float) $storeLngRaw);
+                } else {
+                    \Log::warning('checkAddressLocationRange: nearest store missing numeric lat/lng for ETA', [
+                        'store_id' => $nearestStore->id ?? null,
+                    ]);
+                }
+                $request->session()->save();
             }
-            $request->session()->save();
 
             $payload = [
                 'success' => true,

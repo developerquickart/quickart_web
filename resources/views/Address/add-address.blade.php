@@ -85,6 +85,7 @@ $countries = explode(',', $strToArr);
                                         <input type="hidden" id="longitude" name="longitude" value="{{old('longitude')}}">
                                         <input type="hidden" id="addedFrom" name="addedFrom" value="{{ old('addedFrom', request('addedFrom')) }}">
                                         <input type="hidden" id="tab" name="tab" value="{{ old('tab', request('tab')) }}">
+                                        <input type="hidden" id="return_to" name="return_to" value="{{ old('return_to', request('return_to')) }}">
                                     </fieldset>
                                     <fieldset class="form-group">
                                         <label for="landmark">Landmark & Area Name (Optional)</label>

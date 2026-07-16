@@ -460,7 +460,7 @@ class AddressController extends Controller
             dd($errorMessage);
         }
 
-        if($addedFrom == 'cart' || $addedFrom == 'login'){
+        if($addedFrom == 'cart' || $addedFrom == 'login' || $addedFrom == 'header'){
             $newAddressId = null;
             $responseData = $addAddress['data'] ?? null;
             if (is_array($responseData)) {
@@ -473,19 +473,33 @@ class AddressController extends Controller
                 $newAddressId = $addAddress['address_id'];
             }
 
-            session()->flash('qk_cart_selected_address', [
+            $selectedAddressPayload = [
                 'address_id' => $newAddressId,
                 'house_no' => $house_no,
                 'type' => $type,
                 'lat' => $lat,
                 'lng' => $lng,
-            ]);
+            ];
+
+            session()->flash('qk_cart_selected_address', $selectedAddressPayload);
 
             // Login current-location / map flow: land on daily cart with the new address pre-selected.
             $redirectTab = ($tab !== null && $tab !== '') ? $tab : '1';
             if ($addedFrom == 'login') {
                 session()->forget('qk_must_complete_address');
                 return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
+            }
+
+            if ($addedFrom == 'header') {
+                session()->flash('qk_header_address_just_saved', $selectedAddressPayload);
+                $returnTo = trim((string) $request->input('return_to', ''));
+                // Only allow same-site relative paths (block open redirects).
+                if ($returnTo !== '' && str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//')
+                    && !str_contains($returnTo, "\n") && !str_contains($returnTo, "\r")) {
+                    $separator = str_contains($returnTo, '?') ? '&' : '?';
+                    return redirect($returnTo . $separator . 'addressSaved=1');
+                }
+                return redirect('/?addressSaved=1');
             }
 
             return redirect('cart?tab='.$redirectTab.'&addedFrom='.$addedFrom.'&addressSaved=1');
