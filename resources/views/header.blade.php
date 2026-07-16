@@ -1731,7 +1731,7 @@
                                         </span>
                                     </button>
                                 </div>
-                                <a href="{{ url('/add-address?screen_name=add-address') }}" class="qk-header-add-address-btn">
+                                <a href="{{ url('/add-address?addedFrom=header&tab=1&screen_name=add-address') }}" class="qk-header-add-address-btn" id="qkHeaderAddAddressLink">
                                     <span class="qk-header-add-address-left">
                                         <span class="qk-header-add-address-plus">+</span>
                                         <span class="qk-header-add-address-text">Add address</span>
@@ -2466,12 +2466,30 @@
         // After header map → add-address save: persist the new address as the selected delivery address.
         (function applyFlashedHeaderAddress() {
             var flashed = @json(session('qk_header_address_just_saved'));
-            if (!flashed || !flashed.address_id) {
+            var preferred = @json(session('qk_preferred_cart_address'));
+            var addressData = null;
+            if (flashed && (flashed.address_id || flashed.house_no)) {
+                addressData = flashed;
+            } else if (preferred && (preferred.address_id || preferred.house_no)) {
+                addressData = preferred;
+            }
+            if (!addressData) {
                 return;
             }
-            window.qkPersistDeliveryAddressSelection(flashed);
-            if (flashed.house_no) {
-                $('[data-delivery-eta-location]').text(flashed.house_no);
+            // Always overwrite stored selection with the newly saved address.
+            try {
+                localStorage.setItem('selectedAddress', JSON.stringify(addressData));
+            } catch (e) {}
+            try {
+                sessionStorage.setItem('qk_preferred_cart_address', JSON.stringify(addressData));
+            } catch (e) {}
+            if (addressData.address_id && typeof window.qkPersistDeliveryAddressSelection === 'function') {
+                window.qkPersistDeliveryAddressSelection(addressData);
+            } else if (typeof window.saveSelectedAddress === 'function' && addressData.address_id) {
+                window.saveSelectedAddress(addressData);
+            }
+            if (addressData.house_no) {
+                $('[data-delivery-eta-location]').text(addressData.house_no);
             }
             try {
                 Object.keys(sessionStorage).forEach(function (k) {

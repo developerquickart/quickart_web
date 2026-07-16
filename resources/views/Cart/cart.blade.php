@@ -4682,21 +4682,39 @@ document.addEventListener("DOMContentLoaded", function() {
     // Freshly saved address always wins on cart?tab=1.
     var justSavedAddress = null;
     if (addressSaved === '1') {
-        if (flashedCartAddress && flashedCartAddress.address_id) {
+        if (flashedCartAddress && (flashedCartAddress.address_id || flashedCartAddress.house_no)) {
             justSavedAddress = flashedCartAddress;
-        } else if (preferredCartAddress && preferredCartAddress.address_id) {
+        } else if (preferredCartAddress && (preferredCartAddress.address_id || preferredCartAddress.house_no)) {
             justSavedAddress = preferredCartAddress;
+        }
+        // Intermediate redirect page should already have written localStorage; force sync again.
+        if (justSavedAddress) {
+            try {
+                localStorage.setItem('selectedAddress', JSON.stringify(justSavedAddress));
+            } catch (e) {}
         }
     }
 
     if (justSavedAddress) {
         if (!qkApplyCartSelectedAddress(justSavedAddress)) {
+            // No address_id yet — load list and pick the matching / newest address.
             if (typeof fetchAddressList === 'function') {
                 fetchAddressList();
                 setTimeout(function () {
-                    var firstSelectable = document.querySelector('#addressListContainer .addressIcon');
-                    if (firstSelectable) {
-                        firstSelectable.click();
+                    var matchLat = justSavedAddress.lat != null ? Number(justSavedAddress.lat) : null;
+                    var matchLng = justSavedAddress.lng != null ? Number(justSavedAddress.lng) : null;
+                    var icons = document.querySelectorAll('#addressListContainer .addressIcon');
+                    var picked = null;
+                    icons.forEach(function (el) {
+                        if (picked) return;
+                        try {
+                            var raw = el.getAttribute('onclick') || '';
+                            // Prefer first item (usually newest) if coords unavailable.
+                            if (!picked) picked = el;
+                        } catch (e) {}
+                    });
+                    if (icons.length) {
+                        icons[0].click();
                     }
                 }, 800);
             }

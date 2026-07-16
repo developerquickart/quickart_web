@@ -460,17 +460,16 @@ class AddressController extends Controller
             dd($errorMessage);
         }
 
-        // Always treat the newly saved address as the cart/checkout selection.
-        $newAddressId = null;
-        $responseData = $addAddress['data'] ?? null;
-        if (is_array($responseData)) {
-            $newAddressId = $responseData['address_id'] ?? $responseData['id'] ?? null;
-            if ($newAddressId === null && isset($responseData[0]) && is_array($responseData[0])) {
-                $newAddressId = $responseData[0]['address_id'] ?? $responseData[0]['id'] ?? null;
-            }
-        }
-        if ($newAddressId === null && !empty($addAddress['address_id'])) {
-            $newAddressId = $addAddress['address_id'];
+        // Always treat the newly saved address as the cart/checkout + header selection.
+        $newAddressId = $this->extractAddressIdFromAddResponse($addAddress);
+        if ($newAddressId === null || $newAddressId === '') {
+            $newAddressId = $this->resolveLatestAddressIdFromApi(
+                $user_ID,
+                $lat,
+                $lng,
+                $house_no,
+                $type
+            );
         }
 
         $displayHouse = trim((string) $house_no);
@@ -480,50 +479,176 @@ class AddressController extends Controller
                 $displayHouse = trim($displayHouse . ($displayHouse !== '' ? ', ' : '') . $societyTrim);
             }
         }
+        if ($displayHouse === '') {
+            $displayHouse = 'Selected location';
+        }
 
         $selectedAddressPayload = [
-            'address_id' => $newAddressId,
-            'house_no' => $displayHouse !== '' ? $displayHouse : (string) $house_no,
+            'address_id' => $newAddressId !== null && $newAddressId !== '' ? (string) $newAddressId : null,
+            'house_no' => $displayHouse,
             'type' => $type,
             'lat' => $lat,
             'lng' => $lng,
         ];
 
+        // Update header delivery location immediately (ETA strip uses this session).
+        if (is_numeric($lat) && is_numeric($lng)) {
+            session()->put('delivery_user_lat', (float) $lat);
+            session()->put('delivery_user_lng', (float) $lng);
+            session()->put('delivery_location_name', $displayHouse);
+        }
+
         // Durable + one-request flash so cart/header JS always pick this address.
         session()->put('qk_preferred_cart_address', $selectedAddressPayload);
         session()->flash('qk_cart_selected_address', $selectedAddressPayload);
         session()->flash('qk_header_address_just_saved', $selectedAddressPayload);
+        session()->save();
 
         $redirectTab = ($tab !== null && $tab !== '') ? $tab : '1';
+        $cartRedirect = url('cart?tab=' . $redirectTab . '&addedFrom=cart&addressSaved=1');
 
         if ($addedFrom == 'login') {
             session()->forget('qk_must_complete_address');
-            return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
+            return $this->redirectAfterAddressSaved($selectedAddressPayload, $cartRedirect);
         }
 
         if ($addedFrom == 'header') {
-            $returnTo = trim((string) $request->input('return_to', ''));
-            // Only allow same-site relative paths (block open redirects).
-            if ($returnTo !== '' && str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//')
-                && !str_contains($returnTo, "\n") && !str_contains($returnTo, "\r")) {
-                $separator = str_contains($returnTo, '?') ? '&' : '?';
-                return redirect($returnTo . $separator . 'addressSaved=1');
-            }
-            return redirect('/?addressSaved=1');
+            // Always land on cart with the new address selected so header + cart stay in sync.
+            return $this->redirectAfterAddressSaved($selectedAddressPayload, $cartRedirect);
         }
 
         if ($addedFrom == 'cart') {
-            return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
+            return $this->redirectAfterAddressSaved($selectedAddressPayload, $cartRedirect);
         }
 
         if ($addedFrom == 'trailcart') {
-            return redirect('trial-pack-cart?addedFrom='.$addedFrom.'&addressSaved=1');
+            return $this->redirectAfterAddressSaved(
+                $selectedAddressPayload,
+                url('trial-pack-cart?addedFrom=trailcart&addressSaved=1')
+            );
         }
 
-        // Default (e.g. header "Add address" with no addedFrom): go to cart with this address selected.
-        return redirect('cart?tab=1&addedFrom=cart&addressSaved=1');
+        // Default (any other entry): cart with this address selected.
+        return $this->redirectAfterAddressSaved($selectedAddressPayload, $cartRedirect);
     }
 
+    /**
+     * Write localStorage on an intermediate page, then redirect — avoids stale cart/header selection.
+     */
+    private function redirectAfterAddressSaved(array $selectedAddress, string $redirectUrl)
+    {
+        return response()->view('Address.address-saved-redirect', [
+            'selectedAddress' => $selectedAddress,
+            'redirectUrl' => $redirectUrl,
+        ]);
+    }
+
+    private function extractAddressIdFromAddResponse($addAddress)
+    {
+        if (!is_array($addAddress) || empty($addAddress)) {
+            return null;
+        }
+
+        $candidates = [
+            $addAddress['address_id'] ?? null,
+            $addAddress['id'] ?? null,
+            $addAddress['data']['address_id'] ?? null,
+            $addAddress['data']['id'] ?? null,
+            $addAddress['data']['data']['address_id'] ?? null,
+            $addAddress['data']['data']['id'] ?? null,
+        ];
+
+        $responseData = $addAddress['data'] ?? null;
+        if (is_array($responseData) && isset($responseData[0]) && is_array($responseData[0])) {
+            $candidates[] = $responseData[0]['address_id'] ?? null;
+            $candidates[] = $responseData[0]['id'] ?? null;
+        }
+
+        foreach ($candidates as $candidate) {
+            if ($candidate !== null && $candidate !== '') {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * If add_address response omits address_id, resolve it from show_address (newest / best match).
+     */
+    private function resolveLatestAddressIdFromApi($userId, $lat, $lng, $houseNo, $type)
+    {
+        if (empty($userId) || empty(env('NODE_APP_URL'))) {
+            return null;
+        }
+
+        try {
+            $client = new Client();
+            $response = $client->post(env('NODE_APP_URL') . 'show_address', [
+                'json' => [
+                    'user_id' => $userId,
+                    'store_id' => env('STORE_ID'),
+                ],
+                'http_errors' => false,
+                'timeout' => 10,
+            ]);
+            if ($response->getStatusCode() !== 200) {
+                return null;
+            }
+            $payload = json_decode($response->getBody()->getContents(), true);
+            $list = [];
+            if (is_array($payload) && !empty($payload['data']) && is_array($payload['data'])) {
+                $list = $payload['data'];
+            }
+            if (empty($list)) {
+                return null;
+            }
+
+            $bestId = null;
+            $bestScore = -1;
+            $targetLat = is_numeric($lat) ? (float) $lat : null;
+            $targetLng = is_numeric($lng) ? (float) $lng : null;
+            $targetHouse = strtolower(trim((string) $houseNo));
+            $targetType = strtolower(trim((string) $type));
+
+            foreach ($list as $index => $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $id = $row['address_id'] ?? $row['id'] ?? null;
+                if ($id === null || $id === '') {
+                    continue;
+                }
+                $score = $index; // later items often newer
+                $rowHouse = strtolower(trim((string) ($row['house_no'] ?? '')));
+                $rowType = strtolower(trim((string) ($row['type'] ?? '')));
+                if ($targetHouse !== '' && $rowHouse === $targetHouse) {
+                    $score += 1000;
+                }
+                if ($targetType !== '' && $rowType === $targetType) {
+                    $score += 100;
+                }
+                if ($targetLat !== null && $targetLng !== null
+                    && isset($row['lat'], $row['lng'])
+                    && is_numeric($row['lat']) && is_numeric($row['lng'])) {
+                    $dLat = abs((float) $row['lat'] - $targetLat);
+                    $dLng = abs((float) $row['lng'] - $targetLng);
+                    if ($dLat < 0.0008 && $dLng < 0.0008) {
+                        $score += 500;
+                    }
+                }
+                if ($score >= $bestScore) {
+                    $bestScore = $score;
+                    $bestId = $id;
+                }
+            }
+
+            return $bestId;
+        } catch (\Throwable $e) {
+            \Log::warning('resolveLatestAddressIdFromApi failed', ['message' => $e->getMessage()]);
+            return null;
+        }
+    }
 
     
     // Edit Address api call... Aniket
