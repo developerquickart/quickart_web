@@ -18,11 +18,13 @@ class EnsureLoginAddressCompleted
             return $next($request);
         }
 
-        // Allow the add-address form, save endpoint, and location validation used by the form.
+        // Allow the add-address form, save endpoint, location validation, and header ETA.
         if (
             $request->is('add-address')
             || $request->is('get-address')
             || $request->is('check-address-location-range')
+            || $request->is('delivery-eta')
+            || $request->is('cart-delivery-eta')
         ) {
             return $next($request);
         }

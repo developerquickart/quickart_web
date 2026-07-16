@@ -2281,7 +2281,8 @@
                 return locationText || 'current_location';
             }
             function applyEtaToStrip(data) {
-                var displayValue = '12 mins';
+                // Match server 30/60/90 buckets; never show raw unbucketed minutes as a fallback.
+                var displayValue = '30 mins';
                 if (data && data.label) {
                     displayValue = data.label;
                 } else if (data && data.minutes != null) {
@@ -2357,7 +2358,7 @@
                     roots.forEach(function (root) {
                         var timeEl = root.querySelector('[data-delivery-eta-time]');
                         var distanceEl = root.querySelector('[data-delivery-eta-distance]');
-                        if (timeEl) timeEl.textContent = '12 mins';
+                        if (timeEl) timeEl.textContent = '30 mins';
                         if (distanceEl) distanceEl.style.display = 'none';
                     });
                 });
