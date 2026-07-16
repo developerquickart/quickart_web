@@ -25,23 +25,31 @@ class EnsureLoginAddressCompleted
             || $request->is('check-address-location-range')
             || $request->is('delivery-eta')
             || $request->is('cart-delivery-eta')
-        ) {
-            return $next($request);
-        }
-
-        // Allow logout / auth endpoints so the user is not trapped.
-        if (
-            $request->is('logout')
+            || $request->is('cateegoriesList')
+            || $request->is('logout')
             || $request->is('loginotpsubmit')
             || $request->is('check-login-location-range')
         ) {
             return $next($request);
         }
 
+        // Never redirect XHR/fetch/JSON calls — that breaks footer scripts (e.g. categories)
+        // and surfaces native alerts like "Error: undefined".
+        if (
+            $request->ajax()
+            || $request->wantsJson()
+            || $request->header('X-Requested-With') === 'XMLHttpRequest'
+            || str_contains((string) $request->header('Accept'), 'application/json')
+            || ! $request->isMethod('GET')
+        ) {
+            return $next($request);
+        }
+
         $lat = $pending['lat'] ?? null;
         $lng = $pending['lng'] ?? null;
-        if (!is_numeric($lat) || !is_numeric($lng)) {
+        if (! is_numeric($lat) || ! is_numeric($lng)) {
             $request->session()->forget('qk_must_complete_address');
+
             return $next($request);
         }
 

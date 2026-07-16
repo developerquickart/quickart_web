@@ -1255,12 +1255,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.warn('.FooterLinks__List not found in DOM');
                 }
             } else {
-                alert("Error: " + response.message);
+                // Avoid native "Error: undefined" when response is HTML/unexpected (e.g. redirect).
+                if (response && typeof response === 'object' && response.message) {
+                    console.warn('[categoriesList]', response.message);
+                }
             }
         },
         error: function(xhr) {
             $("#ajaxLoader").hide();
-            alert("An error occurred: " + xhr.responseText);
+            console.warn('[categoriesList] request failed', xhr && xhr.status);
         }
     });
 });
