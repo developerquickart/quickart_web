@@ -21,22 +21,31 @@ $countries = explode(',', $strToArr);
     pointer-events: none;
      max-height:40px;
   }
-#pac-input1 {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
-  width: 70%;
-  max-width: 400px;
-  padding: 8px 12px;
-  font-size: 14px;
-  border: 2px solid #2e317e;
-  border-radius: 30px;
-  background: #fff;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  outline: none;
-}
+  /* Keep map search inside the map so it cannot overlay the fixed header on scroll. */
+  .add_adderess_section .locate_map_button_box {
+    position: relative;
+    overflow: hidden;
+  }
+  #pac-input1 {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    width: 70%;
+    max-width: 400px;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 2px solid #2e317e;
+    border-radius: 30px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    outline: none;
+  }
+  /* Autocomplete dropdown above map content, but below sticky/fixed header. */
+  .pac-container {
+    z-index: 980 !important;
+  }
 </style>
 <section class="add_adderess_section">
     <div class="container">

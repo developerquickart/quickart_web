@@ -1251,12 +1251,10 @@
         .country-search-suggestion-item:hover {
             background: #f5f7ff;
         }
-        /* Large screens: one country UI — flag dropdown only (no extra search inputs). */
-        @media (min-width: 992px) {
-            #login .country-code-search-wrap,
-            #registration .country-code-search-wrap {
-                display: none !important;
-            }
+        /* Country picker is flag dropdown only — no separate country search field on any screen. */
+        #login .country-code-search-wrap,
+        #registration .country-code-search-wrap {
+            display: none !important;
         }
         /* Hide intl-tel-input's inner country search ("Search country or code") on all screens. */
         #login .iti__search-container,
@@ -1277,7 +1275,7 @@
                 position: fixed !important;
                 top: 0;
                 width: 100%;
-                z-index: 999;
+                z-index: 1100;
                 animation: none !important;
                 transition: none !important;
                 transform: none !important;
@@ -1363,12 +1361,6 @@
                                                 <div class="form-group">
                                                     <label for="mobile_code">Mobile Number <span
                                                             class="required_icon">*</span></label>
-                                                    <div class="country-code-search-wrap">
-                                                        <input type="text" id="country_search_1" class="form-control country-code-search"
-                                                            placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
-                                                        <button type="button" class="country-code-search-clear" data-target="country_search_1" aria-label="Clear country search">&times;</button>
-                                                        <div class="country-search-suggestions" id="country_search_1_suggestions"></div>
-                                                    </div>
                                                     <input type="text" id="mobile_code" class="form-control mobile_code"  name="number" data-index="1" required >
                                                     <input type="hidden" id="countryCode1" name="country_code" class="country_code">
                                                     <div id="error-msg" class="hide error-msg error"></div>
@@ -1563,12 +1555,6 @@
                                                     <fieldset class="form-group">
                                                         <label for="mobile_code">Mobile Number <span
                                                                 class="required_icon">*</span></label>
-                                                        <div class="country-code-search-wrap">
-                                                            <input type="text" id="country_search_2" class="form-control country-code-search"
-                                                                placeholder="Search country (e.g. India / +91)" list="country-search-datalist" autocomplete="off">
-                                                            <button type="button" class="country-code-search-clear" data-target="country_search_2" aria-label="Clear country search">&times;</button>
-                                                            <div class="country-search-suggestions" id="country_search_2_suggestions"></div>
-                                                        </div>
                                                         <input type="text" id="mobile_code2" class="form-control mobile_code" name="number" required data-index="2">
                                                         <input type="hidden" id="countryCode2" name="country_code" class="country_code">
                                                         <div id="error-msg1" class="hide error-msg error"></div>
@@ -1619,7 +1605,6 @@
             </div>
     </div>
 
-    <datalist id="country-search-datalist"></datalist>
     <header>
         <div class="osahan-menu {{ !empty(session('user_id')) ? 'qk-loggedin-menu' : '' }}">
             <div class="container-fluid">

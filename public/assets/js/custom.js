@@ -719,12 +719,10 @@ const inputl = document.querySelector("#mobile_code");
         });
     }
 
+    // External country search field removed — use flag dropdown only.
     setupCountryQuickSearch(document.getElementById('country_search_1'), itil);
     setupCountryQuickSearch(document.getElementById('country_search_2'), itir);
 
-    // In-dropdown country search removed intentionally.
-    // We keep only the external country search field above the phone input.
-    
 
 // MENU OPEN CLOSE SCRIPT
 function menu() {
