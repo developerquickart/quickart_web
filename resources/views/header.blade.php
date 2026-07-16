@@ -1471,6 +1471,9 @@
                                                                 @endphp
                                                                 <button type="button"
                                                                     class="qk-header-address-item login-saved-address-btn"
+                                                                    data-address-id="{{ $hAddress['address_id'] ?? '' }}"
+                                                                    data-house-no="{{ $hAddress['house_no'] ?? '' }}"
+                                                                    data-type="{{ $hAddress['type'] ?? 'Address' }}"
                                                                     data-lat="{{ $hAddress['lat'] ?? '' }}"
                                                                     data-lng="{{ $hAddress['lng'] ?? '' }}"
                                                                     data-name="{{ $loginAddrLabel }}">
@@ -2464,7 +2467,7 @@
             }
             selectedHeaderSavedAddress = {
                 address_id: String($radio.val() || ''),
-                house_no: String($radio.data('house-no') || $radio.data('name') || '').trim(),
+                house_no: String($radio.data('name') || $radio.data('house-no') || '').trim(),
                 type: String($radio.data('type') || 'Address').trim(),
                 lat: lat,
                 lng: lng
@@ -2782,8 +2785,16 @@
                 var typeLabel = (h && h.type) ? String(h.type) : 'Address';
                 var lat = h && h.lat !== undefined && h.lat !== null ? String(h.lat) : '';
                 var lng = h && h.lng !== undefined && h.lng !== null ? String(h.lng) : '';
+                var addressId = h && (h.address_id !== undefined && h.address_id !== null)
+                    ? String(h.address_id)
+                    : (h && h.id !== undefined && h.id !== null ? String(h.id) : '');
                 var $btn = $('<button type="button" class="qk-header-address-item login-saved-address-btn"></button>');
-                $btn.attr('data-lat', lat).attr('data-lng', lng).attr('data-name', label || 'Saved address');
+                $btn.attr('data-lat', lat)
+                    .attr('data-lng', lng)
+                    .attr('data-name', label || 'Saved address')
+                    .attr('data-address-id', addressId)
+                    .attr('data-house-no', house || label || '')
+                    .attr('data-type', typeLabel);
                 var $div = $('<div></div>');
                 $div.append($('<strong></strong>').text(typeLabel));
                 $div.append($('<span></span>').text(label));
@@ -2952,6 +2963,14 @@
                         if (requireNewAddress || response.require_new_address === true) {
                             qkRedirectLoginLocationToAddAddress(latNum, lngNum);
                         } else {
+                            // Persist saved address so cart?tab=1 shows the same selection.
+                            var savedForCart = options.saved_address || null;
+                            if (savedForCart && savedForCart.address_id && typeof window.qkPersistDeliveryAddressSelection === 'function') {
+                                window.qkPersistDeliveryAddressSelection(savedForCart);
+                                if (savedForCart.house_no) {
+                                    $('[data-delivery-eta-location]').text(savedForCart.house_no);
+                                }
+                            }
                             handleSuccessfulLoginAfterLocation(response.message);
                         }
                     } else if (response.success && response.in_range === false) {
@@ -3661,9 +3680,12 @@
 
             $(document).on('click', '.login-saved-address-btn', function () {
                 var $btn = $(this);
-                var lat = parseFloat($btn.data('lat'));
-                var lng = parseFloat($btn.data('lng'));
-                var name = ($btn.data('name') || '').toString().trim() || 'Saved address';
+                var lat = parseFloat($btn.attr('data-lat'));
+                var lng = parseFloat($btn.attr('data-lng'));
+                var name = ($btn.attr('data-name') || '').toString().trim() || 'Saved address';
+                var addressId = String($btn.attr('data-address-id') || '').trim();
+                var houseNo = String($btn.attr('data-house-no') || name).trim();
+                var addressType = String($btn.attr('data-type') || 'Address').trim();
                 if (!isFinite(lat) || !isFinite(lng)) {
                     Swal.fire({
                         icon: 'warning',
@@ -3672,8 +3694,18 @@
                     });
                     return;
                 }
-                // Saved address: complete login immediately (no add-address form).
-                submitLoginLocationCheck(lat, lng, name);
+                // Saved address: complete login immediately and lock this address for cart checkout.
+                var savedAddressPayload = null;
+                if (addressId) {
+                    savedAddressPayload = {
+                        address_id: addressId,
+                        house_no: name || houseNo,
+                        type: addressType || 'Address',
+                        lat: lat,
+                        lng: lng
+                    };
+                }
+                submitLoginLocationCheck(lat, lng, name, { saved_address: savedAddressPayload });
             });
 
             $('#headerLocationSwitchModal').on('shown.bs.modal', function () {

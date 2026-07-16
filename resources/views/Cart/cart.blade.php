@@ -4397,9 +4397,9 @@ document.addEventListener("DOMContentLoaded", function() {
     
    
    
-    //  Changes by G1... set first valuein address..
+    // Prefer the address the user already chose (login saved address / header change / add-address).
+    // Only fall back to cart API lastadd[0] when nothing is stored yet.
     let nTitle = @json($title);
-    //  console.log("G1------>title",nTitle);
 
     var existingSelectedAddress = null;
     try {
@@ -4411,7 +4411,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
      if (addressSaved !== '1' && !hasStoredAddressSelection && nTitle === 'daily') {
         let showCartProductList = @json($showCartProductList);
-       if (showCartProductList.data.lastadd && showCartProductList.data.lastadd.length > 0) {
+       if (showCartProductList && showCartProductList.data && showCartProductList.data.lastadd && showCartProductList.data.lastadd.length > 0) {
             const address = showCartProductList.data.lastadd[0];
             var selected_address1 = {};
             selected_address1.house_no = address.house_no;
@@ -4422,12 +4422,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
             localStorage.setItem("selectedAddress", JSON.stringify(selected_address1));
         } else {
-            // Keep any previously selected address (e.g. just selected via Add Address flow).
             console.log("No last address found from API, preserving existing selectedAddress.");
         }
     } else if (addressSaved !== '1' && !hasStoredAddressSelection) {
          let subCartProductList = @json($subCartProductList);
-        if (subCartProductList.data.lastadd && subCartProductList.data.lastadd.length > 0) {
+        if (subCartProductList && subCartProductList.data && subCartProductList.data.lastadd && subCartProductList.data.lastadd.length > 0) {
             const address = subCartProductList.data.lastadd[0];
            
             var selected_address1 = {};
@@ -4438,12 +4437,16 @@ document.addEventListener("DOMContentLoaded", function() {
             if (address.lng != null) selected_address1.lng = address.lng;
             localStorage.setItem("selectedAddress", JSON.stringify(selected_address1));
         } else {
-            // Keep any previously selected address (e.g. just selected via Add Address flow).
             console.log("No last address found from API, preserving existing selectedAddress.");
         }
     }
       
-        var selected_address = JSON.parse(localStorage.getItem("selectedAddress") || "null");
+        var selected_address = null;
+        try {
+            selected_address = JSON.parse(localStorage.getItem("selectedAddress") || "null");
+        } catch (e) {
+            selected_address = null;
+        }
         console.log("G1----11-->selected_address",selected_address);
         if (selected_address && typeof selected_address === 'object' && selected_address.address_id) {
             saveSelectedAddress(selected_address);
