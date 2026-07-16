@@ -460,57 +460,68 @@ class AddressController extends Controller
             dd($errorMessage);
         }
 
-        if($addedFrom == 'cart' || $addedFrom == 'login' || $addedFrom == 'header'){
-            $newAddressId = null;
-            $responseData = $addAddress['data'] ?? null;
-            if (is_array($responseData)) {
-                $newAddressId = $responseData['address_id'] ?? $responseData['id'] ?? null;
-                if ($newAddressId === null && isset($responseData[0]) && is_array($responseData[0])) {
-                    $newAddressId = $responseData[0]['address_id'] ?? $responseData[0]['id'] ?? null;
-                }
+        // Always treat the newly saved address as the cart/checkout selection.
+        $newAddressId = null;
+        $responseData = $addAddress['data'] ?? null;
+        if (is_array($responseData)) {
+            $newAddressId = $responseData['address_id'] ?? $responseData['id'] ?? null;
+            if ($newAddressId === null && isset($responseData[0]) && is_array($responseData[0])) {
+                $newAddressId = $responseData[0]['address_id'] ?? $responseData[0]['id'] ?? null;
             }
-            if ($newAddressId === null && !empty($addAddress['address_id'])) {
-                $newAddressId = $addAddress['address_id'];
-            }
-
-            $selectedAddressPayload = [
-                'address_id' => $newAddressId,
-                'house_no' => $house_no,
-                'type' => $type,
-                'lat' => $lat,
-                'lng' => $lng,
-            ];
-
-            session()->flash('qk_cart_selected_address', $selectedAddressPayload);
-
-            // Login current-location / map flow: land on daily cart with the new address pre-selected.
-            $redirectTab = ($tab !== null && $tab !== '') ? $tab : '1';
-            if ($addedFrom == 'login') {
-                session()->forget('qk_must_complete_address');
-                return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
-            }
-
-            if ($addedFrom == 'header') {
-                session()->flash('qk_header_address_just_saved', $selectedAddressPayload);
-                $returnTo = trim((string) $request->input('return_to', ''));
-                // Only allow same-site relative paths (block open redirects).
-                if ($returnTo !== '' && str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//')
-                    && !str_contains($returnTo, "\n") && !str_contains($returnTo, "\r")) {
-                    $separator = str_contains($returnTo, '?') ? '&' : '?';
-                    return redirect($returnTo . $separator . 'addressSaved=1');
-                }
-                return redirect('/?addressSaved=1');
-            }
-
-            return redirect('cart?tab='.$redirectTab.'&addedFrom='.$addedFrom.'&addressSaved=1');
-        }else if($addedFrom == 'trailcart'){
-            // Return a response or redirect as needed
-           return redirect('trial-pack-cart?addedFrom='.$addedFrom);
-        }else{
-            // Return a response or redirect as needed
-           return redirect()->route('address.list');
         }
-      
+        if ($newAddressId === null && !empty($addAddress['address_id'])) {
+            $newAddressId = $addAddress['address_id'];
+        }
+
+        $displayHouse = trim((string) $house_no);
+        if ($society_name !== null && trim((string) $society_name) !== '') {
+            $societyTrim = trim((string) $society_name);
+            if ($displayHouse === '' || stripos($displayHouse, $societyTrim) === false) {
+                $displayHouse = trim($displayHouse . ($displayHouse !== '' ? ', ' : '') . $societyTrim);
+            }
+        }
+
+        $selectedAddressPayload = [
+            'address_id' => $newAddressId,
+            'house_no' => $displayHouse !== '' ? $displayHouse : (string) $house_no,
+            'type' => $type,
+            'lat' => $lat,
+            'lng' => $lng,
+        ];
+
+        // Durable + one-request flash so cart/header JS always pick this address.
+        session()->put('qk_preferred_cart_address', $selectedAddressPayload);
+        session()->flash('qk_cart_selected_address', $selectedAddressPayload);
+        session()->flash('qk_header_address_just_saved', $selectedAddressPayload);
+
+        $redirectTab = ($tab !== null && $tab !== '') ? $tab : '1';
+
+        if ($addedFrom == 'login') {
+            session()->forget('qk_must_complete_address');
+            return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
+        }
+
+        if ($addedFrom == 'header') {
+            $returnTo = trim((string) $request->input('return_to', ''));
+            // Only allow same-site relative paths (block open redirects).
+            if ($returnTo !== '' && str_starts_with($returnTo, '/') && !str_starts_with($returnTo, '//')
+                && !str_contains($returnTo, "\n") && !str_contains($returnTo, "\r")) {
+                $separator = str_contains($returnTo, '?') ? '&' : '?';
+                return redirect($returnTo . $separator . 'addressSaved=1');
+            }
+            return redirect('/?addressSaved=1');
+        }
+
+        if ($addedFrom == 'cart') {
+            return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
+        }
+
+        if ($addedFrom == 'trailcart') {
+            return redirect('trial-pack-cart?addedFrom='.$addedFrom.'&addressSaved=1');
+        }
+
+        // Default (e.g. header "Add address" with no addedFrom): go to cart with this address selected.
+        return redirect('cart?tab=1&addedFrom=cart&addressSaved=1');
     }
 
 

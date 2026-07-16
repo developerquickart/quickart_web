@@ -2896,6 +2896,9 @@ window.saveSelectedAddress = function saveSelectedAddress(storedAddresses) {
     storedAddresses.lat = normalizedLat;
     storedAddresses.lng = normalizedLng;
     localStorage.setItem("selectedAddress", JSON.stringify(storedAddresses));
+    try {
+        sessionStorage.setItem('qk_preferred_cart_address', JSON.stringify(storedAddresses));
+    } catch (e) {}
 
     $('.change_addressbox').removeClass('d-none');
     $('.btn_addresslist span').html('Change Address');
@@ -4660,25 +4663,43 @@ document.addEventListener("DOMContentLoaded", function() {
     var addedFrom = "{{\Request::get('addedFrom')}}";
     var addressSaved = "{{\Request::get('addressSaved')}}";
     var flashedCartAddress = @json(session('qk_cart_selected_address'));
+    var preferredCartAddress = @json(session('qk_preferred_cart_address'));
     addressModal.addEventListener("hidden.bs.modal", function() {
         document.body.style.overflow = "";
         if(addedFrom == 'cart' && addressSaved !== '1' && !window.__qkCartAddressSelected){
             window.location.href="{{url('cart?tab='.\Request::get('tab'))}}"
         }
     });
-    
-    
-    if (addressSaved === '1' && flashedCartAddress) {
-        if (flashedCartAddress.address_id && typeof window.saveSelectedAddress === 'function') {
-            window.saveSelectedAddress(flashedCartAddress);
-        } else if (typeof fetchAddressList === 'function') {
-            fetchAddressList();
-            setTimeout(function () {
-                var firstSelectable = document.querySelector('#addressListContainer .addressIcon');
-                if (firstSelectable) {
-                    firstSelectable.click();
-                }
-            }, 800);
+
+    function qkApplyCartSelectedAddress(addressObj) {
+        if (!addressObj || !addressObj.address_id || typeof window.saveSelectedAddress !== 'function') {
+            return false;
+        }
+        window.saveSelectedAddress(addressObj);
+        return true;
+    }
+
+    // Freshly saved address always wins on cart?tab=1.
+    var justSavedAddress = null;
+    if (addressSaved === '1') {
+        if (flashedCartAddress && flashedCartAddress.address_id) {
+            justSavedAddress = flashedCartAddress;
+        } else if (preferredCartAddress && preferredCartAddress.address_id) {
+            justSavedAddress = preferredCartAddress;
+        }
+    }
+
+    if (justSavedAddress) {
+        if (!qkApplyCartSelectedAddress(justSavedAddress)) {
+            if (typeof fetchAddressList === 'function') {
+                fetchAddressList();
+                setTimeout(function () {
+                    var firstSelectable = document.querySelector('#addressListContainer .addressIcon');
+                    if (firstSelectable) {
+                        firstSelectable.click();
+                    }
+                }, 800);
+            }
         }
         // Resume wishlist / notify / cart actions deferred from login → add-address flow.
         if (typeof window.qkResumePendingAfterLoginAddress === 'function') {
@@ -4693,8 +4714,7 @@ document.addEventListener("DOMContentLoaded", function() {
     
    
    
-    // Prefer the address the user already chose (login saved address / header change / add-address).
-    // Only fall back to cart API lastadd[0] when nothing is stored yet.
+    // Prefer stored selection (localStorage / preferred session), then API lastadd.
     let nTitle = @json($title);
 
     var existingSelectedAddress = null;
@@ -4704,6 +4724,15 @@ document.addEventListener("DOMContentLoaded", function() {
         existingSelectedAddress = null;
     }
     var hasStoredAddressSelection = !!(existingSelectedAddress && existingSelectedAddress.address_id);
+
+    // If localStorage is empty but server still has the last saved preferred address, use it.
+    if (!hasStoredAddressSelection && preferredCartAddress && preferredCartAddress.address_id) {
+        try {
+            localStorage.setItem("selectedAddress", JSON.stringify(preferredCartAddress));
+            existingSelectedAddress = preferredCartAddress;
+            hasStoredAddressSelection = true;
+        } catch (e) {}
+    }
 
      if (addressSaved !== '1' && !hasStoredAddressSelection && nTitle === 'daily') {
         let showCartProductList = @json($showCartProductList);
@@ -4743,10 +4772,13 @@ document.addEventListener("DOMContentLoaded", function() {
         } catch (e) {
             selected_address = null;
         }
-        console.log("G1----11-->selected_address",selected_address);
-        if (selected_address && typeof selected_address === 'object' && selected_address.address_id) {
+        // Just-saved address already applied above — do not overwrite it with older storage.
+        if (!justSavedAddress && selected_address && typeof selected_address === 'object' && selected_address.address_id) {
             saveSelectedAddress(selected_address);
+        } else if (justSavedAddress) {
+            selected_address = justSavedAddress;
         }
+        console.log("G1----11-->selected_address",selected_address);
          if(!selected_address || !selected_address.address_id){
         $('.change_addressbox').addClass('d-none');
         $('.btn_addresslist span').html('Add Address');

@@ -2452,6 +2452,9 @@
             try {
                 localStorage.setItem('selectedAddress', JSON.stringify(addressData));
             } catch (e) {}
+            try {
+                sessionStorage.setItem('qk_preferred_cart_address', JSON.stringify(addressData));
+            } catch (e) {}
             if (typeof window.saveSelectedAddress === 'function') {
                 window.saveSelectedAddress(addressData);
             }
