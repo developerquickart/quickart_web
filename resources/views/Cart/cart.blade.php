@@ -116,6 +116,152 @@ body.qk-checkout-loading {
     font-weight: 700;
     color: #2e317e;
 }
+/* Mobile: Quick Pay / Apple Pay beside Place Order → bottom sheet */
+.qk-mobile-place-order-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+.qk-mobile-pay-more-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 52px;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #2e317e;
+    border-radius: 8px;
+    background: #fff;
+    color: #2e317e;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.qk-mobile-pay-more-btn svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+.qk-mobile-pay-sheet {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+}
+.qk-mobile-pay-sheet.is-open {
+    display: block;
+}
+.qk-mobile-pay-sheet__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 22, 40, 0.45);
+}
+.qk-mobile-pay-sheet__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    border-radius: 18px 18px 0 0;
+    padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 28px rgba(20, 22, 40, 0.18);
+    transform: translateY(100%);
+    transition: transform 0.22s ease;
+}
+.qk-mobile-pay-sheet.is-open .qk-mobile-pay-sheet__panel {
+    transform: translateY(0);
+}
+.qk-mobile-pay-sheet__handle {
+    width: 42px;
+    height: 4px;
+    border-radius: 99px;
+    background: #d7dbe8;
+    margin: 2px auto 12px;
+}
+.qk-mobile-pay-sheet__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2e317e;
+    margin: 0 0 12px;
+    text-align: center;
+}
+.qk-mobile-pay-sheet__options {
+    display: grid;
+    gap: 10px;
+}
+.qk-mobile-pay-sheet__option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    border: 1px solid #e4e7f0;
+    border-radius: 12px;
+    background: #fafbff;
+    padding: 12px 14px;
+    text-align: left;
+    cursor: pointer;
+}
+.qk-mobile-pay-sheet__option:active {
+    background: #f1f3fb;
+}
+.qk-mobile-pay-sheet__option img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+}
+.qk-mobile-pay-sheet__option-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a237e;
+}
+.qk-mobile-pay-sheet__option-sub {
+    font-size: 11px;
+    font-weight: 500;
+    color: #687087;
+    margin-top: 2px;
+}
+.qk-mobile-pay-sheet__apple {
+    display: none;
+}
+.qk-mobile-pay-sheet__apple.is-visible {
+    display: flex;
+}
+@media (max-width: 767.98px) {
+    #payNowQuick .qk-desktop-alt-pay {
+        display: none !important;
+    }
+    #payNowQuick .pay_btnbox {
+        grid-template-columns: 1fr !important;
+    }
+    .qk-mobile-pay-more-btn {
+        display: inline-flex;
+    }
+    .pay_btn_wrap.new_pay_btn_wrap {
+        gap: 12px;
+        justify-content: space-between;
+    }
+    .qk-mobile-place-order-row {
+        flex: 1;
+        min-width: 0;
+        justify-content: stretch;
+    }
+    .qk-mobile-place-order-row .pay_btn {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 16px;
+        text-align: center;
+    }
+}
+@media (min-width: 768px) {
+    .qk-mobile-pay-more-btn,
+    .qk-mobile-pay-sheet {
+        display: none !important;
+    }
+}
 .qk-address-confirm-current__text {
     margin-top: 4px;
     font-size: 13px;
@@ -779,7 +925,7 @@ body.qk-checkout-loading {
                                                         <div id="Pay Now" class="content-div" style="display: block;">
                                                             <div id="payNowQuick">
                                                                 <div class="pay_btnbox">
-                                                                    <div class="pay_btn_listing"
+                                                                    <div class="pay_btn_listing qk-desktop-alt-pay"
                                                                         onclick="openAddressConfirmationBeforeCheckout('quickPay')">
                                                                         <div class="pay_btn_icon">
                                                                             <img src="{{asset('assets/images/money.svg')}}"
@@ -792,7 +938,7 @@ body.qk-checkout-loading {
                                                                             </div>
                                                                         </div>
                                                                     </div>
-                                                                    <div id="applyBtn" style="opacity:0;">
+                                                                    <div id="applyBtn" class="qk-desktop-alt-pay" style="opacity:0;">
                                                                         <div class="pay_btn_listing" id="applyBtn"
                                                                             onclick="openAddressConfirmationBeforeCheckout('applePay')">
                                                                             <div class="pay_btn_icon">
@@ -856,9 +1002,48 @@ body.qk-checkout-loading {
                                                             <input type="hidden" name="wallet_use_amt" id="wallet_use_amt" >
                                                              <input type="hidden" name="wallet_use_amt_cash" id="wallet_use_amt_cash" >
                                                             <input type="hidden" name="final_price" id="final_price" >
-                                                            <div class="pay_btn"
-                                                                onclick="openAddressConfirmationBeforeCheckout('payNow')">
-                                                                <span>Place Order</span>
+                                                            <div class="qk-mobile-place-order-row">
+                                                                <div class="pay_btn"
+                                                                    onclick="openAddressConfirmationBeforeCheckout('payNow')">
+                                                                    <span>Place Order</span>
+                                                                </div>
+                                                                <button type="button"
+                                                                    class="qk-mobile-pay-more-btn"
+                                                                    id="qkMobilePayMoreBtn"
+                                                                    aria-haspopup="dialog"
+                                                                    aria-expanded="false"
+                                                                    aria-controls="qkMobilePaySheet"
+                                                                    title="More payment options">
+                                                                    <span>Pay</span>
+                                                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                                        <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                                    </svg>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="qk-mobile-pay-sheet" id="qkMobilePaySheet" aria-hidden="true">
+                                                            <div class="qk-mobile-pay-sheet__backdrop" data-qk-mobile-pay-close></div>
+                                                            <div class="qk-mobile-pay-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="qkMobilePaySheetTitle">
+                                                                <div class="qk-mobile-pay-sheet__handle" aria-hidden="true"></div>
+                                                                <h6 class="qk-mobile-pay-sheet__title" id="qkMobilePaySheetTitle">Choose payment</h6>
+                                                                <div class="qk-mobile-pay-sheet__options">
+                                                                    <button type="button" class="qk-mobile-pay-sheet__option"
+                                                                        onclick="window.qkMobilePaySheetPick && window.qkMobilePaySheetPick('quickPay')">
+                                                                        <img src="{{ asset('assets/images/money.svg') }}" alt="">
+                                                                        <span>
+                                                                            <span class="qk-mobile-pay-sheet__option-title">Quick Pay</span>
+                                                                            <span class="qk-mobile-pay-sheet__option-sub">Without saving card</span>
+                                                                        </span>
+                                                                    </button>
+                                                                    <button type="button" class="qk-mobile-pay-sheet__option qk-mobile-pay-sheet__apple" id="qkMobileApplePayOption"
+                                                                        onclick="window.qkMobilePaySheetPick && window.qkMobilePaySheetPick('applePay')">
+                                                                        <img src="{{ asset('assets/images/apple.svg') }}" alt="">
+                                                                        <span>
+                                                                            <span class="qk-mobile-pay-sheet__option-title">Apple Pay</span>
+                                                                        </span>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         @endif
@@ -1379,8 +1564,64 @@ body.qk-checkout-loading {
   };
 
   if (isAppleBrowser()) {
-    document.getElementById('applyBtn').style.opacity = '1';
+    var applyBtnEl = document.getElementById('applyBtn');
+    if (applyBtnEl) {
+      applyBtnEl.style.opacity = '1';
+    }
+    var mobileAppleOpt = document.getElementById('qkMobileApplePayOption');
+    if (mobileAppleOpt) {
+      mobileAppleOpt.classList.add('is-visible');
+    }
   }
+
+  (function initMobilePaySheet() {
+    var sheet = document.getElementById('qkMobilePaySheet');
+    var openBtn = document.getElementById('qkMobilePayMoreBtn');
+    if (!sheet || !openBtn) {
+      return;
+    }
+
+    function openSheet() {
+      sheet.classList.add('is-open');
+      sheet.setAttribute('aria-hidden', 'false');
+      openBtn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeSheet() {
+      sheet.classList.remove('is-open');
+      sheet.setAttribute('aria-hidden', 'true');
+      openBtn.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
+
+    openBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (sheet.classList.contains('is-open')) {
+        closeSheet();
+      } else {
+        openSheet();
+      }
+    });
+
+    sheet.querySelectorAll('[data-qk-mobile-pay-close]').forEach(function (el) {
+      el.addEventListener('click', closeSheet);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && sheet.classList.contains('is-open')) {
+        closeSheet();
+      }
+    });
+
+    window.qkMobilePaySheetPick = function (method) {
+      closeSheet();
+      if (typeof openAddressConfirmationBeforeCheckout === 'function') {
+        openAddressConfirmationBeforeCheckout(method);
+      }
+    };
+  })();
 </script>
 
 <script>
