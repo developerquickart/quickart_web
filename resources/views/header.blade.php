@@ -1668,7 +1668,6 @@
                                     <span class="qk-delivery-eta__label">Delivery in</span>
                                     <div class="qk-delivery-eta__headline">
                                         <span class="qk-delivery-eta__time" data-delivery-eta-time>…</span>
-                                        <span class="qk-delivery-eta__distance-tag" data-delivery-eta-distance>...</span>
                                     </div>
                                 </a>
                                 <div class="qk-delivery-eta__meta">
@@ -2293,19 +2292,7 @@
                 }
                 roots.forEach(function (root) {
                     var timeEl = root.querySelector('[data-delivery-eta-time]');
-                    var distanceEl = root.querySelector('[data-delivery-eta-distance]');
                     if (timeEl) timeEl.textContent = displayValue;
-                    if (distanceEl) {
-                        if (data && data.distance_label) {
-                            distanceEl.textContent = data.distance_label;
-                            distanceEl.style.display = 'inline-flex';
-                        } else if (data && data.distance_meters != null) {
-                            distanceEl.textContent = data.distance_meters + ' mtrs away';
-                            distanceEl.style.display = 'inline-flex';
-                        } else {
-                            distanceEl.style.display = 'none';
-                        }
-                    }
                 });
             }
             window.qkRefreshDeliveryEtaStrip = function () {
@@ -2360,9 +2347,7 @@
                     console.warn('[qk-login-location] /delivery-eta fetch failed', err);
                     roots.forEach(function (root) {
                         var timeEl = root.querySelector('[data-delivery-eta-time]');
-                        var distanceEl = root.querySelector('[data-delivery-eta-distance]');
                         if (timeEl) timeEl.textContent = '30 mins';
-                        if (distanceEl) distanceEl.style.display = 'none';
                     });
                 });
             };

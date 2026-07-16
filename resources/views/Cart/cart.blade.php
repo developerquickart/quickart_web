@@ -220,6 +220,23 @@ body.qk-checkout-loading {
 .qk-mobile-pay-sheet__option:active {
     background: #f1f3fb;
 }
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__quick {
+    justify-content: flex-start;
+    gap: 10px;
+    min-height: 48px;
+    background: #e8f5e9;
+    border-color: #2e7d32;
+    color: #1b5e20;
+}
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__quick:active {
+    background: #c8e6c9;
+}
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__quick .qk-mobile-pay-sheet__option-title {
+    color: #1b5e20;
+}
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__quick .qk-mobile-pay-sheet__option-sub {
+    color: #388e3c;
+}
 .qk-mobile-pay-sheet__option img {
     width: 28px;
     height: 28px;
@@ -1068,7 +1085,7 @@ body.qk-checkout-loading {
                                                                 <div class="qk-mobile-pay-sheet__handle" aria-hidden="true"></div>
                                                                 <h6 class="qk-mobile-pay-sheet__title" id="qkMobilePaySheetTitle">Choose payment</h6>
                                                                 <div class="qk-mobile-pay-sheet__options">
-                                                                    <button type="button" class="qk-mobile-pay-sheet__option"
+                                                                    <button type="button" class="qk-mobile-pay-sheet__option qk-mobile-pay-sheet__quick"
                                                                         onclick="window.qkMobilePaySheetPick && window.qkMobilePaySheetPick('quickPay')">
                                                                         <img src="{{ asset('assets/images/money.svg') }}" alt="">
                                                                         <span>
