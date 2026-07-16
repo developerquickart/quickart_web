@@ -2505,6 +2505,83 @@
             window.location.href = "{{ url('/add-address') }}?" + params.toString();
         }
 
+        /** After login current-location / map pick: open add-address with that pin prefilled (same as cart header prefill). */
+        function qkRedirectLoginLocationToAddAddress(lat, lng) {
+            try {
+                sessionStorage.setItem('qk_login_pending_after_address', JSON.stringify({
+                    action: typeof action !== 'undefined' ? action : null,
+                    pendingProductId: typeof pendingProductId !== 'undefined' ? pendingProductId : null
+                }));
+            } catch (e) {}
+            var params = new URLSearchParams({
+                addedFrom: 'login',
+                tab: '1',
+                prefill: '1',
+                lat: String(lat),
+                lng: String(lng)
+            });
+            window.__qkAllowLoginModalClose = true;
+            try {
+                $('#login').modal('hide');
+            } catch (e) {}
+            qkDeferNavigate(function () {
+                window.location.href = "{{ url('/add-address') }}?" + params.toString();
+            });
+        }
+
+        /** Run any pending product action saved before the login → add-address redirect. */
+        window.qkResumePendingAfterLoginAddress = function qkResumePendingAfterLoginAddress() {
+            var raw = null;
+            try {
+                raw = sessionStorage.getItem('qk_login_pending_after_address');
+                sessionStorage.removeItem('qk_login_pending_after_address');
+            } catch (e) {
+                return;
+            }
+            if (!raw) {
+                return;
+            }
+            var pending = null;
+            try {
+                pending = JSON.parse(raw);
+            } catch (e) {
+                return;
+            }
+            if (!pending) {
+                return;
+            }
+            var pendingAction = pending.action || null;
+            var productId = pending.pendingProductId || null;
+            if (productId && pendingAction === 'addToCart') {
+                localStorage.setItem('selectedTab', 1);
+                if (typeof addToCart === 'function') {
+                    addToCart(productId, 1, true);
+                }
+                return;
+            }
+            if (productId && pendingAction === 'addToSubCart') {
+                qkDeferNavigate(function () { window.location.reload(); });
+                return;
+            }
+            if (productId && pendingAction === 'wishlist') {
+                if (typeof addToWishList === 'function') {
+                    addToWishList(productId, 1, true);
+                }
+                qkDeferNavigate(function () { window.location.href = "{{ url('wishlist') }}"; });
+                return;
+            }
+            if (productId && pendingAction === 'notifyme') {
+                if (typeof notifyMe === 'function') {
+                    notifyMe(productId, productId, 0, '');
+                }
+                qkDeferNavigate(function () { window.location.href = "{{ url('notify') }}"; });
+                return;
+            }
+            if (pendingAction === 'trailpack') {
+                qkDeferNavigate(function () { window.location.href = "{{ url('trial-pack') }}"; });
+            }
+        }
+
         function qkValidateCurrentLocationForCartAddAddress(lat, lng, onSuccess, onFail) {
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
             var norm = normalizeLoginCoordsForSubmit(lat, lng, 'qkValidateCurrentLocationForCartAddAddress');
@@ -2709,10 +2786,12 @@
             }
         }
 
-        function submitLoginLocationCheck(lat, lng, locationName) {
+        function submitLoginLocationCheck(lat, lng, locationName, options) {
             if (window.__qkLoginLocBusy) {
                 return;
             }
+            options = options || {};
+            var requireNewAddress = options.requireNewAddress === true;
             window.__qkLoginLocBusy = true;
             var _token = jQuery('meta[name="csrf-token"]').attr('content');
             var norm = normalizeLoginCoordsForSubmit(lat, lng, 'submitLoginLocationCheck(in=' + (locationName || '') + ')');
@@ -2731,14 +2810,21 @@
             console.log('[qk-login-location] POST /check-login-location-range', {
                 lat: latNum,
                 lng: lngNum,
-                location_name: locationName || ''
+                location_name: locationName || '',
+                requireNewAddress: requireNewAddress
             });
             $.ajax({
                 url: "{{ route('checkLoginLocationRange') }}",
                 type: 'POST',
                 dataType: 'json',
                 xhrFields: { withCredentials: true },
-                data: { lat: latNum, lng: lngNum, location_name: locationName || '', _token: _token },
+                data: {
+                    lat: latNum,
+                    lng: lngNum,
+                    location_name: locationName || '',
+                    require_new_address: requireNewAddress ? 1 : 0,
+                    _token: _token
+                },
                 complete: function () {
                     window.__qkLoginLocBusy = false;
                     $('.use_current_location_btn').data('qk-location-loading', false);
@@ -2750,7 +2836,13 @@
                         console.log('[qk-login-location] SQL bindings', response.debug_bindings || []);
                     }
                     if (response.success && response.in_range) {
-                        handleSuccessfulLoginAfterLocation(response.message);
+                        // Current location / map: finish login session then collect a full address before continuing.
+                        // Saved address selection keeps the direct post-login path.
+                        if (requireNewAddress || response.require_new_address === true) {
+                            qkRedirectLoginLocationToAddAddress(latNum, lngNum);
+                        } else {
+                            handleSuccessfulLoginAfterLocation(response.message);
+                        }
                     } else if (response.success && response.in_range === false) {
                         waitlistUserId = response.waitlist_user_id || null;
                         if (response.already_waitlisted === true) {
@@ -3377,8 +3469,8 @@
                             speed: c.speed
                         });
                         console.log('[qk-login-location] geolocation position.timestamp', position.timestamp);
-                        console.log('[qk-login-location] geolocation → submitLoginLocationCheck (same normalize as map picker)');
-                        submitLoginLocationCheck(c.latitude, c.longitude, 'Current location');
+                        console.log('[qk-login-location] geolocation → submitLoginLocationCheck (require add-address)');
+                        submitLoginLocationCheck(c.latitude, c.longitude, 'Current location', { requireNewAddress: true });
                     }, function (geoErr) {
                         $btn.data('qk-location-loading', false);
                         console.warn('[qk-login-location] geolocation error', geoErr);
@@ -3451,7 +3543,7 @@
                     return;
                 }
                 const pickedLocationName = ($('#login-location-search').val() || '').trim() || 'Selected location';
-                submitLoginLocationCheck(selectedLoginLat, selectedLoginLng, pickedLocationName);
+                submitLoginLocationCheck(selectedLoginLat, selectedLoginLng, pickedLocationName, { requireNewAddress: true });
             });
 
             $(document).on('click', '.login-saved-address-btn', function () {
@@ -3467,6 +3559,7 @@
                     });
                     return;
                 }
+                // Saved address: complete login immediately (no add-address form).
                 submitLoginLocationCheck(lat, lng, name);
             });
 

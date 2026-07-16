@@ -4384,6 +4384,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }, 800);
         }
+        // Resume wishlist / notify / cart actions deferred from login → add-address flow.
+        if (typeof window.qkResumePendingAfterLoginAddress === 'function') {
+            setTimeout(function () {
+                window.qkResumePendingAfterLoginAddress();
+            }, 300);
+        }
     } else if(addedFrom == 'cart'){
         qkShowBootstrapModal('addressModal');
         $('.btn_addresslist').trigger('click');

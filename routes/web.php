@@ -57,14 +57,6 @@ Route::get('/generate-sitemap', [SitemapController::class, 'generateAllSitemaps'
 Route::get('/return-refund',  [HomeController::class, 'refund']);
 Route::get('/privacy-policy',  [HomeController::class, 'privacypolicy']);
 
-Route::get('/add-address', function () {
-    $data_arr = array();
-    $data_arr['title'] = "Quickart";
-    $data_arr['keywords'] = "";
-    $data_arr['description'] = "";
-    $data_arr['canonical'] = "";
-    return view('Address/add-address', ['data_arr' => $data_arr]);
-});
 Route::get('/login', function () {
     $data_arr = array();
     $data_arr['title'] = "Quickart";

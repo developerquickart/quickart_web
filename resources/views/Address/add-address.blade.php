@@ -83,8 +83,8 @@ $countries = explode(',', $strToArr);
                                         <input type="hidden" id="mapLng" value="{{ $mapInitLng }}">
                                         <input type="hidden" id="latitude" name="latitude" value="{{old('latitude')}}">
                                         <input type="hidden" id="longitude" name="longitude" value="{{old('longitude')}}">
-                                        <input type="hidden" id="addedFrom" name="addedFrom" value="{{\Request::get('addedFrom')}}">
-                                        <input type="hidden" id="tab" name="tab" value="{{\Request::get('tab')}}">
+                                        <input type="hidden" id="addedFrom" name="addedFrom" value="{{ old('addedFrom', request('addedFrom')) }}">
+                                        <input type="hidden" id="tab" name="tab" value="{{ old('tab', request('tab')) }}">
                                     </fieldset>
                                     <fieldset class="form-group">
                                         <label for="landmark">Landmark & Area Name (Optional)</label>

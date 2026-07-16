@@ -647,6 +647,19 @@ class AuthController extends Controller
             if ($hasPendingLogin) {
                 $request->session()->forget('pending_login_user');
             }
+
+            // Current location / map during login: require completing add-address before browsing.
+            $requireNewAddress = filter_var($request->input('require_new_address', false), FILTER_VALIDATE_BOOLEAN)
+                || (string) $request->input('require_new_address') === '1';
+            if ($requireNewAddress) {
+                $request->session()->put('qk_must_complete_address', [
+                    'lat' => $lat,
+                    'lng' => $lng,
+                ]);
+            } else {
+                $request->session()->forget('qk_must_complete_address');
+            }
+
             $request->session()->save();
 
             $payload = [
@@ -656,6 +669,7 @@ class AuthController extends Controller
                 'distance_meters' => (float) $nearestStore->distance_meters,
                 'store_name' => $nearestStore->name,
                 'location_name' => $locationName !== '' ? $locationName : 'Current location',
+                'require_new_address' => $requireNewAddress,
             ];
             if (config('app.debug')) {
                 $payload['debug_sql'] = $storeDistanceSql;

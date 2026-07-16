@@ -460,7 +460,7 @@ class AddressController extends Controller
             dd($errorMessage);
         }
 
-        if($addedFrom == 'cart'){
+        if($addedFrom == 'cart' || $addedFrom == 'login'){
             $newAddressId = null;
             $responseData = $addAddress['data'] ?? null;
             if (is_array($responseData)) {
@@ -481,7 +481,14 @@ class AddressController extends Controller
                 'lng' => $lng,
             ]);
 
-            return redirect('cart?tab='.$tab.'&addedFrom='.$addedFrom.'&addressSaved=1');
+            // Login current-location / map flow: land on daily cart with the new address pre-selected.
+            $redirectTab = ($tab !== null && $tab !== '') ? $tab : '1';
+            if ($addedFrom == 'login') {
+                session()->forget('qk_must_complete_address');
+                return redirect('cart?tab='.$redirectTab.'&addedFrom=cart&addressSaved=1');
+            }
+
+            return redirect('cart?tab='.$redirectTab.'&addedFrom='.$addedFrom.'&addressSaved=1');
         }else if($addedFrom == 'trailcart'){
             // Return a response or redirect as needed
            return redirect('trial-pack-cart?addedFrom='.$addedFrom);
