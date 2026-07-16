@@ -242,6 +242,30 @@ body.qk-checkout-loading {
 .qk-mobile-pay-sheet__apple.is-visible {
     display: flex;
 }
+/* Official-style black Apple Pay button (apple.svg is white-fill). */
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__apple {
+    justify-content: center;
+    gap: 8px;
+    background: #000;
+    border-color: #000;
+    color: #fff;
+    min-height: 48px;
+    padding: 12px 16px;
+}
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__apple:active {
+    background: #222;
+}
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__apple img {
+    width: 20px;
+    height: 20px;
+    filter: none;
+}
+.qk-mobile-pay-sheet__option.qk-mobile-pay-sheet__apple .qk-mobile-pay-sheet__option-title {
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
 @media (max-width: 767.98px) {
     #payNowQuick .qk-desktop-alt-pay {
         display: none !important;
@@ -1055,9 +1079,7 @@ body.qk-checkout-loading {
                                                                     <button type="button" class="qk-mobile-pay-sheet__option qk-mobile-pay-sheet__apple" id="qkMobileApplePayOption"
                                                                         onclick="window.qkMobilePaySheetPick && window.qkMobilePaySheetPick('applePay')">
                                                                         <img src="{{ asset('assets/images/apple.svg') }}" alt="">
-                                                                        <span>
-                                                                            <span class="qk-mobile-pay-sheet__option-title">Apple Pay</span>
-                                                                        </span>
+                                                                        <span class="qk-mobile-pay-sheet__option-title">Apple Pay</span>
                                                                     </button>
                                                                 </div>
                                                             </div>
