@@ -127,10 +127,10 @@ body.qk-checkout-loading {
     display: none;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    min-width: 52px;
+    gap: 6px;
+    min-width: 72px;
     height: 42px;
-    padding: 0 12px;
+    padding: 0 10px;
     border: 1px solid #2e317e;
     border-radius: 8px;
     background: #fff;
@@ -141,10 +141,22 @@ body.qk-checkout-loading {
     cursor: pointer;
     flex-shrink: 0;
 }
-.qk-mobile-pay-more-btn svg {
-    width: 14px;
-    height: 14px;
+.qk-mobile-pay-more-btn__icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.qk-mobile-pay-more-btn__icons img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
     display: block;
+}
+.qk-mobile-pay-more-btn__chevron {
+    width: 12px;
+    height: 12px;
+    display: block;
+    flex-shrink: 0;
 }
 .qk-mobile-pay-sheet {
     display: none;
@@ -1014,8 +1026,12 @@ body.qk-checkout-loading {
                                                                     aria-expanded="false"
                                                                     aria-controls="qkMobilePaySheet"
                                                                     title="More payment options">
+                                                                    <span class="qk-mobile-pay-more-btn__icons" aria-hidden="true">
+                                                                        <img src="{{ asset('assets/images/apple.svg') }}" alt="">
+                                                                        <img src="{{ asset('assets/images/money.svg') }}" alt="">
+                                                                    </span>
                                                                     <span>Pay</span>
-                                                                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                                                    <svg class="qk-mobile-pay-more-btn__chevron" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                                                         <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                                                     </svg>
                                                                 </button>
