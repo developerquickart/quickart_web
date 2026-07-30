@@ -3373,10 +3373,10 @@
                         console.log(response);
                         // If backend (or underlying Node API) indicates user is not a ZAP customer,
                         // show a message and do NOT proceed to login/OTP/register flows.
-                        if (response.status === 0 && response.message === 'Sorry you are not a zap customer') {
+                        if (response.status === 0 && response.message === 'Sorry you are not a GO customer') {
                             Swal.fire({
                                 icon: 'info',
-                                title: 'Sorry you are not a ZAP customer',
+                                title: 'Sorry you are not a GO customer',
                                 text: response.message,
                                 timer: 4000,
                                 showConfirmButton: false
@@ -3411,7 +3411,7 @@
                             Swal.fire({
                                 icon: 'info',
                                 title: 'Notice',
-                                text: 'The zap feature is only for already existing users',
+                                text: 'Quickart Go is available only for already existing users',
                                 timer: 4000,
                                 showConfirmButton: false
                             });
@@ -3425,8 +3425,8 @@
                         }else{
                             Swal.fire({
                                 icon: 'error',
-                                title: response.message || 'Sorry you are not a ZAP customer',
-                                text: response.message || 'Sorry you are not a zap customer',
+                                title: response.message || 'Sorry you are not a GO customer',
+                                text: response.message || 'Sorry you are not a GO customer',
                                 timer: 3000,
                                 showConfirmButton: false
                             });
